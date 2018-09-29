@@ -30,7 +30,7 @@ android {
     productFlavors {
     }
 }
-
+ext.anko_version='0.10.6'
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'com.android.support:appcompat-v7:27.1.1'
@@ -39,4 +39,6 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     implementation project(':apng_library')
+    implementation "org.jetbrains.anko:anko:$anko_version"
+    implementation 'com.squareup.picasso:picasso:2.71828'
 }

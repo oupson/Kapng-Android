@@ -1,26 +1,27 @@
 package oupson.apng
 
 import android.graphics.Bitmap
-import oupson.apng.APNG.Companion.isApng
-import java.util.zip.CRC32
-import android.graphics.BitmapFactory
 import android.util.Log
+import oupson.apng.ApngFactory.Companion.isApng
+import oupson.apng.ApngFactory.Companion.isApng
+import oupson.apng.ApngFactory.Companion.pngSignature
+import java.util.zip.CRC32
 
 
 class APNGDisassembler(val byteArray: ByteArray) {
-    val pngList = ArrayList<ByteArray>()
+    val pngList = ArrayList<Frame>()
     var png : ArrayList<Byte>? = null
 
-    var delayList = ArrayList<Float>()
+    var delay = -1f
 
-    var yOffset= ArrayList<Int>()
+    var yOffset= -1
 
-    var xOffset = ArrayList<Int>()
+    var xOffset = -1
 
     var maxWidth = 0
     var maxHeight = 0
     init {
-        if (isApng(byteArray)) {
+        if (ApngFactory.isApng(byteArray)) {
             val ihdr = IHDR()
             ihdr.parseIHDR(byteArray)
             maxWidth = ihdr.pngWidth
@@ -32,14 +33,13 @@ class APNGDisassembler(val byteArray: ByteArray) {
                         png = ArrayList()
 
                         val fcTL = fcTL(byteArray.copyOfRange(i-4, i + 28))
-                        delayList.add(fcTL.delay)
-
-                        yOffset.add(fcTL.y_offset)
-                        xOffset.add(fcTL.x_offset)
+                        delay = fcTL.delay
+                        yOffset = fcTL.y_offset
+                        xOffset = fcTL.x_offset
                         Log.e("APNG", "delay : + ${fcTL.delay}")
                         val width = fcTL.pngWidth
                         val height = fcTL.pngHeight
-                        png!!.addAll(APNG.pngSignature.toList())
+                        png!!.addAll(pngSignature.toList())
                         png!!.addAll(generate_ihdr(ihdr, width, height).toList())
                     } else {
                         // Add IEND body length : 0
@@ -51,20 +51,19 @@ class APNGDisassembler(val byteArray: ByteArray) {
                         crC32.update(iend, 0, iend.size)
                         png!!.addAll(iend.toList())
                         png!!.addAll(to4Bytes(crC32.value.toInt()).toList())
-
-                        pngList.add(png!!.toByteArray())
+                        pngList.add(Frame(png!!.toByteArray(), delay, xOffset, yOffset, maxWidth, maxHeight))
 
                         png = ArrayList()
 
                         val fcTL = fcTL(byteArray.copyOfRange(i-4, i + 28))
-                        delayList.add(fcTL.delay)
+                        delay = fcTL.delay
 
-                        yOffset.add(fcTL.y_offset)
-                        xOffset.add(fcTL.x_offset)
+                        yOffset = fcTL.y_offset
+                        xOffset = fcTL.x_offset
 
                         val width = fcTL.pngWidth
                         val height = fcTL.pngHeight
-                        png!!.addAll(APNG.pngSignature.toList())
+                        png!!.addAll(pngSignature.toList())
                         png!!.addAll(generate_ihdr(ihdr, width, height).toList())
                     }
                 } else if (byteArray[i] == 0x49.toByte() && byteArray[i + 1] == 0x44.toByte() && byteArray[ i + 2 ] == 0x41.toByte() && byteArray[ i + 3 ] == 0x54.toByte()) {
@@ -75,7 +74,7 @@ class APNGDisassembler(val byteArray: ByteArray) {
                     }
 
 
-                    var bodySize = lengthString.toLong(16).toInt()
+                    val bodySize = lengthString.toLong(16).toInt()
                     png!!.addAll(byteArray.copyOfRange(i-4, i).toList())
                     val body = ArrayList<Byte>()
                     body.addAll(byteArrayOf(0x49, 0x44, 0x41, 0x54).toList())
@@ -114,18 +113,11 @@ class APNGDisassembler(val byteArray: ByteArray) {
                 }
             }
         } else {
+            var p = ""
+            p += String(byteArray.copyOfRange(0, 50))
+            Log.e("TAG", "Not a apng : $p")
             throw NotApngException()
         }
-    }
-
-    fun getbitmapList() : ArrayList<Frame>
-    {
-        var res = ArrayList<Frame>()
-        Log.e("APNG", "pngList : ${pngList.size}, delayList : ${delayList.size}")
-        for (i in 0 until pngList.size) {
-            res.add(Frame(pngList[i], delayList[i], xOffset[i], yOffset[i], maxWidth, maxHeight))
-        }
-        return res
     }
 
     private fun generate_ihdr(ihdrOfApng: IHDR, width : Int, height : Int) : ByteArray {
@@ -179,6 +171,4 @@ class APNGDisassembler(val byteArray: ByteArray) {
 
 
 
-}
-class extractedFrame(val bitmap: Bitmap, val delay : Float, val xoffset : Int, val yoffset : Int, val maxWidth : Int, val maxHeight : Int) {
 }

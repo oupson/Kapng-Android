@@ -1,6 +1,6 @@
 package oupson.apng
 
-import oupson.apng.APNG.Companion.isPng
+import oupson.apng.ApngFactory.Companion.isPng
 
 /**
  * A frame for an animated png

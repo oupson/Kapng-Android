@@ -1,7 +1,5 @@
 package oupson.apng
 
-import android.util.Log
-
 class fcTL(byteArray: ByteArray) {
 
     private var corpsSize = -1
