@@ -26,7 +26,7 @@ import java.net.URL
 class MainActivity : AppCompatActivity() {
     lateinit var animator : ApngAnimator
 
-    val imageUrl = "http://oupson.oupsman.fr/apng/image.apng"
+    val imageUrl = "https://cloud.githubusercontent.com/assets/13003036/24979875/e658e7c8-1fa3-11e7-908a-f1a201d38d52.png"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
