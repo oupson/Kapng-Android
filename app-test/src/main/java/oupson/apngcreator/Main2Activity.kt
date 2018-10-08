@@ -25,7 +25,6 @@ class Main2Activity : AppCompatActivity() {
             animator.load(uri.path)
         }
         Log.e("TAG", intent.data.toString())
-
         animator.load(getImageRealPath(contentResolver, uri, null))
     }
 

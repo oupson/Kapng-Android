@@ -1,6 +1,7 @@
 package oupson.apng
 
 import android.graphics.*
+import android.graphics.drawable.AnimationDrawable
 import android.os.Environment
 import android.os.Handler
 import android.widget.ImageView
@@ -12,7 +13,7 @@ import java.io.IOException
 import java.net.URL
 
 
-class ApngAnimator(val imageView : ImageView) {
+class ApngAnimator {
     var play = true
 
     var Frames = ArrayList<Frame>()
@@ -32,8 +33,17 @@ class ApngAnimator(val imageView : ImageView) {
 
     var isDebug = false
 
+    val imageView : ImageView?
+
     init {
         myHandler = Handler()
+    }
+
+    constructor() {
+        imageView = null
+    }
+    constructor(imageView : ImageView) {
+        this.imageView = imageView
     }
 
 
@@ -80,8 +90,11 @@ class ApngAnimator(val imageView : ImageView) {
             // Add current frame to bitmap buffer
             // APNG_DISPOSE_OP_BACKGROUND: the frame's region of the output buffer is to be cleared to fully transparent black before rendering the next frame.
             else if (it.dispose_op == Utils.Companion.dispose_op.APNG_DISPOSE_OP_BACKGROUND){
-                canvas.drawRect(lastFrame!!.x_offsets.toFloat(), lastFrame!!.y_offsets.toFloat(), lastFrame!!.x_offsets + lastFrame!!.width.toFloat(), lastFrame!!.y_offsets + lastFrame!!.height.toFloat(), { val paint = Paint(); paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR); paint }())
-                bitmapBuffer = btm
+                val res =  Bitmap.createBitmap(Frames[0].maxWidth, Frames[0].maxHeight, Bitmap.Config.ARGB_8888)
+                val can = Canvas(res)
+                can.drawBitmap(btm, 0f, 0f, null)
+                can.drawRect(lastFrame!!.x_offsets.toFloat(), lastFrame!!.y_offsets.toFloat(), lastFrame!!.x_offsets + lastFrame!!.width.toFloat(), lastFrame!!.y_offsets + lastFrame!!.height.toFloat(), { val paint = Paint(); paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR); paint }())
+                bitmapBuffer = res
             }
             else {
                 bitmapBuffer = btm
@@ -200,10 +213,7 @@ class ApngAnimator(val imageView : ImageView) {
             // Write buffer to canvas
             canvas.drawBitmap(bitmapBuffer, 0f, 0f, null)
 
-            // APNG_DISPOSE_OP_BACKGROUND: the frame's region of the output buffer is to be cleared to fully transparent black before rendering the next frame.
-            if (lastFrame!!.dispose_op == Utils.Companion.dispose_op.APNG_DISPOSE_OP_BACKGROUND) {
-                canvas.drawRect(lastFrame!!.x_offsets.toFloat(), lastFrame!!.y_offsets.toFloat(), lastFrame!!.x_offsets + lastFrame!!.width.toFloat(), lastFrame!!.y_offsets + lastFrame!!.height.toFloat(), { val paint = Paint(); paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR); paint }())
-            }
+
 
             // Clear current frame rect
             // If `blend_op` is APNG_BLEND_OP_SOURCE all color components of the frame, including alpha, overwrite the current contents of the frame's output buffer region.
@@ -220,6 +230,14 @@ class ApngAnimator(val imageView : ImageView) {
                 //Do nothings
             }
             // Add current frame to bitmap buffer
+            // APNG_DISPOSE_OP_BACKGROUND: the frame's region of the output buffer is to be cleared to fully transparent black before rendering the next frame.
+            else if (it.dispose_op == Utils.Companion.dispose_op.APNG_DISPOSE_OP_BACKGROUND){
+                val res =  Bitmap.createBitmap(Frames[0].maxWidth, Frames[0].maxHeight, Bitmap.Config.ARGB_8888)
+                val can = Canvas(res)
+                can.drawBitmap(btm, 0f, 0f, null)
+                can.drawRect(lastFrame!!.x_offsets.toFloat(), lastFrame!!.y_offsets.toFloat(), lastFrame!!.x_offsets + lastFrame!!.width.toFloat(), lastFrame!!.y_offsets + lastFrame!!.height.toFloat(), { val paint = Paint(); paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR); paint }())
+                bitmapBuffer = res
+            }
             else {
                 bitmapBuffer = btm
             }
@@ -250,15 +268,17 @@ class ApngAnimator(val imageView : ImageView) {
     }
 
     fun nextFrame() {
-        if (counter == Frames.size) {
-            counter = 0
+        if (imageView != null) {
+            if (counter == Frames.size) {
+                counter = 0
+            }
+            val delay = Frames[counter].delay
+            imageView.setImageBitmap(generatedFrame[counter])
+            counter++
+            myHandler.postDelayed({
+                ifmustPlay()
+            }, delay.toLong() * speed)
         }
-        val delay = Frames[counter].delay
-        imageView.setImageBitmap(generatedFrame[counter])
-        counter++
-        myHandler.postDelayed({
-            ifmustPlay()
-        }, delay.toLong() * speed)
     }
 
     fun pause() {
@@ -276,6 +296,14 @@ class ApngAnimator(val imageView : ImageView) {
         if (play) {
             nextFrame()
         }
+    }
+
+    fun toAnimationDrawable() : AnimationDrawable {
+        val animDrawable = AnimationDrawable()
+        for (i in 0 until generatedFrame.size) {
+            animDrawable.addFrame(BitmapDrawable(generatedFrame[i]), Frames[i].delay.toInt())
+        }
+        return animDrawable
     }
 
     fun setFrameSpeed(speed : Int) {
