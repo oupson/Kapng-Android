@@ -43,3 +43,8 @@ dependencies {
     implementation "org.jetbrains.anko:anko:$anko_version"
     implementation 'com.squareup.picasso:picasso:2.71828'
 }
+kotlin {
+    experimental {
+        coroutines "enable"
+    }
+}

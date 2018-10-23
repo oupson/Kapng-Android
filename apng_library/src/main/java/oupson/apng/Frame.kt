@@ -87,6 +87,34 @@ class Frame {
         }
     }
 
+    constructor(byteArray: ByteArray, delay : Float, xOffsets : Int, yOffsets : Int, blend_op: Utils.Companion.blend_op, dispose_op: Utils.Companion.dispose_op) {
+        if (isPng(byteArray)) {
+            this.byteArray = byteArray
+            // Get width and height for image
+            ihdr = IHDR()
+            ihdr.parseIHDR(byteArray)
+
+            width = ihdr.pngWidth
+            height = ihdr.pngHeight
+
+            // Get image bytes
+            idat = IDAT()
+            idat.parseIDAT(byteArray)
+
+            this.delay = delay
+
+            x_offsets = xOffsets
+            y_offsets = yOffsets
+
+            this.maxWidth = -1
+            this.maxHeight = -1
+            this.blend_op = blend_op
+            this.dispose_op = dispose_op
+        } else {
+            throw NotPngException()
+        }
+    }
+
     constructor(byteArray: ByteArray, delay : Float, xOffsets : Int, yOffsets : Int, maxWidth : Int, maxHeight : Int, blend_op: Utils.Companion.blend_op, dispose_op: Utils.Companion.dispose_op) {
         if (isPng(byteArray)) {
             this.byteArray = byteArray

@@ -7,6 +7,7 @@ import android.provider.MediaStore
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import kotlinx.android.synthetic.main.activity_main2.*
+import org.jetbrains.anko.sdk27.coroutines.onClick
 import oupson.apng.ApngAnimator
 
 class Main2Activity : AppCompatActivity() {
@@ -26,6 +27,14 @@ class Main2Activity : AppCompatActivity() {
         }
         Log.e("TAG", intent.data.toString())
         animator.load(getImageRealPath(contentResolver, uri, null))
+
+        imageView3.onClick {
+            if (animator.isPlaying) {
+                animator.pause()
+            } else {
+                animator.play()
+            }
+        }
     }
 
     private fun getImageRealPath(contentResolver: ContentResolver, uri: Uri, whereClause: String?): String {

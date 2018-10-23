@@ -105,6 +105,7 @@ class APNGDisassembler(val byteArray: ByteArray) {
                 // Check if is IDAT
                 else if (byteArray[i] == 0x49.toByte() && byteArray[i + 1] == 0x44.toByte() && byteArray[ i + 2 ] == 0x41.toByte() && byteArray[ i + 3 ] == 0x54.toByte()) {
                     if (png == null) {
+                        png = ArrayList()
                         if (cover == null) {
                             cover = ArrayList()
                             png!!.addAll(pngSignature.toList())

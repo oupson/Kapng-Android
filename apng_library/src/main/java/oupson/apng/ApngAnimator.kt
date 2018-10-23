@@ -14,7 +14,9 @@ import java.net.URL
 
 
 class ApngAnimator {
-    var play = true
+    var isPlaying = true
+        get() = field
+        private set(value) {field = value}
 
     var Frames = ArrayList<Frame>()
 
@@ -282,18 +284,18 @@ class ApngAnimator {
     }
 
     fun pause() {
-        play = false
+        isPlaying = false
 
     }
     fun play() {
-        if (!play) {
-            play = true
+        if (!isPlaying) {
+            isPlaying = true
             ifmustPlay()
         }
     }
 
     private fun ifmustPlay() {
-        if (play) {
+        if (isPlaying) {
             nextFrame()
         }
     }

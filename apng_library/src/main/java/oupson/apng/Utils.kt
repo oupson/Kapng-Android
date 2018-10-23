@@ -1,5 +1,9 @@
 package oupson.apng
 
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import java.io.ByteArrayOutputStream
+
 class Utils {
     companion object {
         enum class dispose_op {
@@ -43,6 +47,43 @@ class Utils {
                 1 -> Companion.blend_op.APNG_BLEND_OP_OVER
                 else -> blend_op.APNG_BLEND_OP_SOURCE
             }
+        }
+
+        fun toByteArray(bitmap: Bitmap) : ByteArray {
+            val bos = ByteArrayOutputStream();
+            convertImage(bitmap).compress(Bitmap.CompressFormat.PNG, 0 /*ignored for PNG*/, bos);
+            return bos.toByteArray();
+        }
+
+        fun convertImage(bitmap: Bitmap) : Bitmap{
+            val btm = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
+            val canvas = Canvas(btm)
+            canvas.drawBitmap(bitmap, 0f, 0f, null)
+            return btm
+        }
+
+        /**
+         * Generate a 4 bytes array from an Int
+         * @param i The int
+         */
+        fun to4Bytes(i: Int): ByteArray {
+            val result = ByteArray(4)
+            result[0] = (i shr 24).toByte()
+            result[1] = (i shr 16).toByte()
+            result[2] = (i shr 8).toByte()
+            result[3] = i /*>> 0*/.toByte()
+            return result
+        }
+
+        /**
+         * Generate a 2 bytes array from an Int
+         * @param i The int
+         */
+        fun to2Bytes(i: Int): ByteArray {
+            val result = ByteArray(2)
+            result[0] = (i shr 8).toByte()
+            result[1] = i /*>> 0*/.toByte()
+            return result
         }
     }
 }
