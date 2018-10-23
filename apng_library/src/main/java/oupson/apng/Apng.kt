@@ -2,6 +2,7 @@ package oupson.apng
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.util.Log
 import oupson.apng.Utils.Companion.convertImage
 import oupson.apng.Utils.Companion.getBlend_op
 import oupson.apng.Utils.Companion.getDispose_op
@@ -37,12 +38,17 @@ class Apng {
         frames.add(Frame(toByteArray(bitmap), delay))
     }
 
+    fun addFrames(bitmap: Bitmap, delay: Float, blend_op: Utils.Companion.blend_op, dispose_op: Utils.Companion.dispose_op) {
+        frames.add(Frame(toByteArray(bitmap), delay, blend_op, dispose_op))
+    }
+
     fun addFrames(bitmap: Bitmap, delay: Float, xOffset : Int, yOffset : Int, blend_op: Utils.Companion.blend_op, dispose_op: Utils.Companion.dispose_op) {
         frames.add(Frame(toByteArray(bitmap), delay, xOffset, yOffset, blend_op, dispose_op))
     }
     //endregion
 
     fun generateAPNGByteArray() : ByteArray {
+        seq = 0
         val res = ArrayList<Byte>()
         // Add PNG signature
         res.addAll(ApngFactory.pngSignature.toList())
@@ -77,17 +83,23 @@ class Apng {
             fcTL.addAll(to4Bytes(frames[0].height).toList())
 
             // Calculate offset
-            if (frames[0].width < maxWitdh) {
-                val xOffset = (maxWitdh / 2) - (frames[0].width / 2)
-                fcTL.addAll(to4Bytes(xOffset).toList())
+
+            if (frames[0].x_offsets == null) {
+                if (frames[0].width < maxWitdh) {
+                    val xOffset = (maxWitdh / 2) - (frames[0].width / 2)
+                    fcTL.addAll(to4Bytes(xOffset).toList())
+                } else {
+                    fcTL.addAll(to4Bytes(0).toList())
+                }
+                if (frames[0].height < maxHeight) {
+                    val xOffset = (maxHeight / 2) - (frames[0].height / 2)
+                    fcTL.addAll(to4Bytes(xOffset).toList())
+                } else {
+                    fcTL.addAll(to4Bytes(0).toList())
+                }
             } else {
-                fcTL.addAll(to4Bytes(0).toList())
-            }
-            if (frames[0].height < maxHeight) {
-                val xOffset = (maxHeight / 2) - (frames[0].height / 2)
-                fcTL.addAll(to4Bytes(xOffset).toList())
-            } else {
-                fcTL.addAll(to4Bytes(0).toList())
+                fcTL.addAll(to4Bytes(frames[0].x_offsets!!).toList())
+                fcTL.addAll(to4Bytes(frames[0].y_offsets!!).toList())
             }
 
             // Set frame delay
@@ -154,17 +166,22 @@ class Apng {
             fcTL.addAll(to4Bytes(frames[0].height).toList())
 
             // Calculate offset
-            if (frames[0].width < maxWitdh) {
-                val xOffset = (maxWitdh / 2) - (frames[0].width / 2)
-                fcTL.addAll(to4Bytes(xOffset).toList())
+            if (frames[0].x_offsets == null) {
+                if (frames[0].width < maxWitdh) {
+                    val xOffset = (maxWitdh / 2) - (frames[0].width / 2)
+                    fcTL.addAll(to4Bytes(xOffset).toList())
+                } else {
+                    fcTL.addAll(to4Bytes(0).toList())
+                }
+                if (frames[0].height < maxHeight) {
+                    val xOffset = (maxHeight / 2) - (frames[0].height / 2)
+                    fcTL.addAll(to4Bytes(xOffset).toList())
+                } else {
+                    fcTL.addAll(to4Bytes(0).toList())
+                }
             } else {
-                fcTL.addAll(to4Bytes(0).toList())
-            }
-            if (frames[0].height < maxHeight) {
-                val xOffset = (maxHeight / 2) - (frames[0].height / 2)
-                fcTL.addAll(to4Bytes(xOffset).toList())
-            } else {
-                fcTL.addAll(to4Bytes(0).toList())
+                fcTL.addAll(to4Bytes(frames[0].x_offsets!!).toList())
+                fcTL.addAll(to4Bytes(frames[0].y_offsets!!).toList())
             }
 
             // Set frame delay
@@ -202,6 +219,7 @@ class Apng {
         }
 
         for (i in 1 until frames.size) {
+            Log.e("Seq", seq.toString())
             // If it's the first frame
             val framesByte = ArrayList<Byte>()
             val fcTL = ArrayList<Byte>()
@@ -217,17 +235,22 @@ class Apng {
             fcTL.addAll(to4Bytes(frames[i].width).toList())
             fcTL.addAll(to4Bytes(frames[i].height).toList())
 
-            if (frames[i].width < maxWitdh) {
-                val xOffset = (maxWitdh / 2) - (frames[i].width / 2)
-                fcTL.addAll(to4Bytes(xOffset).toList())
+            if (frames[i].x_offsets == null) {
+                if (frames[i].width < maxWitdh) {
+                    val xOffset = (maxWitdh / 2) - (frames[i].width / 2)
+                    fcTL.addAll(to4Bytes(xOffset).toList())
+                } else {
+                    fcTL.addAll(to4Bytes(0).toList())
+                }
+                if (frames[i].height < maxHeight) {
+                    val xOffset = (maxHeight / 2) - (frames[i].height / 2)
+                    fcTL.addAll(to4Bytes(xOffset).toList())
+                } else {
+                    fcTL.addAll(to4Bytes(0).toList())
+                }
             } else {
-                fcTL.addAll(to4Bytes(0).toList())
-            }
-            if (frames[i].height < maxHeight) {
-                val xOffset = (maxHeight / 2) - (frames[i].height / 2)
-                fcTL.addAll(to4Bytes(xOffset).toList())
-            } else {
-                fcTL.addAll(to4Bytes(0).toList())
+                fcTL.addAll(to4Bytes(frames[i].x_offsets!!).toList())
+                fcTL.addAll(to4Bytes(frames[i].y_offsets!!).toList())
             }
 
             // Set frame delay

@@ -40,9 +40,9 @@ class MainActivity : AppCompatActivity() {
         val apng = Apng()
         val file1 = File(Environment.getExternalStoragePublicDirectory(DIRECTORY_PICTURES), "hopital.jpg")
         val file2 = File(Environment.getExternalStoragePublicDirectory(DIRECTORY_PICTURES), "test.jpg")
+        apng.addFrames(BitmapFactory.decodeByteArray(file2.readBytes(), 0, file2.readBytes().size), 2000f, Utils.Companion.blend_op.APNG_BLEND_OP_OVER, Utils.Companion.dispose_op.APNG_DISPOSE_OP_NONE)
 
-        apng.addFrames(BitmapFactory.decodeByteArray(file1.readBytes(), 0, file1.readBytes().size))
-        apng.addFrames(BitmapFactory.decodeByteArray(file2.readBytes(), 0, file2.readBytes().size), 2000f, 0, 0, Utils.Companion.blend_op.APNG_BLEND_OP_OVER, Utils.Companion.dispose_op.APNG_DISPOSE_OP_NONE)
+        apng.addFrames(BitmapFactory.decodeByteArray(file1.readBytes(), 0, file1.readBytes().size), 1000f, Utils.Companion.blend_op.APNG_BLEND_OP_OVER, Utils.Companion.dispose_op.APNG_DISPOSE_OP_NONE)
 
         animator = ApngAnimator(imageView)
         animator.load(apng.generateAPNGByteArray())

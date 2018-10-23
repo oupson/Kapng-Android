@@ -23,8 +23,8 @@ class Frame {
 
     val delay : Float
 
-    val x_offsets : Int
-    val y_offsets : Int
+    var x_offsets : Int? = null
+    var y_offsets : Int? = null
 
     val maxWidth : Int
     val maxHeight : Int
@@ -47,9 +47,6 @@ class Frame {
             idat.parseIDAT(byteArray)
 
             delay = 1000f
-
-            x_offsets = 0
-            y_offsets = 0
 
             maxHeight = -1
             maxWidth = -1
@@ -75,13 +72,36 @@ class Frame {
 
             this.delay = delay
 
-            x_offsets = 0
-            y_offsets = 0
-
             maxHeight = -1
             maxWidth = -1
             blend_op = Utils.Companion.blend_op.APNG_BLEND_OP_SOURCE
             dispose_op = Utils.Companion.dispose_op.APNG_DISPOSE_OP_NONE
+        } else {
+            throw NotPngException()
+        }
+    }
+
+    constructor(byteArray: ByteArray, delay : Float, blend_op: Utils.Companion.blend_op, dispose_op: Utils.Companion.dispose_op) {
+        if (isPng(byteArray)) {
+            this.byteArray = byteArray
+            // Get width and height for image
+            ihdr = IHDR()
+            ihdr.parseIHDR(byteArray)
+
+            width = ihdr.pngWidth
+            height = ihdr.pngHeight
+
+            // Get image bytes
+            idat = IDAT()
+            idat.parseIDAT(byteArray)
+
+            this.delay = delay
+
+
+            this.maxWidth = -1
+            this.maxHeight = -1
+            this.blend_op = blend_op
+            this.dispose_op = dispose_op
         } else {
             throw NotPngException()
         }

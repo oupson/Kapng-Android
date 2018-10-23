@@ -78,11 +78,11 @@ class ApngAnimator {
             // Clear current frame rect
             // If `blend_op` is APNG_BLEND_OP_SOURCE all color components of the frame, including alpha, overwrite the current contents of the frame's output buffer region.
             if (it.blend_op == Utils.Companion.blend_op.APNG_BLEND_OP_SOURCE) {
-                canvas.drawRect(it.x_offsets.toFloat(), it.y_offsets.toFloat(), it.x_offsets + current.width.toFloat(), it.y_offsets + current.height.toFloat(), { val paint = Paint(); paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR); paint }())
+                canvas.drawRect(it.x_offsets!!.toFloat(), it.y_offsets!!.toFloat(), it.x_offsets!! + current.width.toFloat(), it.y_offsets!! + current.height.toFloat(), { val paint = Paint(); paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR); paint }())
             }
 
             // Draw the bitmap
-            canvas.drawBitmap(current, it.x_offsets.toFloat(), it.y_offsets.toFloat(), null)
+            canvas.drawBitmap(current, it.x_offsets!!.toFloat(), it.y_offsets!!.toFloat(), null)
             generatedFrame.add(btm)
 
             // Don't add current frame to bitmap buffer
@@ -95,7 +95,7 @@ class ApngAnimator {
                 val res =  Bitmap.createBitmap(Frames[0].maxWidth, Frames[0].maxHeight, Bitmap.Config.ARGB_8888)
                 val can = Canvas(res)
                 can.drawBitmap(btm, 0f, 0f, null)
-                can.drawRect(lastFrame!!.x_offsets.toFloat(), lastFrame!!.y_offsets.toFloat(), lastFrame!!.x_offsets + lastFrame!!.width.toFloat(), lastFrame!!.y_offsets + lastFrame!!.height.toFloat(), { val paint = Paint(); paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR); paint }())
+                can.drawRect(lastFrame!!.x_offsets!!.toFloat(), lastFrame!!.y_offsets!!.toFloat(), lastFrame!!.x_offsets!! + lastFrame!!.width.toFloat(), lastFrame!!.y_offsets!! + lastFrame!!.height.toFloat(), { val paint = Paint(); paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR); paint }())
                 bitmapBuffer = res
             }
             else {
@@ -148,11 +148,11 @@ class ApngAnimator {
                 // Clear current frame rect
                 // If `blend_op` is APNG_BLEND_OP_SOURCE all color components of the frame, including alpha, overwrite the current contents of the frame's output buffer region.
                 if (it.blend_op == Utils.Companion.blend_op.APNG_BLEND_OP_SOURCE) {
-                    canvas.drawRect(it.x_offsets.toFloat(), it.y_offsets.toFloat(), it.x_offsets + current.width.toFloat(), it.y_offsets + current.height.toFloat(), { val paint = Paint(); paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR); paint }())
+                    canvas.drawRect(it.x_offsets!!.toFloat(), it.y_offsets!!.toFloat(), it.x_offsets!! + current.width.toFloat(), it.y_offsets!! + current.height.toFloat(), { val paint = Paint(); paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR); paint }())
                 }
 
                 // Draw the bitmap
-                canvas.drawBitmap(current, it.x_offsets.toFloat(), it.y_offsets.toFloat(), null)
+                canvas.drawBitmap(current, it.x_offsets!!.toFloat(), it.y_offsets!!.toFloat(), null)
                 generatedFrame.add(btm)
 
                 // Don't add current frame to bitmap buffer
@@ -165,7 +165,7 @@ class ApngAnimator {
                     val res =  Bitmap.createBitmap(Frames[0].maxWidth, Frames[0].maxHeight, Bitmap.Config.ARGB_8888)
                     val can = Canvas(res)
                     can.drawBitmap(btm, 0f, 0f, null)
-                    can.drawRect(lastFrame!!.x_offsets.toFloat(), lastFrame!!.y_offsets.toFloat(), lastFrame!!.x_offsets + lastFrame!!.width.toFloat(), lastFrame!!.y_offsets + lastFrame!!.height.toFloat(), { val paint = Paint(); paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR); paint }())
+                    can.drawRect(lastFrame!!.x_offsets!!.toFloat(), lastFrame!!.y_offsets!!.toFloat(), lastFrame!!.x_offsets!! + lastFrame!!.width.toFloat(), lastFrame!!.y_offsets!! + lastFrame!!.height.toFloat(), { val paint = Paint(); paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR); paint }())
                     bitmapBuffer = res
                 }
                 else {
@@ -220,11 +220,11 @@ class ApngAnimator {
             // Clear current frame rect
             // If `blend_op` is APNG_BLEND_OP_SOURCE all color components of the frame, including alpha, overwrite the current contents of the frame's output buffer region.
             if (it.blend_op == Utils.Companion.blend_op.APNG_BLEND_OP_SOURCE) {
-                canvas.drawRect(it.x_offsets.toFloat(), it.y_offsets.toFloat(), it.x_offsets + current.width.toFloat(), it.y_offsets + current.height.toFloat(), { val paint = Paint(); paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR); paint }())
+                canvas.drawRect(it.x_offsets!!.toFloat(), it.y_offsets!!.toFloat(), it.x_offsets!! + current.width.toFloat(), it.y_offsets!! + current.height.toFloat(), { val paint = Paint(); paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR); paint }())
             }
 
             // Draw the bitmap
-            canvas.drawBitmap(current, it.x_offsets.toFloat(), it.y_offsets.toFloat(), null)
+            canvas.drawBitmap(current, it.x_offsets!!.toFloat(), it.y_offsets!!.toFloat(), null)
             generatedFrame.add(btm)
 
             // Don't add current frame to bitmap buffer
@@ -237,7 +237,7 @@ class ApngAnimator {
                 val res =  Bitmap.createBitmap(Frames[0].maxWidth, Frames[0].maxHeight, Bitmap.Config.ARGB_8888)
                 val can = Canvas(res)
                 can.drawBitmap(btm, 0f, 0f, null)
-                can.drawRect(lastFrame!!.x_offsets.toFloat(), lastFrame!!.y_offsets.toFloat(), lastFrame!!.x_offsets + lastFrame!!.width.toFloat(), lastFrame!!.y_offsets + lastFrame!!.height.toFloat(), { val paint = Paint(); paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR); paint }())
+                can.drawRect(lastFrame!!.x_offsets!!.toFloat(), lastFrame!!.y_offsets!!.toFloat(), lastFrame!!.x_offsets!! + lastFrame!!.width.toFloat(), lastFrame!!.y_offsets!! + lastFrame!!.height.toFloat(), { val paint = Paint(); paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR); paint }())
                 bitmapBuffer = res
             }
             else {

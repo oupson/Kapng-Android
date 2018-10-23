@@ -247,7 +247,7 @@ class APNGDisassembler(val byteArray: ByteArray) {
         pngList.forEach {
             val btm = Bitmap.createBitmap(it.maxWidth, it.maxHeight, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(btm)
-            canvas.drawBitmap(BitmapFactory.decodeByteArray(it.byteArray, 0, it.byteArray.size), it.x_offsets.toFloat(), it.y_offsets.toFloat(), null)
+            canvas.drawBitmap(BitmapFactory.decodeByteArray(it.byteArray, 0, it.byteArray.size), it.x_offsets!!.toFloat(), it.y_offsets!!.toFloat(), null)
             generatedFrame.add(btm)
         }
         return generatedFrame
