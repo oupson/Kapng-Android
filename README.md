@@ -18,4 +18,18 @@ animator.load(imageUrl)
 animator.play()
 ```
 
-To create animated png : WORK IN PROGRESS
+To create animated png :
+
+```kotlin
+
+val apng = Apng()
+
+val file1 = File("image path 1")
+val file2 = File("image path 2")
+
+apng.addFrames(BitmapFactory.decodeByteArray(file1.readBytes(), 0, file1.readBytes().size))
+apng.addFrames(BitmapFactory.decodeByteArray(file2.readBytes(), 0, file2.readBytes().size))
+
+val apngByteArray = apng.generateAPNGByteArray()
+File("output file path").writeBytes(apngByteArray)
+```
