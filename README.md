@@ -33,3 +33,21 @@ apng.addFrames(BitmapFactory.decodeByteArray(file2.readBytes(), 0, file2.readByt
 val apngByteArray = apng.generateAPNGByteArray()
 File("output file path").writeBytes(apngByteArray)
 ```
+
+How to install :
+Via jitpack
+```gradle
+repositories {
+  maven { url "https://jitpack.io" }
+ }
+ 
+ dependencies {
+  implementation 'com.github.oupson:Kapng-Android:1.0.0'
+ }
+ ```
+ 
+ Or put the aar file in /libs/ and verify that you have :
+ ```gradle
+  dependencies {
+    implementation fileTree(include: ['*.aar'], dir: 'libs')
+  }
