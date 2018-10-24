@@ -4,11 +4,9 @@ import android.graphics.*
 import android.graphics.drawable.AnimationDrawable
 import android.os.Environment
 import android.os.Handler
-import android.util.Log
 import android.widget.ImageView
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
-import oupson.apng.Utils.Companion.toByteArray
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -17,12 +15,11 @@ import java.net.URL
 
 class ApngAnimator {
     var isPlaying = true
-        get() = field
         private set(value) {field = value}
 
     var Frames = ArrayList<Frame>()
 
-    var myHandler: Handler
+    var myHandler: Handler = Handler()
 
     var counter = 0
 
@@ -35,13 +32,7 @@ class ApngAnimator {
 
     var background : Bitmap? = null
 
-    var isDebug = false
-
     val imageView : ImageView?
-
-    init {
-        myHandler = Handler()
-    }
 
     constructor() {
         imageView = null
@@ -50,7 +41,11 @@ class ApngAnimator {
         this.imageView = imageView
     }
 
-
+    /**
+    * Load an APNG file
+    * @param file The file to load
+     * @throws NotApngException
+    */
     fun load(file: File) {
         // Download PNG
         val extractedFrame = APNGDisassembler(file.readBytes()).pngList
@@ -65,28 +60,20 @@ class ApngAnimator {
         for (i in 1 until Frames.size) {
             // Iterator
             val it = Frames.get(i)
-
             // Current bitmap for the frame
             val btm = Bitmap.createBitmap(Frames[0].maxWidth!!, Frames[0].maxHeight!!, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(btm)
-
             val current = BitmapFactory.decodeByteArray(it.byteArray, 0, it.byteArray.size).copy(Bitmap.Config.ARGB_8888, true)
-
             // Write buffer to canvas
             canvas.drawBitmap(bitmapBuffer, 0f, 0f, null)
-
-
-
             // Clear current frame rect
             // If `blend_op` is APNG_BLEND_OP_SOURCE all color components of the frame, including alpha, overwrite the current contents of the frame's output buffer region.
             if (it.blend_op == Utils.Companion.blend_op.APNG_BLEND_OP_SOURCE) {
                 canvas.drawRect(it.x_offsets!!.toFloat(), it.y_offsets!!.toFloat(), it.x_offsets!! + current.width.toFloat(), it.y_offsets!! + current.height.toFloat(), { val paint = Paint(); paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR); paint }())
             }
-
             // Draw the bitmap
             canvas.drawBitmap(current, it.x_offsets!!.toFloat(), it.y_offsets!!.toFloat(), null)
             generatedFrame.add(btm)
-
             // Don't add current frame to bitmap buffer
             if (Frames[i].dispose_op == Utils.Companion.dispose_op.APNG_DISPOSE_OP_PREVIOUS) {
                 //Do nothings
@@ -104,76 +91,42 @@ class ApngAnimator {
                 bitmapBuffer = btm
             }
         }
-        // DEBUG FUNCTION : WRITE RENDERED FRAME TO EXTERNAL STORAGE
-        if (isDebug) {
-            for (i in 0 until generatedFrame.size) {
-                try {
-                    FileOutputStream(File(File(Environment.getExternalStorageDirectory(), "Documents"), "image_$i.png")).use { out ->
-                        generatedFrame[i].compress(Bitmap.CompressFormat.PNG, 100, out) // bmp is your Bitmap instance
-                        // PNG is a lossless format, the compression factor (100) is ignored
-                    }
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                }
-            }
-        }
         nextFrame()
     }
 
+    /**
+     * Load an APNG file
+     * @param url URL to load
+     * @throws NotApngException
+     */
     private fun loadUrl(url : URL) {
-        doAsync(exceptionHandler = {e -> e.printStackTrace()}) {
+        doAsync(exceptionHandler = {e -> throw e}) {
             // Download PNG
             val extractedFrame = APNGDisassembler(Loader().load(url)).pngList
-
-            // DEBUG FUNCTION : WRITE RENDERED FRAME TO EXTERNAL STORAGE
-            if (isDebug) {
-                for (i in 0 until extractedFrame.size) {
-                    try {
-                        FileOutputStream(File(File(Environment.getExternalStorageDirectory(), "Documents"), "image_$i.png")).use { out ->
-                            out.write(extractedFrame[i].byteArray)
-                            // PNG is a lossless format, the compression factor (100) is ignored
-                        }
-                    } catch (e: IOException) {
-                        e.printStackTrace()
-                    }
-                }
-            }
-
             // Set last frame
             lastFrame = extractedFrame[0]
 
             // Init image buffer
             bitmapBuffer = BitmapFactory.decodeByteArray(lastFrame?.byteArray!!, 0, lastFrame?.byteArray!!.size)
-
-            Log.e("ApngAnimator", "bitmapBuffer is null : ${bitmapBuffer == null}")
             generatedFrame.add(BitmapFactory.decodeByteArray(lastFrame?.byteArray, 0, lastFrame?.byteArray!!.size))
             Frames = extractedFrame
             for (i in 1 until Frames.size) {
-                Log.e("ApngAnimator", "Render $i frame")
                 // Iterator
                 val it = Frames.get(i)
-
                 // Current bitmap for the frame
                 val btm = Bitmap.createBitmap(Frames[0].maxWidth!!, Frames[0].maxHeight!!, Bitmap.Config.ARGB_8888)
                 val canvas = Canvas(btm)
-
                 val current = BitmapFactory.decodeByteArray(it.byteArray, 0, it.byteArray.size).copy(Bitmap.Config.ARGB_8888, true)
-
                 // Write buffer to canvas
                 canvas.drawBitmap(bitmapBuffer, 0f, 0f, null)
-
-
-
                 // Clear current frame rect
                 // If `blend_op` is APNG_BLEND_OP_SOURCE all color components of the frame, including alpha, overwrite the current contents of the frame's output buffer region.
                 if (it.blend_op == Utils.Companion.blend_op.APNG_BLEND_OP_SOURCE) {
                     canvas.drawRect(it.x_offsets!!.toFloat(), it.y_offsets!!.toFloat(), it.x_offsets!! + current.width.toFloat(), it.y_offsets!! + current.height.toFloat(), { val paint = Paint(); paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR); paint }())
                 }
-
                 // Draw the bitmap
                 canvas.drawBitmap(current, it.x_offsets!!.toFloat(), it.y_offsets!!.toFloat(), null)
                 generatedFrame.add(btm)
-
                 // Don't add current frame to bitmap buffer
                 if (Frames[i].dispose_op == Utils.Companion.dispose_op.APNG_DISPOSE_OP_PREVIOUS) {
                     //Do nothings
@@ -189,19 +142,6 @@ class ApngAnimator {
                 }
                 else {
                     bitmapBuffer = btm
-                }
-            }
-            // DEBUG FUNCTION : WRITE RENDERED FRAME TO EXTERNAL STORAGE
-            if (isDebug) {
-                for (i in 0 until generatedFrame.size) {
-                    try {
-                        FileOutputStream(File(File(Environment.getExternalStorageDirectory(), "Documents"), "image_$i.png")).use { out ->
-                            generatedFrame[i].compress(Bitmap.CompressFormat.PNG, 100, out) // bmp is your Bitmap instance
-                            // PNG is a lossless format, the compression factor (100) is ignored
-                        }
-                    } catch (e: IOException) {
-                        e.printStackTrace()
-                    }
                 }
             }
             uiThread {
@@ -261,19 +201,6 @@ class ApngAnimator {
             }
             else {
                 bitmapBuffer = btm
-            }
-        }
-        // DEBUG FUNCTION : WRITE RENDERED FRAME TO EXTERNAL STORAGE
-        if (isDebug) {
-            for (i in 0 until generatedFrame.size) {
-                try {
-                    FileOutputStream(File(File(Environment.getExternalStorageDirectory(), "Documents"), "image_$i.png")).use { out ->
-                        generatedFrame[i].compress(Bitmap.CompressFormat.PNG, 100, out) // bmp is your Bitmap instance
-                        // PNG is a lossless format, the compression factor (100) is ignored
-                    }
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                }
             }
         }
         nextFrame()

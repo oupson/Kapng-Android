@@ -1,5 +1,6 @@
 package oupson.apng
 
+import oupson.apng.exceptions.NoFrameException
 import java.util.zip.CRC32
 
 

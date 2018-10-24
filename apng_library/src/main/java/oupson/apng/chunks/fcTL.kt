@@ -1,5 +1,6 @@
-package oupson.apng
+package oupson.apng.chunks
 
+import oupson.apng.Utils
 import oupson.apng.Utils.Companion.getBlend_op
 import oupson.apng.Utils.Companion.getDispose_op
 
@@ -20,7 +21,7 @@ class fcTL(byteArray: ByteArray) {
     var y_offset : Int = 0
 
     var blend_op : Utils.Companion.blend_op = Utils.Companion.blend_op.APNG_BLEND_OP_SOURCE
-    var dispose_op : Utils.Companion.dispose_op= Utils.Companion.dispose_op.APNG_DISPOSE_OP_NONE
+    var dispose_op : Utils.Companion.dispose_op = Utils.Companion.dispose_op.APNG_DISPOSE_OP_NONE
     init {
         for (i in 0 until byteArray.size) {
             // Find fcTL chunk

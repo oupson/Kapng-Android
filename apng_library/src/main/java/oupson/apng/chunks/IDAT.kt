@@ -1,4 +1,4 @@
-package oupson.apng
+package oupson.apng.chunks
 
 class IDAT {
     private var bodySize = -1

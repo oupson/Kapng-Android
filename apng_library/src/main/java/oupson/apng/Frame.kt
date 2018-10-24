@@ -1,6 +1,9 @@
 package oupson.apng
 
 import oupson.apng.ApngFactory.Companion.isPng
+import oupson.apng.chunks.IDAT
+import oupson.apng.chunks.IHDR
+import oupson.apng.exceptions.NotPngException
 
 /**
  * A frame for an animated png

@@ -38,7 +38,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         animator = ApngAnimator(imageView)
-        animator.isDebug = true
         animator.load(imageUrl)
 
         Picasso.get().load(imageUrl).into(imageView2);

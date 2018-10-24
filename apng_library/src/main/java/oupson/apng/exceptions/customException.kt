@@ -1,4 +1,4 @@
-package oupson.apng
+package oupson.apng.exceptions
 
 class NoFrameException() : Exception()
 class NotPngException() : Exception()

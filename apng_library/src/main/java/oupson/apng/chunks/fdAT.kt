@@ -1,4 +1,4 @@
-package oupson.apng
+package oupson.apng.chunks
 
 class fdAT {
     private var bodySize = -1

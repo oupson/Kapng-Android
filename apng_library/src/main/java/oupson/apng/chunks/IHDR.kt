@@ -1,4 +1,4 @@
-package oupson.apng
+package oupson.apng.chunks
 
 class IHDR {
     private var corpsSize = -1

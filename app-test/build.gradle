@@ -32,6 +32,7 @@ android {
 }
 ext.anko_version = '0.10.7'
 dependencies {
+
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     //noinspection GradleCompatible
     implementation 'com.android.support:appcompat-v7:27.1.1'
@@ -39,9 +40,10 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
-    implementation project(':apng_library')
     implementation "org.jetbrains.anko:anko:$anko_version"
     implementation 'com.squareup.picasso:picasso:2.71828'
+    implementation project(":apng_library")
+    // implementation fileTree(include: ['*.aar'], dir: 'libs')
 }
 kotlin {
     experimental {

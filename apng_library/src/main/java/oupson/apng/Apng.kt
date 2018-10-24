@@ -2,13 +2,14 @@ package oupson.apng
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.util.Log
 import oupson.apng.Utils.Companion.convertImage
 import oupson.apng.Utils.Companion.getBlend_op
 import oupson.apng.Utils.Companion.getDispose_op
 import oupson.apng.Utils.Companion.to2Bytes
 import oupson.apng.Utils.Companion.to4Bytes
 import oupson.apng.Utils.Companion.toByteArray
+import oupson.apng.chunks.IDAT
+import oupson.apng.exceptions.NoFrameException
 import java.util.zip.CRC32
 
 
@@ -20,6 +21,11 @@ class Apng {
     var maxWidth : Int? = null
     var maxHeight : Int? = null
 
+    /**
+     * Image that will display in non compatible reader
+     * It's not necessary if the first frame is the biggest image.
+     * If it's null the library generate a cover with the first frame
+     */
     var cover : Bitmap? = null
         set(value) {
             field = convertImage(value!!)
@@ -141,6 +147,7 @@ class Apng {
             // region fcTL
             // Create the fcTL
             val fcTL = ArrayList<Byte>()
+
             // Add the length of the chunk body
             framesByte.addAll(byteArrayOf(0x00, 0x00, 0x00, 0x1A).toList())
 
@@ -149,6 +156,7 @@ class Apng {
 
             // Add the frame number
             fcTL.addAll(to4Bytes(seq).toList())
+            // foreach fcTL or fdAT we must increment seq
             seq++
 
             // Add width and height
@@ -156,7 +164,6 @@ class Apng {
             fcTL.addAll(to4Bytes(frames[0].height).toList())
 
             // Calculate offset
-
             if (frames[0].x_offsets == null) {
                 if (frames[0].width < maxWitdh) {
                     val xOffset = (maxWitdh / 2) - (frames[0].width / 2)
@@ -179,9 +186,11 @@ class Apng {
             fcTL.addAll(to2Bytes(frames[0].delay.toInt()).toList())
             fcTL.addAll(to2Bytes(1000).toList())
 
+            // Add dispose_op and blend_op
             fcTL.add(getDispose_op(frames[0].dispose_op).toByte())
             fcTL.add(getBlend_op(frames[0].blend_op).toByte())
 
+            // Create CRC
             val crc = CRC32()
             crc.update(fcTL.toByteArray(), 0, fcTL.size)
             framesByte.addAll(fcTL)
@@ -190,25 +199,25 @@ class Apng {
 
             // region idat
             frames[0].idat.IDATBody.forEach {
-                val fdat = ArrayList<Byte>()
+                val idat = ArrayList<Byte>()
                 // Add the chunk body length
                 framesByte.addAll(to4Bytes(it.size).toList())
                 // Add IDAT
-                fdat.addAll(byteArrayOf(0x49, 0x44, 0x41, 0x54).toList())
+                idat.addAll(byteArrayOf(0x49, 0x44, 0x41, 0x54).toList())
                 // Add chunk body
-                fdat.addAll(it.toList())
+                idat.addAll(it.toList())
                 // Generate CRC
                 val crc1 = CRC32()
-                crc1.update(fdat.toByteArray(), 0, fdat.size)
-                framesByte.addAll(fdat)
+                crc1.update(idat.toByteArray(), 0, idat.size)
+                framesByte.addAll(idat)
                 framesByte.addAll(to4Bytes(crc1.value.toInt()).toList())
             }
             // endregion
             res.addAll(framesByte)
         } else {
             val framesByte = ArrayList<Byte>()
-            // Add cover image : Not part of annimation
-            // region idat
+            // Add cover image : Not part of animation
+            // region IDAT
             val idat = IDAT()
             idat.parseIDAT(toByteArray(cover!!))
             idat.IDATBody.forEach {
@@ -223,10 +232,10 @@ class Apng {
             }
             // endregion
 
+            //region fcTL
             val fcTL = ArrayList<Byte>()
             // Add the length of the chunk body
             framesByte.addAll(byteArrayOf(0x00, 0x00, 0x00, 0x1A).toList())
-
             // Add fcTL
             fcTL.addAll(byteArrayOf(0x66, 0x63, 0x54, 0x4c).toList())
 
@@ -261,9 +270,11 @@ class Apng {
             fcTL.addAll(to2Bytes(frames[0].delay.toInt()).toList())
             fcTL.addAll(to2Bytes(1000).toList())
 
+            // Add dispose_op and blend_op
             fcTL.add(getDispose_op(frames[0].dispose_op).toByte())
             fcTL.add(getBlend_op(frames[0].blend_op).toByte())
 
+            // Generate CRC
             val crc = CRC32()
             crc.update(fcTL.toByteArray(), 0, fcTL.size)
             framesByte.addAll(fcTL)
@@ -292,7 +303,6 @@ class Apng {
         }
 
         for (i in 1 until frames.size) {
-            Log.e("Seq", seq.toString())
             // If it's the first frame
             val framesByte = ArrayList<Byte>()
             val fcTL = ArrayList<Byte>()
@@ -362,8 +372,6 @@ class Apng {
             // endregion
             res.addAll(framesByte)
         }
-
-
         if (frames.isNotEmpty()) {
 
             // Add IEND body length : 0
@@ -381,7 +389,14 @@ class Apng {
         }
     }
 
-
+    /**
+     * Generate a cover image that have the max width and height.
+     * You could also set yours
+     * @param bitmap The bitmap of the cover
+     * @param maxWidth Max width of APNG
+     * @param maxHeight Max height of the APNG
+     * @return An image cover
+     */
     fun generateCover(bitmap: Bitmap, maxWidth : Int, maxHeight : Int) : Bitmap {
         return Bitmap.createScaledBitmap(bitmap, maxWidth, maxHeight, false)
     }

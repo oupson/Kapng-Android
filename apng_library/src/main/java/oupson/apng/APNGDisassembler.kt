@@ -5,28 +5,25 @@ import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import oupson.apng.ApngFactory.Companion.pngSignature
 import oupson.apng.Utils.Companion.to4Bytes
+import oupson.apng.chunks.IHDR
+import oupson.apng.chunks.fcTL
+import oupson.apng.exceptions.NotApngException
 import java.util.zip.CRC32
 
 class APNGDisassembler(val byteArray: ByteArray) {
     val pngList = ArrayList<Frame>()
     var png : ArrayList<Byte>? = null
-
     var cover : ArrayList<Byte>? = null
-
     var delay = -1f
-
     var yOffset= -1
-
     var xOffset = -1
-
     var plte : ByteArray? = null
     var tnrs : ByteArray? = null
-
     var maxWidth = 0
     var maxHeight = 0
-
     var blend_op : Utils.Companion.blend_op = Utils.Companion.blend_op.APNG_BLEND_OP_SOURCE
     var dispose_op : Utils.Companion.dispose_op= Utils.Companion.dispose_op.APNG_DISPOSE_OP_NONE
+
     init {
         if (ApngFactory.isApng(byteArray)) {
             val ihdr = IHDR()
@@ -48,8 +45,7 @@ class APNGDisassembler(val byteArray: ByteArray) {
                             cover!!.addAll(to4Bytes(crC32.value.toInt()).toList())
                         }
                         png = ArrayList()
-
-                        val fcTL = fcTL(byteArray.copyOfRange(i-4, i + 32))
+                        val fcTL = fcTL(byteArray.copyOfRange(i - 4, i + 32))
                         delay = fcTL.delay
                         yOffset = fcTL.y_offset
                         xOffset = fcTL.x_offset
@@ -81,7 +77,7 @@ class APNGDisassembler(val byteArray: ByteArray) {
 
                         png = ArrayList()
 
-                        val fcTL = fcTL(byteArray.copyOfRange(i-4, i + 32))
+                        val fcTL = fcTL(byteArray.copyOfRange(i - 4, i + 32))
                         delay = fcTL.delay
 
                         yOffset = fcTL.y_offset
@@ -154,8 +150,6 @@ class APNGDisassembler(val byteArray: ByteArray) {
                     byteArray.copyOfRange( i - 4, i).forEach {
                         lengthString += String.format("%02x", it)
                     }
-
-
                     val bodySize = lengthString.toLong(16).toInt()
                     png!!.addAll(to4Bytes(bodySize - 4).toList())
                     val body = ArrayList<Byte>()
@@ -168,22 +162,23 @@ class APNGDisassembler(val byteArray: ByteArray) {
                     crC32.update(body.toByteArray(), 0, body.size)
                     png!!.addAll(body)
                     png!!.addAll(to4Bytes(crC32.value.toInt()).toList())
-                } else if (byteArray[i] == 0x50.toByte() && byteArray[i + 1] == 0x4C.toByte() && byteArray[ i + 2 ] == 0x54.toByte() && byteArray[ i + 3 ] == 0x45.toByte()) {
+                }
+                // Get plte chunks if exist. The PLTE chunk contains from 1 to 256 palette entries, each a three-byte series of the form:
+                else if (byteArray[i] == 0x50.toByte() && byteArray[i + 1] == 0x4C.toByte() && byteArray[ i + 2 ] == 0x54.toByte() && byteArray[ i + 3 ] == 0x45.toByte()) {
                     var lengthString = ""
                     byteArray.copyOfRange( i - 4, i).forEach {
                         lengthString += String.format("%02x", it)
                     }
                     val bodySize = lengthString.toLong(16).toInt()
-                    val body = ArrayList<Byte>()
                     plte = byteArray.copyOfRange( i -4, i + 8 + bodySize)
                 }
+                // Get tnrs chunk if exist. Used for transparency
                 else if (byteArray[i] == 0x74.toByte() && byteArray[i + 1] == 0x52.toByte() && byteArray[ i + 2 ] == 0x4E.toByte() && byteArray[ i + 3 ] == 0x53.toByte()) {
                     var lengthString = ""
                     byteArray.copyOfRange( i - 4, i).forEach {
                         lengthString += String.format("%02x", it)
                     }
                     val bodySize = lengthString.toLong(16).toInt()
-                    val body = ArrayList<Byte>()
                     tnrs = byteArray.copyOfRange( i -4, i + 8 + bodySize)
                 }
             }
@@ -194,25 +189,18 @@ class APNGDisassembler(val byteArray: ByteArray) {
 
     private fun generate_ihdr(ihdrOfApng: IHDR, width : Int, height : Int) : ByteArray {
         val ihdr = ArrayList<Byte>()
-
         // We need a body var to know body length and generate crc
         val ihdr_body = ArrayList<Byte>()
-
-        // Get max height and max width of all the frames
-
         // Add chunk body length
         ihdr.addAll(to4Bytes(ihdrOfApng.ihdrCorps.size).toList())
         // Add IHDR
         ihdr_body.addAll(byteArrayOf(0x49.toByte(), 0x48.toByte(), 0x44.toByte(), 0x52.toByte()).toList())
-
         // Add the max width and height
         ihdr_body.addAll(to4Bytes(width).toList())
         ihdr_body.addAll(to4Bytes(height).toList())
-
         // Add complicated stuff like depth color ...
         // If you want correct png you need same parameters. Good solution is to create new png.
         ihdr_body.addAll(ihdrOfApng.ihdrCorps.copyOfRange(8, 13).toList())
-
         // Generate CRC
         val crC32 = CRC32()
         crC32.update(ihdr_body.toByteArray(), 0, ihdr_body.size)
@@ -232,7 +220,4 @@ class APNGDisassembler(val byteArray: ByteArray) {
         }
         return generatedFrame
     }
-
-
-
 }
