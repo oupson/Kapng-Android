@@ -30,7 +30,7 @@ android {
     productFlavors {
     }
 }
-ext.anko_version = '0.10.6'
+ext.anko_version = '0.10.7'
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     //noinspection GradleCompatible

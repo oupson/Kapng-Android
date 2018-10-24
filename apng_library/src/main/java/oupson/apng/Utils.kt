@@ -12,6 +12,11 @@ class Utils {
             APNG_DISPOSE_OP_PREVIOUS
         }
 
+        /**
+         * Get the int equivalent to the dispose_op
+         * @param dispose_op The dispose_op
+         * @return An int equivalent to the dispose_op
+         */
         fun getDispose_op(dispose_op: dispose_op) : Int {
             return when(dispose_op) {
                 Companion.dispose_op.APNG_DISPOSE_OP_NONE -> 0
@@ -20,6 +25,11 @@ class Utils {
             }
         }
 
+        /**
+         * Get the dispose_op enum equivalent to the int
+         * @param int Int of the dispose_op
+         * @return A dispose_op
+         */
         fun getDispose_op(int: Int) : dispose_op {
             return when(int) {
                 0 -> Companion.dispose_op.APNG_DISPOSE_OP_NONE
@@ -34,6 +44,11 @@ class Utils {
             APNG_BLEND_OP_OVER
         }
 
+        /**
+         * Get the int equivalent to the blend_op
+         * @param blend_op The blend_op
+         * @return An int equivalent to the blend_op
+         */
         fun getBlend_op(blend_op: blend_op) : Int {
             return when(blend_op) {
                 Companion.blend_op.APNG_BLEND_OP_SOURCE -> 0
@@ -41,6 +56,11 @@ class Utils {
             }
         }
 
+        /**
+         * Get the blend_op enum equivalent to the int
+         * @param int Int of the blend_op
+         * @return A blend_op
+         */
         fun getBlend_op(int : Int) : blend_op{
             return when(int) {
                 0 -> Companion.blend_op.APNG_BLEND_OP_SOURCE
@@ -49,12 +69,22 @@ class Utils {
             }
         }
 
+        /**
+         * Get PNG ByteArray of Bitmap
+         * @param bitmap The bitmap to convert
+         * @return PNG ByteArray of the Bitmap
+         */
         fun toByteArray(bitmap: Bitmap) : ByteArray {
             val bos = ByteArrayOutputStream();
             convertImage(bitmap).compress(Bitmap.CompressFormat.PNG, 0 /*ignored for PNG*/, bos);
             return bos.toByteArray();
         }
 
+        /**
+         * Convert the image
+         * @param bitmap Bitmap to convert
+         * @return Bitmap converted
+         */
         fun convertImage(bitmap: Bitmap) : Bitmap{
             val btm = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
             val canvas = Canvas(btm)
@@ -65,6 +95,7 @@ class Utils {
         /**
          * Generate a 4 bytes array from an Int
          * @param i The int
+         * @return 2 Bytes
          */
         fun to4Bytes(i: Int): ByteArray {
             val result = ByteArray(4)
@@ -78,6 +109,7 @@ class Utils {
         /**
          * Generate a 2 bytes array from an Int
          * @param i The int
+         * @return 2 Bytes
          */
         fun to2Bytes(i: Int): ByteArray {
             val result = ByteArray(2)

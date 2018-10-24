@@ -11,9 +11,11 @@ import oupson.apng.Utils.Companion.to4Bytes
 import oupson.apng.Utils.Companion.toByteArray
 import java.util.zip.CRC32
 
-class Apng {
 
-    private var seq = 0
+/**
+ * Create an APNG file
+ */
+class Apng {
 
     var maxWidth : Int? = null
     var maxHeight : Int? = null
@@ -25,30 +27,101 @@ class Apng {
 
     var frames : ArrayList<Frame> = ArrayList()
 
-    init {
-
-    }
-
     // region addFrames
+
+    /**
+     * Add a frame to the APNG
+     * @param bitmap The bitamp to add
+     */
     fun addFrames(bitmap: Bitmap) {
         frames.add(Frame(toByteArray(bitmap)))
     }
 
+    /**
+     * Add a frame to the APNG
+     * @param bitmap The bitamp to add
+     * @param delay Delay of the frame
+     */
     fun addFrames(bitmap: Bitmap, delay : Float) {
         frames.add(Frame(toByteArray(bitmap), delay))
     }
 
-    fun addFrames(bitmap: Bitmap, delay: Float, blend_op: Utils.Companion.blend_op, dispose_op: Utils.Companion.dispose_op) {
+    /**
+     * Add a frame to the APNG
+     * @param bitmap The bitamp to add
+     * @param delay Delay of the frame
+     * @param dispose_op `dispose_op` specifies how the output buffer should be changed at the end of the delay (before rendering the next frame).
+     * @param blend_op `blend_op` specifies whether the frame is to be alpha blended into the current output buffer content, or whether it should completely replace its region in the output buffer.
+     */
+    fun addFrames(bitmap: Bitmap, delay: Float, dispose_op: Utils.Companion.dispose_op, blend_op: Utils.Companion.blend_op) {
         frames.add(Frame(toByteArray(bitmap), delay, blend_op, dispose_op))
     }
 
-    fun addFrames(bitmap: Bitmap, delay: Float, xOffset : Int, yOffset : Int, blend_op: Utils.Companion.blend_op, dispose_op: Utils.Companion.dispose_op) {
+    /**
+     * Add a frame to the APNG
+     * @param bitmap The bitamp to add
+     * @param delay Delay of the frame
+     * @param xOffset The X offset where the frame should be rendered
+     * @param yOffset The Y offset where the frame should be rendered
+     * @param dispose_op `dispose_op` specifies how the output buffer should be changed at the end of the delay (before rendering the next frame).
+     * @param blend_op `blend_op` specifies whether the frame is to be alpha blended into the current output buffer content, or whether it should completely replace its region in the output buffer.
+     */
+    fun addFrames(bitmap: Bitmap, delay: Float, xOffset : Int, yOffset : Int, dispose_op: Utils.Companion.dispose_op, blend_op: Utils.Companion.blend_op) {
         frames.add(Frame(toByteArray(bitmap), delay, xOffset, yOffset, blend_op, dispose_op))
+    }
+
+    /**
+     * Add a frame to the APNG
+     * @param index Index where we add the frame
+     * @param bitmap The bitamp to add
+     */
+    fun addFrames(index : Int, bitmap: Bitmap) {
+        frames.add(index, Frame(toByteArray(bitmap)))
+    }
+
+    /**
+     * Add a frame to the APNG
+     * @param index Index where we add the frame
+     * @param bitmap The bitamp to add
+     * @param delay Delay of the frame
+     */
+    fun addFrames(index : Int, bitmap: Bitmap, delay : Float) {
+        frames.add(index, Frame(toByteArray(bitmap), delay))
+    }
+
+    /**
+     * Add a frame to the APNG
+     * @param index Index where we add the frame
+     * @param bitmap The bitamp to add
+     * @param delay Delay of the frame
+     * @param dispose_op `dispose_op` specifies how the output buffer should be changed at the end of the delay (before rendering the next frame).
+     * @param blend_op `blend_op` specifies whether the frame is to be alpha blended into the current output buffer content, or whether it should completely replace its region in the output buffer.
+     */
+    fun addFrames(index: Int, bitmap: Bitmap, delay: Float, dispose_op: Utils.Companion.dispose_op, blend_op: Utils.Companion.blend_op) {
+        frames.add(index, Frame(toByteArray(bitmap), delay, blend_op, dispose_op))
+    }
+
+    /**
+     * Add a frame to the APNG
+     * @param index Index where we add the frame
+     * @param bitmap The bitamp to add
+     * @param delay Delay of the frame
+     * @param xOffset The X offset where the frame should be rendered
+     * @param yOffset The Y offset where the frame should be rendered
+     * @param dispose_op `dispose_op` specifies how the output buffer should be changed at the end of the delay (before rendering the next frame).
+     * @param blend_op `blend_op` specifies whether the frame is to be alpha blended into the current output buffer content, or whether it should completely replace its region in the output buffer.
+     */
+    fun addFrames(index: Int, bitmap: Bitmap, delay: Float, xOffset : Int, yOffset : Int, dispose_op: Utils.Companion.dispose_op, blend_op: Utils.Companion.blend_op) {
+        frames.add(index, Frame(toByteArray(bitmap), delay, xOffset, yOffset, blend_op, dispose_op))
     }
     //endregion
 
-    fun generateAPNGByteArray() : ByteArray {
-        seq = 0
+    /**
+     * Generate a Bytes Array of the APNG
+     * @return The Bytes Array of the APNG
+     */
+    fun toByteArray() : ByteArray {
+        var seq = 0
         val res = ArrayList<Byte>()
         // Add PNG signature
         res.addAll(ApngFactory.pngSignature.toList())

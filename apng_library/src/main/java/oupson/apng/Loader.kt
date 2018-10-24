@@ -1,11 +1,10 @@
 package oupson.apng
 
-import android.os.Bundle
-import android.widget.ImageView
-import java.io.*
-import java.net.URI
+import java.io.BufferedInputStream
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.IOException
 import java.net.URL
-import java.net.URLConnection
 
 class Loader {
     fun load(url : URL) : ByteArray {

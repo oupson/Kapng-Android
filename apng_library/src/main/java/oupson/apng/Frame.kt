@@ -12,12 +12,12 @@ import oupson.apng.ApngFactory.Companion.isPng
 
 class Frame {
 
-    val byteArray : ByteArray
+    var byteArray : ByteArray
 
-    val width : Int
-    val height : Int
+    var width : Int
+    var height : Int
 
-    val ihdr : IHDR
+    var ihdr : IHDR
 
     var idat : IDAT
 
@@ -26,11 +26,11 @@ class Frame {
     var x_offsets : Int? = null
     var y_offsets : Int? = null
 
-    val maxWidth : Int
-    val maxHeight : Int
+    var maxWidth : Int? = null
+    var maxHeight : Int? = null
 
-    val blend_op: Utils.Companion.blend_op
-    val dispose_op : Utils.Companion.dispose_op
+    var blend_op: Utils.Companion.blend_op
+    var dispose_op : Utils.Companion.dispose_op
 
     constructor(byteArray: ByteArray) {
         if (isPng(byteArray)) {
@@ -42,14 +42,12 @@ class Frame {
             width = ihdr.pngWidth
             height = ihdr.pngHeight
 
-            // Get image bytes
+            // Get IDAT Bytes
             idat = IDAT()
             idat.parseIDAT(byteArray)
 
             delay = 1000f
 
-            maxHeight = -1
-            maxWidth = -1
             blend_op = Utils.Companion.blend_op.APNG_BLEND_OP_SOURCE
             dispose_op = Utils.Companion.dispose_op.APNG_DISPOSE_OP_NONE
         } else {
@@ -66,14 +64,11 @@ class Frame {
             width = ihdr.pngWidth
             height = ihdr.pngHeight
 
-            // Get image bytes
+            // Get IDAT Bytes
             idat = IDAT()
             idat.parseIDAT(byteArray)
 
             this.delay = delay
-
-            maxHeight = -1
-            maxWidth = -1
             blend_op = Utils.Companion.blend_op.APNG_BLEND_OP_SOURCE
             dispose_op = Utils.Companion.dispose_op.APNG_DISPOSE_OP_NONE
         } else {
@@ -91,7 +86,7 @@ class Frame {
             width = ihdr.pngWidth
             height = ihdr.pngHeight
 
-            // Get image bytes
+            // Get IDAT Bytes
             idat = IDAT()
             idat.parseIDAT(byteArray)
 
@@ -117,7 +112,7 @@ class Frame {
             width = ihdr.pngWidth
             height = ihdr.pngHeight
 
-            // Get image bytes
+            // Get IDAT Bytes
             idat = IDAT()
             idat.parseIDAT(byteArray)
 
@@ -145,7 +140,7 @@ class Frame {
             width = ihdr.pngWidth
             height = ihdr.pngHeight
 
-            // Get image bytes
+            // Get IDAT Bytes
             idat = IDAT()
             idat.parseIDAT(byteArray)
 

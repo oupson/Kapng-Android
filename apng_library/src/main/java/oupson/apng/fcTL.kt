@@ -1,6 +1,5 @@
 package oupson.apng
 
-import android.util.Log
 import oupson.apng.Utils.Companion.getBlend_op
 import oupson.apng.Utils.Companion.getDispose_op
 

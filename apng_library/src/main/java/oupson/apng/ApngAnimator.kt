@@ -4,9 +4,11 @@ import android.graphics.*
 import android.graphics.drawable.AnimationDrawable
 import android.os.Environment
 import android.os.Handler
+import android.util.Log
 import android.widget.ImageView
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
+import oupson.apng.Utils.Companion.toByteArray
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -65,7 +67,7 @@ class ApngAnimator {
             val it = Frames.get(i)
 
             // Current bitmap for the frame
-            val btm = Bitmap.createBitmap(Frames[0].maxWidth, Frames[0].maxHeight, Bitmap.Config.ARGB_8888)
+            val btm = Bitmap.createBitmap(Frames[0].maxWidth!!, Frames[0].maxHeight!!, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(btm)
 
             val current = BitmapFactory.decodeByteArray(it.byteArray, 0, it.byteArray.size).copy(Bitmap.Config.ARGB_8888, true)
@@ -92,7 +94,7 @@ class ApngAnimator {
             // Add current frame to bitmap buffer
             // APNG_DISPOSE_OP_BACKGROUND: the frame's region of the output buffer is to be cleared to fully transparent black before rendering the next frame.
             else if (it.dispose_op == Utils.Companion.dispose_op.APNG_DISPOSE_OP_BACKGROUND){
-                val res =  Bitmap.createBitmap(Frames[0].maxWidth, Frames[0].maxHeight, Bitmap.Config.ARGB_8888)
+                val res =  Bitmap.createBitmap(Frames[0].maxWidth!!, Frames[0].maxHeight!!, Bitmap.Config.ARGB_8888)
                 val can = Canvas(res)
                 can.drawBitmap(btm, 0f, 0f, null)
                 can.drawRect(lastFrame!!.x_offsets!!.toFloat(), lastFrame!!.y_offsets!!.toFloat(), lastFrame!!.x_offsets!! + lastFrame!!.width.toFloat(), lastFrame!!.y_offsets!! + lastFrame!!.height.toFloat(), { val paint = Paint(); paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR); paint }())
@@ -123,19 +125,36 @@ class ApngAnimator {
             // Download PNG
             val extractedFrame = APNGDisassembler(Loader().load(url)).pngList
 
+            // DEBUG FUNCTION : WRITE RENDERED FRAME TO EXTERNAL STORAGE
+            if (isDebug) {
+                for (i in 0 until extractedFrame.size) {
+                    try {
+                        FileOutputStream(File(File(Environment.getExternalStorageDirectory(), "Documents"), "image_$i.png")).use { out ->
+                            out.write(extractedFrame[i].byteArray)
+                            // PNG is a lossless format, the compression factor (100) is ignored
+                        }
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+
             // Set last frame
             lastFrame = extractedFrame[0]
 
             // Init image buffer
-            bitmapBuffer = BitmapFactory.decodeByteArray(lastFrame?.byteArray, 0, lastFrame?.byteArray!!.size)
+            bitmapBuffer = BitmapFactory.decodeByteArray(lastFrame?.byteArray!!, 0, lastFrame?.byteArray!!.size)
+
+            Log.e("ApngAnimator", "bitmapBuffer is null : ${bitmapBuffer == null}")
             generatedFrame.add(BitmapFactory.decodeByteArray(lastFrame?.byteArray, 0, lastFrame?.byteArray!!.size))
             Frames = extractedFrame
             for (i in 1 until Frames.size) {
+                Log.e("ApngAnimator", "Render $i frame")
                 // Iterator
                 val it = Frames.get(i)
 
                 // Current bitmap for the frame
-                val btm = Bitmap.createBitmap(Frames[0].maxWidth, Frames[0].maxHeight, Bitmap.Config.ARGB_8888)
+                val btm = Bitmap.createBitmap(Frames[0].maxWidth!!, Frames[0].maxHeight!!, Bitmap.Config.ARGB_8888)
                 val canvas = Canvas(btm)
 
                 val current = BitmapFactory.decodeByteArray(it.byteArray, 0, it.byteArray.size).copy(Bitmap.Config.ARGB_8888, true)
@@ -162,7 +181,7 @@ class ApngAnimator {
                 // Add current frame to bitmap buffer
                 // APNG_DISPOSE_OP_BACKGROUND: the frame's region of the output buffer is to be cleared to fully transparent black before rendering the next frame.
                 else if (it.dispose_op == Utils.Companion.dispose_op.APNG_DISPOSE_OP_BACKGROUND){
-                    val res =  Bitmap.createBitmap(Frames[0].maxWidth, Frames[0].maxHeight, Bitmap.Config.ARGB_8888)
+                    val res =  Bitmap.createBitmap(Frames[0].maxWidth!!, Frames[0].maxHeight!!, Bitmap.Config.ARGB_8888)
                     val can = Canvas(res)
                     can.drawBitmap(btm, 0f, 0f, null)
                     can.drawRect(lastFrame!!.x_offsets!!.toFloat(), lastFrame!!.y_offsets!!.toFloat(), lastFrame!!.x_offsets!! + lastFrame!!.width.toFloat(), lastFrame!!.y_offsets!! + lastFrame!!.height.toFloat(), { val paint = Paint(); paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR); paint }())
@@ -207,7 +226,7 @@ class ApngAnimator {
             val it = Frames.get(i)
 
             // Current bitmap for the frame
-            val btm = Bitmap.createBitmap(Frames[0].maxWidth, Frames[0].maxHeight, Bitmap.Config.ARGB_8888)
+            val btm = Bitmap.createBitmap(Frames[0].maxWidth!!, Frames[0].maxHeight!!, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(btm)
 
             val current = BitmapFactory.decodeByteArray(it.byteArray, 0, it.byteArray.size).copy(Bitmap.Config.ARGB_8888, true)
@@ -234,7 +253,7 @@ class ApngAnimator {
             // Add current frame to bitmap buffer
             // APNG_DISPOSE_OP_BACKGROUND: the frame's region of the output buffer is to be cleared to fully transparent black before rendering the next frame.
             else if (it.dispose_op == Utils.Companion.dispose_op.APNG_DISPOSE_OP_BACKGROUND){
-                val res =  Bitmap.createBitmap(Frames[0].maxWidth, Frames[0].maxHeight, Bitmap.Config.ARGB_8888)
+                val res =  Bitmap.createBitmap(Frames[0].maxWidth!!, Frames[0].maxHeight!!, Bitmap.Config.ARGB_8888)
                 val can = Canvas(res)
                 can.drawBitmap(btm, 0f, 0f, null)
                 can.drawRect(lastFrame!!.x_offsets!!.toFloat(), lastFrame!!.y_offsets!!.toFloat(), lastFrame!!.x_offsets!! + lastFrame!!.width.toFloat(), lastFrame!!.y_offsets!! + lastFrame!!.height.toFloat(), { val paint = Paint(); paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR); paint }())

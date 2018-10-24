@@ -3,8 +3,8 @@ package oupson.apng
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
-import android.util.Log
 import oupson.apng.ApngFactory.Companion.pngSignature
+import oupson.apng.Utils.Companion.to4Bytes
 import java.util.zip.CRC32
 
 class APNGDisassembler(val byteArray: ByteArray) {
@@ -105,11 +105,10 @@ class APNGDisassembler(val byteArray: ByteArray) {
                 // Check if is IDAT
                 else if (byteArray[i] == 0x49.toByte() && byteArray[i + 1] == 0x44.toByte() && byteArray[ i + 2 ] == 0x41.toByte() && byteArray[ i + 3 ] == 0x54.toByte()) {
                     if (png == null) {
-                        png = ArrayList()
                         if (cover == null) {
                             cover = ArrayList()
-                            png!!.addAll(pngSignature.toList())
-                            png!!.addAll(generate_ihdr(ihdr, maxWidth, maxHeight).toList())
+                            cover!!.addAll(pngSignature.toList())
+                            cover!!.addAll(generate_ihdr(ihdr, maxWidth, maxHeight).toList())
                         }
                         // Find the chunk length
                         var lengthString = ""
@@ -222,30 +221,11 @@ class APNGDisassembler(val byteArray: ByteArray) {
         return ihdr.toByteArray()
     }
 
-    fun to4Bytes(i: Int): ByteArray {
-        val result = ByteArray(4)
-        result[0] = (i shr 24).toByte()
-        result[1] = (i shr 16).toByte()
-        result[2] = (i shr 8).toByte()
-        result[3] = i /*>> 0*/.toByte()
-        return result
-    }
-
-    /**
-     * Generate a 2 bytes array from an Int
-     * @param i The int
-     */
-    fun to2Bytes(i: Int): ByteArray {
-        val result = ByteArray(2)
-        result[0] = (i shr 8).toByte()
-        result[1] = i /*>> 0*/.toByte()
-        return result
-    }
 
     fun genBitmap() : ArrayList<Bitmap> {
         val generatedFrame = ArrayList<Bitmap>()
         pngList.forEach {
-            val btm = Bitmap.createBitmap(it.maxWidth, it.maxHeight, Bitmap.Config.ARGB_8888)
+            val btm = Bitmap.createBitmap(it.maxWidth!!, it.maxHeight!!, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(btm)
             canvas.drawBitmap(BitmapFactory.decodeByteArray(it.byteArray, 0, it.byteArray.size), it.x_offsets!!.toFloat(), it.y_offsets!!.toFloat(), null)
             generatedFrame.add(btm)
