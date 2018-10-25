@@ -47,6 +47,7 @@ dependencies {
     implementation project(":apng_library")
     // implementation fileTree(include: ['*.aar'], dir: 'libs')
     //implementation 'com.github.oupson:Kapng-Android:1.0.0'
+    implementation 'com.android.support:design:27.1.1' // where X.X.X version
 }
 kotlin {
     experimental {

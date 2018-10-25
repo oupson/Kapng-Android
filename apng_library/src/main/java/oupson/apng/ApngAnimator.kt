@@ -3,17 +3,17 @@ package oupson.apng
 import android.content.Context
 import android.graphics.*
 import android.graphics.drawable.AnimationDrawable
-import android.os.Environment
 import android.os.Handler
 import android.widget.ImageView
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
 import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
 import java.net.URL
 
 
+/**
+ * Class to play APNG
+ */
 class ApngAnimator(val context: Context) {
     var isPlaying = true
         private set(value) {field = value}
@@ -35,6 +35,10 @@ class ApngAnimator(val context: Context) {
 
     var imageView : ImageView? = null
 
+    /**
+     * Load into an imageview
+     * @param imageView Image view selected.
+     */
     fun loadInto(imageView: ImageView) : ApngAnimator {
         this.imageView = imageView
         return this
@@ -52,30 +56,16 @@ class ApngAnimator(val context: Context) {
         nextFrame()
     }
 
+    /**
+     * Draw frames
+     */
     private fun draw(extractedFrame : ArrayList<Frame>) {
         // Set last frame
-        lastFrame = extractedFrame[0]
         Frames = extractedFrame
-        // Init image buffer
-        bitmapBuffer = BitmapFactory.decodeByteArray(lastFrame?.byteArray!!, 0, lastFrame?.byteArray!!.size)
-        generatedFrame.add(BitmapFactory.decodeByteArray(lastFrame?.byteArray, 0, lastFrame?.byteArray!!.size))
-        if (lastFrame!!.dispose_op == Utils.Companion.dispose_op.APNG_DISPOSE_OP_PREVIOUS) {
-            //Do nothings
-        }
-        // Add current frame to bitmap buffer
-        // APNG_DISPOSE_OP_BACKGROUND: the frame's region of the output buffer is to be cleared to fully transparent black before rendering the next frame.
-        else if (lastFrame!!.dispose_op == Utils.Companion.dispose_op.APNG_DISPOSE_OP_BACKGROUND) {
-            val res = Bitmap.createBitmap(Frames[0].maxWidth!!, Frames[0].maxHeight!!, Bitmap.Config.ARGB_8888)
-            val can = Canvas(res)
-            can.drawBitmap(BitmapFactory.decodeByteArray(lastFrame?.byteArray!!, 0, lastFrame?.byteArray!!.size), 0f, 0f, null)
-            can.drawRect(lastFrame!!.x_offsets!!.toFloat(), lastFrame!!.y_offsets!!.toFloat(), lastFrame!!.x_offsets!! + lastFrame!!.width.toFloat(), lastFrame!!.y_offsets!! + lastFrame!!.height.toFloat(), { val paint = Paint(); paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR); paint }())
-            bitmapBuffer = res
-        } else {
-            bitmapBuffer = BitmapFactory.decodeByteArray(lastFrame?.byteArray!!, 0, lastFrame?.byteArray!!.size)
-        }
-        for (i in 1 until Frames.size) {
+        bitmapBuffer = Bitmap.createBitmap(Frames[0].maxWidth!!, Frames[0].maxHeight!!, Bitmap.Config.ARGB_8888)
+        for (i in 0 until Frames.size) {
             // Iterator
-            val it = Frames.get(i)
+            val it = Frames[i]
             // Current bitmap for the frame
             val btm = Bitmap.createBitmap(Frames[0].maxWidth!!, Frames[0].maxHeight!!, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(btm)
@@ -100,7 +90,7 @@ class ApngAnimator(val context: Context) {
                 val res = Bitmap.createBitmap(Frames[0].maxWidth!!, Frames[0].maxHeight!!, Bitmap.Config.ARGB_8888)
                 val can = Canvas(res)
                 can.drawBitmap(btm, 0f, 0f, null)
-                can.drawRect(lastFrame!!.x_offsets!!.toFloat(), lastFrame!!.y_offsets!!.toFloat(), lastFrame!!.x_offsets!! + lastFrame!!.width.toFloat(), lastFrame!!.y_offsets!! + lastFrame!!.height.toFloat(), { val paint = Paint(); paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR); paint }())
+                can.drawRect(it.x_offsets!!.toFloat(), it.y_offsets!!.toFloat(), it.x_offsets!! + it.width.toFloat(), it.y_offsets!! + it.height.toFloat(), { val paint = Paint(); paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR); paint }())
                 bitmapBuffer = res
             } else {
                 bitmapBuffer = btm
@@ -108,12 +98,13 @@ class ApngAnimator(val context: Context) {
 
         }
     }
+
     /**
      * Load an APNG file
      * @param url URL to load
      * @throws NotApngException
      */
-    private fun loadUrl(url : URL) {
+    fun loadUrl(url : URL) {
         doAsync(exceptionHandler = {e -> e.printStackTrace()}) {
             // Download PNG
             val extractedFrame = APNGDisassembler(Loader().load(context, url)).pngList
@@ -124,6 +115,11 @@ class ApngAnimator(val context: Context) {
         }
     }
 
+    /**
+     * Load an APNG file
+     * @param byteArray ByteArray of the file
+     * @throws NotApngException
+     */
     fun load(byteArray: ByteArray) {
         // Download PNG
         val extractedFrame = APNGDisassembler(byteArray).pngList
@@ -131,6 +127,11 @@ class ApngAnimator(val context: Context) {
         nextFrame()
     }
 
+    /**
+     * Load an APNG file
+     * @param string Path of the file
+     * @throws NotApngException
+     */
     fun load(string: String) {
         if (string.contains("http") || string.contains("https")) {
             val url = URL(string)
@@ -140,7 +141,7 @@ class ApngAnimator(val context: Context) {
         }
     }
 
-    fun nextFrame() {
+    private fun nextFrame() {
         if (imageView != null) {
             if (counter == Frames.size) {
                 counter = 0
@@ -171,6 +172,9 @@ class ApngAnimator(val context: Context) {
         }
     }
 
+    /**
+     * Return animation drawable of the APNG
+     */
     fun toAnimationDrawable() : AnimationDrawable {
         val animDrawable = AnimationDrawable()
         for (i in 0 until generatedFrame.size) {
