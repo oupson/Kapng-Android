@@ -12,7 +12,7 @@ To load animated png to an imageview :
 
 val imageUrl = "https://upload.wikimedia.org/wikipedia/commons/1/14/Animated_PNG_example_bouncing_beach_ball.png" // image url could be an url, or a file path. You could also load byteArray and file
 
-val animator = ApngAnimator(imageView)
+val animator = ApngAnimator(this).loadInto(imageView)
 animator.load(imageUrl)
 
 animator.play()
@@ -42,7 +42,7 @@ repositories {
  }
  
  dependencies {
-  implementation 'com.github.oupson:Kapng-Android:1.0.0'
+  implementation 'com.github.oupson:Kapng-Android:1.0.1'
  }
  ```
  
