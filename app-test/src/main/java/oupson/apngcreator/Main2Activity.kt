@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
+import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_main2.*
 import org.jetbrains.anko.sdk27.coroutines.onClick
 import oupson.apng.ApngAnimator
@@ -20,7 +21,7 @@ class Main2Activity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        val animator = ApngAnimator(imageView3)
+        val animator = ApngAnimator(this).loadInto(imageView2)
         val uri = intent.data
         if (uri.toString().contains("file:///")) {
             animator.load(uri.path)

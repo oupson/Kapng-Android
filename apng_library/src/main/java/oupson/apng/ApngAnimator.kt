@@ -1,5 +1,6 @@
 package oupson.apng
 
+import android.content.Context
 import android.graphics.*
 import android.graphics.drawable.AnimationDrawable
 import android.os.Environment
@@ -13,7 +14,7 @@ import java.io.IOException
 import java.net.URL
 
 
-class ApngAnimator {
+class ApngAnimator(val context: Context) {
     var isPlaying = true
         private set(value) {field = value}
 
@@ -32,13 +33,11 @@ class ApngAnimator {
 
     var background : Bitmap? = null
 
-    val imageView : ImageView?
+    var imageView : ImageView? = null
 
-    constructor() {
-        imageView = null
-    }
-    constructor(imageView : ImageView) {
+    fun loadInto(imageView: ImageView) : ApngAnimator {
         this.imageView = imageView
+        return this
     }
 
     /**
@@ -102,7 +101,7 @@ class ApngAnimator {
     private fun loadUrl(url : URL) {
         doAsync(exceptionHandler = {e -> throw e}) {
             // Download PNG
-            val extractedFrame = APNGDisassembler(Loader().load(url)).pngList
+            val extractedFrame = APNGDisassembler(Loader().load(context!!, url)).pngList
             // Set last frame
             lastFrame = extractedFrame[0]
 
@@ -221,7 +220,7 @@ class ApngAnimator {
                 counter = 0
             }
             val delay = Frames[counter].delay
-            imageView.setImageBitmap(generatedFrame[counter])
+            imageView?.setImageBitmap(generatedFrame[counter])
             counter++
             myHandler.postDelayed({
                 ifmustPlay()

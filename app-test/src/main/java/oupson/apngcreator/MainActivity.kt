@@ -37,10 +37,10 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        animator = ApngAnimator(imageView)
+        animator = ApngAnimator(this).loadInto(imageView)
         animator.load(imageUrl)
 
-        Picasso.get().load(imageUrl).into(imageView2);
+        Picasso.get().load(imageUrl).into(imageView2)
 
         play.setOnClickListener {
             animator.play()
