@@ -45,7 +45,7 @@ class APNGDisassembler(val byteArray: ByteArray) {
                             cover!!.addAll(to4Bytes(crC32.value.toInt()).toList())
                         }
                         png = ArrayList()
-                        val fcTL = fcTL(byteArray.copyOfRange(i - 4, i + 32))
+                        val fcTL = fcTL(byteArray.copyOfRange(i - 4, i + 36))
                         delay = fcTL.delay
                         yOffset = fcTL.y_offset
                         xOffset = fcTL.x_offset
@@ -77,7 +77,7 @@ class APNGDisassembler(val byteArray: ByteArray) {
 
                         png = ArrayList()
 
-                        val fcTL = fcTL(byteArray.copyOfRange(i - 4, i + 32))
+                        val fcTL = fcTL(byteArray.copyOfRange(i - 4, i + 36))
                         delay = fcTL.delay
 
                         yOffset = fcTL.y_offset

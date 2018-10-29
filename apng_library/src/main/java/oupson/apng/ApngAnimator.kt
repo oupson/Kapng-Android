@@ -9,6 +9,8 @@ import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
 import java.io.File
 import java.net.URL
+import android.graphics.drawable.Drawable
+
 
 
 /**
@@ -35,6 +37,10 @@ class ApngAnimator(val context: Context) {
 
     var imageView : ImageView? = null
 
+    var anim : AnimationDrawable? = null
+    var activeAnimation : AnimationDrawable? = null
+
+    var currentDrawable = 0
     /**
      * Load into an imageview
      * @param imageView Image view selected.
@@ -50,10 +56,18 @@ class ApngAnimator(val context: Context) {
      * @throws NotApngException
     */
     fun load(file: File) {
-        // Download PNG
-        val extractedFrame = APNGDisassembler(file.readBytes()).pngList
-        draw(extractedFrame)
-        nextFrame()
+        doAsync {
+            // Download PNG
+            val extractedFrame = APNGDisassembler(file.readBytes()).pngList
+            draw(extractedFrame)
+            anim = toAnimationDrawable()
+            uiThread {
+                imageView?.setImageBitmap(generatedFrame[0])
+                imageView?.setImageDrawable(anim)
+                activeAnimation = anim
+                activeAnimation?.start()
+            }
+        }
     }
 
     /**
@@ -109,8 +123,11 @@ class ApngAnimator(val context: Context) {
             // Download PNG
             val extractedFrame = APNGDisassembler(Loader().load(context, url)).pngList
             draw(extractedFrame)
+            anim = toAnimationDrawable()
             uiThread {
-                nextFrame()
+                imageView?.setImageDrawable(anim)
+                activeAnimation = anim
+                activeAnimation?.start()
             }
         }
     }
@@ -121,10 +138,18 @@ class ApngAnimator(val context: Context) {
      * @throws NotApngException
      */
     fun load(byteArray: ByteArray) {
-        // Download PNG
-        val extractedFrame = APNGDisassembler(byteArray).pngList
-        draw(extractedFrame)
-        nextFrame()
+        doAsync {
+            // Download PNG
+            val extractedFrame = APNGDisassembler(byteArray).pngList
+            draw(extractedFrame)
+            anim = toAnimationDrawable()
+            uiThread {
+                imageView?.setImageBitmap(generatedFrame[0])
+                imageView?.setImageDrawable(anim)
+                anim?.start()
+            }
+        }
+
     }
 
     /**
@@ -141,36 +166,38 @@ class ApngAnimator(val context: Context) {
         }
     }
 
-    private fun nextFrame() {
-        if (imageView != null) {
-            if (counter == Frames.size) {
-                counter = 0
-            }
-            val delay = Frames[counter].delay
-            imageView?.setImageBitmap(generatedFrame[counter])
-            counter++
-            myHandler.postDelayed({
-                ifmustPlay()
-            }, delay.toLong() * speed)
-        }
-    }
-
     fun pause() {
         isPlaying = false
+        val animResume = AnimationDrawable()
+        activeAnimation?.stop()
+        val currentFrame = activeAnimation!!.current
 
+        frameLoop@ for (i in 0 until anim?.numberOfFrames!!) {
+            val checkFrame = activeAnimation!!.getFrame(i)
+
+            if (checkFrame === currentFrame) {
+                val frameIndex = i
+                for (k in frameIndex until activeAnimation!!.numberOfFrames) {
+                    val frame = activeAnimation!!.getFrame(k)
+                    animResume.addFrame(frame, activeAnimation?.getDuration(k)!!)
+                }
+                for (k in 0 until frameIndex) {
+                    val frame = activeAnimation!!.getFrame(k)
+                    animResume.addFrame(frame, activeAnimation?.getDuration(k)!!)
+                }
+                activeAnimation = animResume
+                imageView?.setImageDrawable(activeAnimation)
+                imageView?.invalidate()
+                break@frameLoop
+            }
+        }
     }
     fun play() {
-        if (!isPlaying) {
-            isPlaying = true
-            ifmustPlay()
-        }
+        isPlaying = true
+        activeAnimation?.start();
     }
 
-    private fun ifmustPlay() {
-        if (isPlaying) {
-            nextFrame()
-        }
-    }
+
 
     /**
      * Return animation drawable of the APNG
