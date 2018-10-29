@@ -61,10 +61,10 @@ class ApngAnimator(val context: Context) {
             val extractedFrame = APNGDisassembler(file.readBytes()).pngList
             draw(extractedFrame)
             anim = toAnimationDrawable()
+            activeAnimation = anim
             uiThread {
                 imageView?.setImageBitmap(generatedFrame[0])
-                imageView?.setImageDrawable(anim)
-                activeAnimation = anim
+                imageView?.setImageDrawable(activeAnimation)
                 activeAnimation?.start()
             }
         }
@@ -124,9 +124,11 @@ class ApngAnimator(val context: Context) {
             val extractedFrame = APNGDisassembler(Loader().load(context, url)).pngList
             draw(extractedFrame)
             anim = toAnimationDrawable()
+            activeAnimation = anim
             uiThread {
-                imageView?.setImageDrawable(anim)
-                activeAnimation = anim
+                imageView?.setImageBitmap(generatedFrame[0])
+                imageView?.setImageDrawable(activeAnimation)
+
                 activeAnimation?.start()
             }
         }
@@ -143,10 +145,11 @@ class ApngAnimator(val context: Context) {
             val extractedFrame = APNGDisassembler(byteArray).pngList
             draw(extractedFrame)
             anim = toAnimationDrawable()
+            activeAnimation = anim
             uiThread {
                 imageView?.setImageBitmap(generatedFrame[0])
-                imageView?.setImageDrawable(anim)
-                anim?.start()
+                imageView?.setImageDrawable(activeAnimation)
+                activeAnimation?.start()
             }
         }
 
