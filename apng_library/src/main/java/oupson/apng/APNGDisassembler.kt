@@ -3,7 +3,8 @@ package oupson.apng
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
-import oupson.apng.ApngFactory.Companion.pngSignature
+import oupson.apng.Utils.Companion.isApng
+import oupson.apng.Utils.Companion.pngSignature
 import oupson.apng.Utils.Companion.to4Bytes
 import oupson.apng.chunks.IHDR
 import oupson.apng.chunks.fcTL
@@ -25,7 +26,7 @@ class APNGDisassembler(val byteArray: ByteArray) {
     var dispose_op : Utils.Companion.dispose_op= Utils.Companion.dispose_op.APNG_DISPOSE_OP_NONE
 
     init {
-        if (ApngFactory.isApng(byteArray)) {
+        if (isApng(byteArray)) {
             val ihdr = IHDR()
             ihdr.parseIHDR(byteArray)
             maxWidth = ihdr.pngWidth

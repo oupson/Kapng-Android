@@ -15,7 +15,9 @@ import android.view.View
 import kotlinx.android.synthetic.main.activity_main2.*
 import org.jetbrains.anko.sdk27.coroutines.onClick
 import oupson.apng.ApngAnimator
+import oupson.apng.Utils.Companion.isApng
 import oupson.apng.exceptions.NotApngException
+import java.io.File
 
 
 class Main2Activity : AppCompatActivity() {
@@ -48,7 +50,12 @@ class Main2Activity : AppCompatActivity() {
         val uri = intent.data
         if (uri.toString().contains("file:///")) {
             try  {
-                animator.load(uri.path)
+                if (isApng(File(uri.path).readBytes())) {
+                    animator.load(uri.path)
+                } else {
+                    imageView3.setImageBitmap(BitmapFactory.decodeFile(uri.path))
+                    Snackbar.make(constraint, "Not an APNG, and verified !", Snackbar.LENGTH_LONG).show()
+                }
             } catch (e : NotApngException) {
                 imageView3.setImageBitmap(BitmapFactory.decodeFile(uri.path))
                 Snackbar.make(constraint, "Not an APNG", Snackbar.LENGTH_LONG).show()

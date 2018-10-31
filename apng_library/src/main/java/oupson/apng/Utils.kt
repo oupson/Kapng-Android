@@ -6,6 +6,21 @@ import java.io.ByteArrayOutputStream
 
 class Utils {
     companion object {
+
+        // Return true if png
+        fun isPng(byteArray: ByteArray): Boolean {
+            return byteArray.copyOfRange(0, 8).contentToString() == pngSignature.contentToString()
+        }
+
+        fun isApng(byteArray: ByteArray): Boolean {
+            // if byteArray contain acTL
+            return byteArray.toList().containsAll(byteArrayOf(0x66, 0x63, 0x54, 0x4c).toList())
+        }
+
+        // Signature for png
+        val pngSignature: ByteArray = byteArrayOf(0x89.toByte(), 0x50.toByte(), 0x4E.toByte(), 0x47.toByte(), 0x0D.toByte(), 0x0A.toByte(), 0x1A.toByte(), 0x0A.toByte())
+
+
         enum class dispose_op {
             APNG_DISPOSE_OP_NONE,
             APNG_DISPOSE_OP_BACKGROUND,

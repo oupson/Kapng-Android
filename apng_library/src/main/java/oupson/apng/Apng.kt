@@ -5,6 +5,7 @@ import android.graphics.BitmapFactory
 import oupson.apng.Utils.Companion.convertImage
 import oupson.apng.Utils.Companion.getBlend_op
 import oupson.apng.Utils.Companion.getDispose_op
+import oupson.apng.Utils.Companion.pngSignature
 import oupson.apng.Utils.Companion.to2Bytes
 import oupson.apng.Utils.Companion.to4Bytes
 import oupson.apng.Utils.Companion.toByteArray
@@ -130,7 +131,7 @@ class Apng {
         var seq = 0
         val res = ArrayList<Byte>()
         // Add PNG signature
-        res.addAll(ApngFactory.pngSignature.toList())
+        res.addAll(pngSignature.toList())
 
         // Add Image Header
         res.addAll(generateIhdr().toList())
