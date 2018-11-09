@@ -91,7 +91,7 @@ class Utils {
          */
         fun toByteArray(bitmap: Bitmap) : ByteArray {
             val bos = ByteArrayOutputStream();
-            convertImage(bitmap).compress(Bitmap.CompressFormat.PNG, 0 /*ignored for PNG*/, bos);
+            convertImage(bitmap).compress(Bitmap.CompressFormat.PNG, 100 /*ignored for PNG*/, bos);
             return bos.toByteArray();
         }
 
@@ -102,6 +102,7 @@ class Utils {
          */
         fun convertImage(bitmap: Bitmap) : Bitmap{
             val btm = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
+            btm.setHasAlpha(true)
             val canvas = Canvas(btm)
             canvas.drawBitmap(bitmap, 0f, 0f, null)
             return btm

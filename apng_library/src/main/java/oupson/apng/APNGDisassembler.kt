@@ -3,6 +3,7 @@ package oupson.apng
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
+import android.util.Log
 import oupson.apng.Utils.Companion.isApng
 import oupson.apng.Utils.Companion.pngSignature
 import oupson.apng.Utils.Companion.to4Bytes
@@ -25,6 +26,8 @@ class APNGDisassembler(val byteArray: ByteArray) {
     var blend_op : Utils.Companion.blend_op = Utils.Companion.blend_op.APNG_BLEND_OP_SOURCE
     var dispose_op : Utils.Companion.dispose_op= Utils.Companion.dispose_op.APNG_DISPOSE_OP_NONE
 
+    var apng : Apng
+
     init {
         if (isApng(byteArray)) {
             val ihdr = IHDR()
@@ -33,7 +36,7 @@ class APNGDisassembler(val byteArray: ByteArray) {
             maxHeight = ihdr.pngHeight
             for(i in 0 until byteArray.size) {
                 // find new Frame with fcTL
-                if (byteArray[i] == 0x66.toByte() && byteArray[i + 1] == 0x63.toByte() && byteArray[ i + 2 ] == 0x54.toByte() && byteArray[ i + 3 ] == 0x4C.toByte() || i == byteArray.size - 1) {
+                if (byteArray[i] == 0x66.toByte() && byteArray[i + 1] == 0x63.toByte() && byteArray[ i + 2 ] == 0x54.toByte() && byteArray[ i + 3 ] == 0x4C.toByte()) {
                     if (png == null) {
                         if (cover != null) {
                             cover!!.addAll(to4Bytes(0).toList())
@@ -78,7 +81,15 @@ class APNGDisassembler(val byteArray: ByteArray) {
 
                         png = ArrayList()
 
-                        val fcTL = fcTL(byteArray.copyOfRange(i - 4, i + 36))
+                        val bodySize = {
+                            var lengthString = ""
+                            byteArray.copyOfRange(i - 4, i).forEach {
+                                lengthString += String.format("%02x", it)
+                            }
+                            lengthString.toLong(16).toInt()
+                        }()
+                        val newBytes = byteArray.copyOfRange(i - 4, i + 4 + bodySize)
+                        val fcTL = fcTL(newBytes)
                         delay = fcTL.delay
 
                         yOffset = fcTL.y_offset
@@ -98,6 +109,17 @@ class APNGDisassembler(val byteArray: ByteArray) {
                             png!!.addAll(tnrs!!.toList())
                         }
                     }
+                }
+                else if (i == byteArray.size - 1) {
+                    png!!.addAll(to4Bytes(0).toList())
+                    // Add IEND
+                    val iend = byteArrayOf(0x49, 0x45, 0x4E, 0x44)
+                    // Generate crc for IEND
+                    val crC32 = CRC32()
+                    crC32.update(iend, 0, iend.size)
+                    png!!.addAll(iend.toList())
+                    png!!.addAll(to4Bytes(crC32.value.toInt()).toList())
+                    pngList.add(Frame(png!!.toByteArray(), delay, xOffset, yOffset, maxWidth, maxHeight, blend_op, dispose_op))
                 }
                 // Check if is IDAT
                 else if (byteArray[i] == 0x49.toByte() && byteArray[i + 1] == 0x44.toByte() && byteArray[ i + 2 ] == 0x41.toByte() && byteArray[ i + 3 ] == 0x54.toByte()) {
@@ -183,6 +205,10 @@ class APNGDisassembler(val byteArray: ByteArray) {
                     tnrs = byteArray.copyOfRange( i -4, i + 8 + bodySize)
                 }
             }
+
+            apng = Apng()
+            apng.frames = pngList
+
         } else {
             throw NotApngException()
         }

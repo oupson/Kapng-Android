@@ -7,7 +7,7 @@ import oupson.apng.Utils.Companion.getDispose_op
 class fcTL(byteArray: ByteArray) {
 
     private var corpsSize = -1
-    var fcTLBody = byteArrayOf()
+    lateinit var fcTLBody : ByteArray
 
     // Height and width of frame
     var pngWidth = -1
@@ -92,7 +92,7 @@ class fcTL(byteArray: ByteArray) {
                 y_offset = yOffset.toLong(16).toInt()
 
                 val _fcTLBody = ArrayList<Byte>()
-                byteArray.copyOfRange(i + 4, i + corpsSize + 4).forEach {
+                byteArray.copyOfRange(i + 4, i + corpsSize + 3 ).forEach {
                     _fcTLBody.add(it)
                 }
                 fcTLBody= _fcTLBody.toByteArray()

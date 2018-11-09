@@ -29,7 +29,7 @@ class Apng {
      */
     var cover : Bitmap? = null
         set(value) {
-            field = convertImage(value!!)
+            field = value!!
         }
 
     var frames : ArrayList<Frame> = ArrayList()
@@ -120,6 +120,14 @@ class Apng {
      */
     fun addFrames(index: Int, bitmap: Bitmap, delay: Float, xOffset : Int, yOffset : Int, dispose_op: Utils.Companion.dispose_op, blend_op: Utils.Companion.blend_op) {
         frames.add(index, Frame(toByteArray(bitmap), delay, xOffset, yOffset, blend_op, dispose_op))
+    }
+
+    fun addFrames(frame : Frame) {
+        frames.add(frame)
+    }
+
+    fun addFrames(index: Int,frame : Frame) {
+        frames.add(index, frame)
     }
     //endregion
 
