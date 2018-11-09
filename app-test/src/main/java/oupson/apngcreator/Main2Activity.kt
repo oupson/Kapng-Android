@@ -46,12 +46,12 @@ class Main2Activity : AppCompatActivity() {
     }
 
     fun load() {
-        val animator = ApngAnimator().loadInto(imageView3)
+        val animator = ApngAnimator(applicationContext).loadInto(imageView3)
         val uri = intent.data
         if (uri.toString().contains("file:///")) {
             try {
                 if (isApng(File(uri.path).readBytes())) {
-                    animator.load(this, uri.path)
+                    animator.load(uri.path)
                 } else {
                     imageView3.setImageBitmap(BitmapFactory.decodeFile(uri.path))
                     Snackbar.make(constraint, "Not an APNG, and verified !", Snackbar.LENGTH_LONG).show()
@@ -62,7 +62,7 @@ class Main2Activity : AppCompatActivity() {
             }
         } else {
             try {
-                animator.load(this, getImageRealPath(contentResolver, uri, null))
+                animator.load(getImageRealPath(contentResolver, uri, null))
             } catch (e: NotApngException) {
                 imageView3.setImageBitmap(BitmapFactory.decodeFile(getImageRealPath(contentResolver, uri, null)))
                 Snackbar.make(constraint, "Not an APNG", Snackbar.LENGTH_LONG).show()

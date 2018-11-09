@@ -13,26 +13,31 @@ import java.net.URL
 /**
  * Class to play APNG
  */
-class ApngAnimator {
+class ApngAnimator(val context: Context) {
     var isPlaying = true
         private set(value) {
             field = value
         }
 
     private var frames = ArrayList<Frame>()
-    private var myHandler: Handler = Handler()
-    private var counter = 0
     private val generatedFrame = ArrayList<Bitmap>()
-    private var speed: Int? = null
-    private var lastFrame: Frame? = null
+    var speed: Float? = null
+        set(value)  {
+            field = value
+            try {
+                pause()
+                play()
+            } catch ( e : Exception) {
+                e.printStackTrace()
+            }
+        }
     private var bitmapBuffer: Bitmap? = null
-    private var background: Bitmap? = null
     private var imageView: ImageView? = null
     private var anim: CustomAnimationDrawable? = null
     private var activeAnimation: CustomAnimationDrawable? = null
-    private var currentDrawable = 0
-    private var animationLoopListener: AnimationListener? = null
-
+    private var doOnLoaded : (ApngAnimator) -> Unit = {}
+    private var AnimationLoopListener : () -> Unit = {}
+    private var duration : ArrayList<Float>? = null
     /**
      * Load into an imageview
      * @param imageView Image view selected.
@@ -47,14 +52,14 @@ class ApngAnimator {
      * @param file The file to load
      * @throws NotApngException
      */
-    fun load(file: File, frameDuration: Int? = null, animationListener: AnimationListener? = null) {
+    fun load(file: File, speed: Float? = null) {
         doAsync {
+            this@ApngAnimator.speed = speed
             // Download PNG
             APNGDisassembler(file.readBytes()).pngList.apply {
                 draw(this)
             }
-
-            setupAnimationDrawableAndStart(frameDuration, animationListener)
+            setupAnimationDrawableAndStart()
         }
     }
 
@@ -67,14 +72,15 @@ class ApngAnimator {
      * in the APNG will be used instead.
      * @throws NotApngException
      */
-    fun loadUrl(context: Context, url: URL, frameDuration: Int? = null, animationListener: AnimationListener? = null) {
+    fun loadUrl(url: URL, speed: Float? = null) {
         doAsync(exceptionHandler = { e -> e.printStackTrace() }) {
+            this@ApngAnimator.speed = speed
             // Download PNG
             APNGDisassembler(Loader().load(context, url)).pngList.apply {
                 draw(this)
             }
 
-            setupAnimationDrawableAndStart(frameDuration, animationListener)
+            setupAnimationDrawableAndStart()
         }
     }
 
@@ -87,13 +93,13 @@ class ApngAnimator {
      * in the APNG will be used instead.
      * @throws NotApngException
      */
-    fun load(byteArray: ByteArray, frameDuration: Int? = null, animationListener: AnimationListener? = null) {
+    fun load(byteArray: ByteArray, speed: Float? = null) {
         doAsync {
+            this@ApngAnimator.speed = speed
             APNGDisassembler(byteArray).pngList.apply {
                 draw(this)
             }
-
-            setupAnimationDrawableAndStart(frameDuration, animationListener)
+            setupAnimationDrawableAndStart()
         }
     }
 
@@ -103,18 +109,9 @@ class ApngAnimator {
      * @param frameDuration The duration to show each frame. If this is null then the duration specified
      * in the APNG will be used instead.
      */
-    private fun setupAnimationDrawableAndStart(frameDuration: Int? = null, animationListener: AnimationListener? = null) {
+    private fun setupAnimationDrawableAndStart() {
         doAsync {
-            var innerAnimationListener: CustomAnimationDrawable.AnimationListener? = null
-            animationListener?.apply {
-                innerAnimationListener = object : CustomAnimationDrawable.AnimationListener {
-                    override fun onAnimationLooped() {
-                        animationListener.onAnimationLooped()
-                    }
-                }
-            }
-
-            anim = toAnimationDrawable(innerAnimationListener, frameDuration)
+            anim = toAnimationDrawable()
             activeAnimation = anim
             uiThread {
                 imageView?.apply {
@@ -122,6 +119,7 @@ class ApngAnimator {
                     setImageDrawable(activeAnimation)
                 }
                 activeAnimation?.start()
+                doOnLoaded(this@ApngAnimator)
             }
         }
     }
@@ -135,12 +133,13 @@ class ApngAnimator {
      * in the APNG will be used instead.
      * @throws NotApngException
      */
-    fun load(context: Context, string: String, frameDuration: Int? = null, animationListener: AnimationListener? = null) {
+    fun load(string: String, speed : Float? = null) {
+        this.speed = speed
         if (string.contains("http") || string.contains("https")) {
             val url = URL(string)
-            loadUrl(context, url, frameDuration, animationListener)
+            loadUrl(url, speed)
         } else if (File(string).exists()) {
-            load(File(string), frameDuration, animationListener)
+            load(File(string), speed)
         }
     }
 
@@ -149,6 +148,7 @@ class ApngAnimator {
      */
     private fun draw(extractedFrame: ArrayList<Frame>) {
         // Set last frame
+        duration = ArrayList()
         frames = extractedFrame
         bitmapBuffer = Bitmap.createBitmap(frames[0].maxWidth!!, frames[0].maxHeight!!, Bitmap.Config.ARGB_8888)
         for (i in 0 until frames.size) {
@@ -183,6 +183,7 @@ class ApngAnimator {
             } else {
                 bitmapBuffer = btm
             }
+            duration?.add(it.delay / (speed ?: 1f))
 
         }
     }
@@ -192,23 +193,26 @@ class ApngAnimator {
         val animResume = CustomAnimationDrawable()
         activeAnimation?.stop()
         val currentFrame = activeAnimation!!.current
-
+        val dura = ArrayList<Float>()
         frameLoop@ for (i in 0 until anim?.numberOfFrames!!) {
             val checkFrame = activeAnimation!!.getFrame(i)
-
             if (checkFrame === currentFrame) {
                 val frameIndex = i
                 for (k in frameIndex until activeAnimation!!.numberOfFrames) {
                     val frame = activeAnimation!!.getFrame(k)
-                    animResume.addFrame(frame, activeAnimation?.getDuration(k)!!)
+                    animResume.addFrame(frame, (duration!![k] / (speed ?: 1f)).toInt())
+                    dura.add(duration!![k])
                 }
                 for (k in 0 until frameIndex) {
                     val frame = activeAnimation!!.getFrame(k)
-                    animResume.addFrame(frame, activeAnimation?.getDuration(k)!!)
+                    animResume.addFrame(frame, (duration!![k] / (speed ?: 1f)).toInt())
+                    dura.add(duration!![k])
                 }
                 activeAnimation = animResume
                 imageView?.setImageDrawable(activeAnimation)
+                activeAnimation?.setOnAnimationLoopListener(AnimationLoopListener)
                 imageView?.invalidate()
+                duration = dura
                 break@frameLoop
             }
         }
@@ -219,36 +223,25 @@ class ApngAnimator {
         activeAnimation?.start()
     }
 
-    /**
-     * Converts the generated frames into an animation drawable ([CustomAnimationDrawable])
-     *
-     * @param animationListener The listener that will be invoked when there are specific animation events.
-     * @param frameDuration The duration to show each frame. If this is null then the duration specified
-     * in the APNG will be used instead.
-     */
-    private fun toAnimationDrawable(animationListener: CustomAnimationDrawable.AnimationListener? = null,
-                                    frameDuration: Int? = null): CustomAnimationDrawable {
+    fun setOnAnimationLoopListener(animationLoopListener : () -> Unit) {
+        AnimationLoopListener = animationLoopListener
+        anim?.setOnAnimationLoopListener(animationLoopListener)
+    }
 
-        return CustomAnimationDrawable().apply {
-            for (i in 0 until generatedFrame.size) {
-                addFrame(BitmapDrawable(generatedFrame[i]), frameDuration
-                        ?: frames[i].delay.toInt())
-            }
-
-            animationListener?.let { listener ->
-                this.setAnimationListener(listener)
-            }
-        }
+    fun onLoaded(f : (ApngAnimator) -> Unit) {
+        doOnLoaded = f
     }
 
     /**
-     * Interface that exposes callbacks for events during the animation.
+     * Converts the generated frames into an animation drawable ([CustomAnimationDrawable])
+     * in the APNG will be used instead.
      */
-    interface AnimationListener {
+    private fun toAnimationDrawable( ): CustomAnimationDrawable {
 
-        /**
-         * The animation has performed a loop.
-         */
-        fun onAnimationLooped()
+        return CustomAnimationDrawable().apply {
+            for (i in 0 until generatedFrame.size) {
+                addFrame(BitmapDrawable(generatedFrame[i]), ((frames[i].delay).toInt() / (speed ?: 1f)).toInt())
+            }
+        }
     }
 }

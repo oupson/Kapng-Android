@@ -3,9 +3,13 @@ package oupson.apngcreator
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
+import android.widget.SeekBar
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_main.*
 import oupson.apng.ApngAnimator
+import android.widget.Toast
+
+
 
 
 class MainActivity : AppCompatActivity() {
@@ -17,15 +21,35 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val animationListener = object : ApngAnimator.AnimationListener {
-            override fun onAnimationLooped() {
-                Log.d("TEST", "Animation LOOPED!")
+
+        animator = ApngAnimator(this).loadInto(imageView).apply {
+            load(imageUrl)
+            onLoaded {
+                setOnAnimationLoopListener {
+                    Log.e("app-test", "onLoop")
+                }
             }
         }
 
-        animator = ApngAnimator().loadInto(imageView).apply {
-            load(this@MainActivity, imageUrl, null, animationListener)
-        }
+        this.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            internal var progress = 0
+
+            // When Progress value changed.
+            override fun onProgressChanged(seekBar: SeekBar, progressValue: Int, fromUser: Boolean) {
+                progress = progressValue
+            }
+
+            // Notification that the user has started a touch gesture.
+            override fun onStartTrackingTouch(seekBar: SeekBar) {
+            }
+
+            // Notification that the user has finished a touch gesture
+            override fun onStopTrackingTouch(seekBar: SeekBar) {
+                Log.e("TAG" , (seekBar.progress.toFloat() / 100f).toString())
+                animator.speed = (seekBar.progress.toFloat() / 100f)
+
+            }
+        })
 
         Picasso.get().load(imageUrl).into(imageView2)
 
