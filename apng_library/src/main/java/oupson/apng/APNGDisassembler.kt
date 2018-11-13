@@ -30,6 +30,7 @@ class APNGDisassembler(val byteArray: ByteArray) {
 
     init {
         if (isApng(byteArray)) {
+            apng = Apng()
             val ihdr = IHDR()
             ihdr.parseIHDR(byteArray)
             maxWidth = ihdr.pngWidth
@@ -47,6 +48,8 @@ class APNGDisassembler(val byteArray: ByteArray) {
                             crC32.update(iend, 0, iend.size)
                             cover!!.addAll(iend.toList())
                             cover!!.addAll(to4Bytes(crC32.value.toInt()).toList())
+
+                            apng.cover = BitmapFactory.decodeByteArray(cover!!.toByteArray(), 0, cover!!.size)
                         }
                         png = ArrayList()
                         val fcTL = fcTL(byteArray.copyOfRange(i - 4, i + 36))
@@ -205,8 +208,6 @@ class APNGDisassembler(val byteArray: ByteArray) {
                     tnrs = byteArray.copyOfRange( i -4, i + 8 + bodySize)
                 }
             }
-
-            apng = Apng()
             apng.frames = pngList
 
         } else {

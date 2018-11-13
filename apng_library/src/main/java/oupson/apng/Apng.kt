@@ -2,6 +2,7 @@ package oupson.apng
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import oupson.apng.ImageUtils.PnnQuantizer
 import oupson.apng.Utils.Companion.convertImage
 import oupson.apng.Utils.Companion.getBlend_op
 import oupson.apng.Utils.Companion.getDispose_op
@@ -11,6 +12,7 @@ import oupson.apng.Utils.Companion.to4Bytes
 import oupson.apng.Utils.Companion.toByteArray
 import oupson.apng.chunks.IDAT
 import oupson.apng.exceptions.NoFrameException
+import java.io.ByteArrayOutputStream
 import java.util.zip.CRC32
 
 
@@ -468,5 +470,19 @@ class Apng {
         crc.update(actl.toByteArray(), 0, actl.size)
         res.addAll(to4Bytes(crc.value.toInt()).toList())
         return res
+    }
+
+    fun optimise(quality : Int, maxColor : Int) {
+        val apng = Apng()
+        val pnn = PnnQuantizer(cover)
+        cover = pnn.convert(maxColor, false)
+
+        frames.forEach {
+            val btm = BitmapFactory.decodeByteArray(it.byteArray, 0 , it.byteArray.size)
+            val pnn = PnnQuantizer(btm)
+            val btmOptimised = pnn.convert(maxColor, false)
+            apng.addFrames(btmOptimised, it.delay, it.x_offsets ?: 0, it.y_offsets ?: 0, it.dispose_op, it.blend_op)
+        }
+        frames = apng.frames
     }
 }

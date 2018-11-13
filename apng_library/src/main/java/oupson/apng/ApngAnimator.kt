@@ -27,9 +27,7 @@ class ApngAnimator(val context: Context) {
             try {
                 pause()
                 play()
-            } catch ( e : Exception) {
-                e.printStackTrace()
-            }
+            } catch ( e : Exception) { }
         }
     private var bitmapBuffer: Bitmap? = null
     private var imageView: ImageView? = null
@@ -67,9 +65,6 @@ class ApngAnimator(val context: Context) {
      * Load an APNG file and starts playing the animation.
      * @param context The current context.
      * @param url URL to load.
-     * @param animationListener The listener that will be invoked when there are specific animation events.
-     * @param frameDuration The duration to show each frame. If this is null then the duration specified
-     * in the APNG will be used instead.
      * @throws NotApngException
      */
     fun loadUrl(url: URL, speed: Float? = null) {
@@ -79,7 +74,6 @@ class ApngAnimator(val context: Context) {
             APNGDisassembler(Loader().load(context, url)).pngList.apply {
                 draw(this)
             }
-
             setupAnimationDrawableAndStart()
         }
     }
@@ -88,9 +82,6 @@ class ApngAnimator(val context: Context) {
     /**
      * Load an APNG file and starts playing the animation.
      * @param byteArray ByteArray of the file
-     * @param animationListener The listener that will be invoked when there are specific animation events.
-     * @param frameDuration The duration to show each frame. If this is null then the duration specified
-     * in the APNG will be used instead.
      * @throws NotApngException
      */
     fun load(byteArray: ByteArray, speed: Float? = null) {

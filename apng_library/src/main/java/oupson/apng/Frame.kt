@@ -1,6 +1,9 @@
 package oupson.apng
 
+import android.graphics.BitmapFactory
+import oupson.apng.Utils.Companion.convertImage
 import oupson.apng.Utils.Companion.isPng
+import oupson.apng.Utils.Companion.toByteArray
 import oupson.apng.chunks.IDAT
 import oupson.apng.chunks.IHDR
 import oupson.apng.exceptions.NotPngException
@@ -37,17 +40,19 @@ class Frame {
 
     constructor(byteArray: ByteArray) {
         if (isPng(byteArray)) {
-            this.byteArray = byteArray
+            val btm = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
+            val bytes = toByteArray(btm)
+            this.byteArray = bytes
             // Get width and height for image
             ihdr = IHDR()
-            ihdr.parseIHDR(byteArray)
+            ihdr.parseIHDR(bytes)
 
             width = ihdr.pngWidth
             height = ihdr.pngHeight
 
             // Get IDAT Bytes
             idat = IDAT()
-            idat.parseIDAT(byteArray)
+            idat.parseIDAT(bytes)
 
             delay = 1000f
 
@@ -59,17 +64,19 @@ class Frame {
     }
     constructor(byteArray: ByteArray, delay : Float) {
         if (isPng(byteArray)) {
-            this.byteArray = byteArray
+            val btm = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
+            val bytes = toByteArray(btm)
+            this.byteArray = bytes
             // Get width and height for image
             ihdr = IHDR()
-            ihdr.parseIHDR(byteArray)
+            ihdr.parseIHDR(bytes)
 
             width = ihdr.pngWidth
             height = ihdr.pngHeight
 
             // Get IDAT Bytes
             idat = IDAT()
-            idat.parseIDAT(byteArray)
+            idat.parseIDAT(bytes)
 
             this.delay = delay
             blend_op = Utils.Companion.blend_op.APNG_BLEND_OP_SOURCE
@@ -81,17 +88,19 @@ class Frame {
 
     constructor(byteArray: ByteArray, delay : Float, blend_op: Utils.Companion.blend_op, dispose_op: Utils.Companion.dispose_op) {
         if (isPng(byteArray)) {
-            this.byteArray = byteArray
+            val btm = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
+            val bytes = toByteArray(btm)
+            this.byteArray = bytes
             // Get width and height for image
             ihdr = IHDR()
-            ihdr.parseIHDR(byteArray)
+            ihdr.parseIHDR(bytes)
 
             width = ihdr.pngWidth
             height = ihdr.pngHeight
 
             // Get IDAT Bytes
             idat = IDAT()
-            idat.parseIDAT(byteArray)
+            idat.parseIDAT(bytes)
 
             this.delay = delay
 
@@ -107,17 +116,19 @@ class Frame {
 
     constructor(byteArray: ByteArray, delay : Float, xOffsets : Int, yOffsets : Int, blend_op: Utils.Companion.blend_op, dispose_op: Utils.Companion.dispose_op) {
         if (isPng(byteArray)) {
-            this.byteArray = byteArray
+            val btm = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
+            val bytes = toByteArray(btm)
+            this.byteArray = bytes
             // Get width and height for image
             ihdr = IHDR()
-            ihdr.parseIHDR(byteArray)
+            ihdr.parseIHDR(bytes)
 
             width = ihdr.pngWidth
             height = ihdr.pngHeight
 
             // Get IDAT Bytes
             idat = IDAT()
-            idat.parseIDAT(byteArray)
+            idat.parseIDAT(bytes)
 
             this.delay = delay
 
