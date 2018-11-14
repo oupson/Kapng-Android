@@ -6,18 +6,25 @@ import java.io.ByteArrayOutputStream
 
 class Utils {
     companion object {
-
-        // Return true if png
+        /**
+         * @return True if is a png
+         */
         fun isPng(byteArray: ByteArray): Boolean {
             return byteArray.copyOfRange(0, 8).contentToString() == pngSignature.contentToString()
         }
 
+        /**
+         * Know if file is an APNG
+         * @return True if is an APNG
+         */
         fun isApng(byteArray: ByteArray): Boolean {
             // if byteArray contain acTL
             return byteArray.toList().containsAll(byteArrayOf(0x66, 0x63, 0x54, 0x4c).toList())
         }
 
-        // Signature for png
+        /**
+         * Signature for png / APNG files
+         */
         val pngSignature: ByteArray = byteArrayOf(0x89.toByte(), 0x50.toByte(), 0x4E.toByte(), 0x47.toByte(), 0x0D.toByte(), 0x0A.toByte(), 0x1A.toByte(), 0x0A.toByte())
 
 

@@ -30,9 +30,6 @@ class Apng {
      * If it's null the library generate a cover with the first frame
      */
     var cover : Bitmap? = null
-        set(value) {
-            field = value!!
-        }
 
     var frames : ArrayList<Frame> = ArrayList()
 
@@ -412,6 +409,10 @@ class Apng {
         return Bitmap.createScaledBitmap(bitmap, maxWidth, maxHeight, false)
     }
 
+    /**
+     * Generate the IHDR chunks.
+     * @return The byteArray generated
+     */
     private fun generateIhdr(): ByteArray {
         val ihdr = ArrayList<Byte>()
 
@@ -447,7 +448,10 @@ class Apng {
         return ihdr.toByteArray()
     }
 
-    // Animation Control chunk
+    /**
+     * Generate the animation control chunk
+     * @return The byteArray generated
+     */
     private fun generateACTL(): ArrayList<Byte> {
         val res = ArrayList<Byte>()
         val actl = ArrayList<Byte>()
@@ -472,16 +476,38 @@ class Apng {
         return res
     }
 
-    fun optimise(quality : Int, maxColor : Int) {
-        val apng = Apng()
-        val pnn = PnnQuantizer(cover)
-        cover = pnn.convert(maxColor, false)
 
+    /**
+     * Reduce the apng size
+     * @param maxColor Max color you want in the image
+     * @param keepCover Keep the cover
+     * @param sizePercent Reduce image width/height by percents.
+     */
+    fun reduceSize( maxColor : Int, keepCover : Boolean? = null, sizePercent : Int? = null) {
+        val apng = Apng()
+        if (keepCover != false) {
+            if (cover != null) {
+                if (sizePercent != null) {
+                    cover = Bitmap.createScaledBitmap(cover, (cover!!.width.toFloat() * sizePercent.toFloat() / 100f).toInt(), (cover!!.height.toFloat() * sizePercent.toFloat() / 100f).toInt(), false)
+                    val pnn = PnnQuantizer(cover)
+                    cover = pnn.convert(maxColor, false)
+                }
+            }
+        } else {
+            cover = null
+        }
         frames.forEach {
-            val btm = BitmapFactory.decodeByteArray(it.byteArray, 0 , it.byteArray.size)
+            var btm = BitmapFactory.decodeByteArray(it.byteArray, 0, it.byteArray.size)
+            if (sizePercent != null) {
+                btm = Bitmap.createScaledBitmap(btm, (btm!!.width.toFloat() * sizePercent.toFloat() / 100f).toInt(), (btm.height.toFloat() * sizePercent.toFloat() / 100f).toInt(), false)
+            }
             val pnn = PnnQuantizer(btm)
             val btmOptimised = pnn.convert(maxColor, false)
-            apng.addFrames(btmOptimised, it.delay, it.x_offsets ?: 0, it.y_offsets ?: 0, it.dispose_op, it.blend_op)
+            if (sizePercent != null) {
+                apng.addFrames(btmOptimised, it.delay, ((it.x_offsets ?: 0).toFloat() * sizePercent.toFloat() / 100f).toInt(), ((it.y_offsets ?: 0).toFloat() * sizePercent.toFloat() / 100f).toInt(), it.dispose_op, it.blend_op)
+            } else {
+                apng.addFrames(btmOptimised, it.delay, it.x_offsets ?: 0, it.y_offsets ?: 0, it.dispose_op, it.blend_op)
+            }
         }
         frames = apng.frames
     }

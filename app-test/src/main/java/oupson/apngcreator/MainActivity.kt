@@ -11,6 +11,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 import oupson.apng.ApngAnimator
 import android.widget.Toast
 import org.jetbrains.anko.doAsync
+import org.jetbrains.anko.toast
 import oupson.apng.APNGDisassembler
 import oupson.apng.Apng
 import oupson.apng.Loader
@@ -23,6 +24,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var animator: ApngAnimator
 
     val imageUrl = "https://metagif.files.wordpress.com/2015/01/bugbuckbunny.png"
+   // val imageUrl = "http://orig06.deviantart.net/7812/f/2012/233/7/5/twilight_rapidash_shaded_and_animated_by_tamalesyatole-d5bz7hd.png"
     //val imageUrl = "https://raw.githubusercontent.com/tinify/iMessage-Panda-sticker/master/StickerPackExtension/Stickers.xcstickers/Sticker%20Pack.stickerpack/panda.sticker/panda.png"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,8 +42,11 @@ class MainActivity : AppCompatActivity() {
         doAsync {
             Loader().load(applicationContext, URL(imageUrl)).apply {
                 val a = APNGDisassembler(this).apng
-                a.optimise(100, 75)
+                a.reduceSize(100, false, 75)
                 File(File(Environment.getExternalStorageDirectory(), "Documents"), "apng.png").writeBytes(a.toByteArray())
+                runOnUiThread {
+                    toast("Converted ! ")
+                }
             }
         }
 
