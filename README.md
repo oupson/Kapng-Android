@@ -42,7 +42,7 @@ repositories {
  }
  
  dependencies {
-  implementation 'com.github.oupson:Kapng-Android:1.0.2'
+  implementation 'com.github.oupson:Kapng-Android:1.0.3'
  }
  ```
  
