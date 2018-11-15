@@ -18,8 +18,15 @@ class Utils {
          * @return True if is an APNG
          */
         fun isApng(byteArray: ByteArray): Boolean {
-            // if byteArray contain acTL
-            return byteArray.toList().containsAll(byteArrayOf(0x66, 0x63, 0x54, 0x4c).toList())
+            val acTL = byteArrayOf(0x66, 0x63, 0x54, 0x4c)
+            loop@for (i in 0 until byteArray.size) {
+                val it = byteArray.copyOfRange(i, i + 4)
+                // if byteArray contain acTL
+                if (it.contentEquals(acTL)) {
+                    return true
+                }
+            }
+            return false
         }
 
         /**
