@@ -1,4 +1,4 @@
-# Kapng-Android
+# Kapng-Android 
 An android library to create or display apng
 
 Exemple of apng :
@@ -35,14 +35,14 @@ File("output file path").writeBytes(apngByteArray)
 ```
 
 How to install :
-Via jitpack
+Via jitpack   [![](https://jitpack.io/v/oupson/Kapng-Android.svg)](https://jitpack.io/#oupson/Kapng-Android)
 ```gradle
 repositories {
   maven { url "https://jitpack.io" }
  }
  
  dependencies {
-  implementation 'com.github.oupson:Kapng-Android:1.0.3'
+  implementation 'com.github.oupson:Kapng-Android:1.0.4'
  }
  ```
  
