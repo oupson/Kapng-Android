@@ -17,16 +17,20 @@ class Utils {
          * Know if file is an APNG
          * @return True if is an APNG
          */
-        fun isApng(byteArray: ByteArray): Boolean {
-            val acTL = byteArrayOf(0x66, 0x63, 0x54, 0x4c)
-            loop@for (i in 0 until byteArray.size) {
-                val it = byteArray.copyOfRange(i, i + 4)
-                // if byteArray contain acTL
-                if (it.contentEquals(acTL)) {
-                    return true
+        fun isApng(byteArray: ByteArray) : Boolean {
+            try {
+                val acTL = byteArrayOf(0x66, 0x63, 0x54, 0x4c)
+                loop@ for (i in 0 until byteArray.size) {
+                    val it = byteArray.copyOfRange(i, i + 4)
+                    // if byteArray contain acTL
+                    if (it.contentEquals(acTL)) {
+                        return true
+                    }
                 }
+                return false
+            } catch (e : Exception) {
+                return false
             }
-            return false
         }
 
         /**
