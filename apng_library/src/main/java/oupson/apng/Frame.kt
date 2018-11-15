@@ -1,7 +1,6 @@
 package oupson.apng
 
 import android.graphics.BitmapFactory
-import oupson.apng.Utils.Companion.convertImage
 import oupson.apng.Utils.Companion.isPng
 import oupson.apng.Utils.Companion.toByteArray
 import oupson.apng.chunks.IDAT

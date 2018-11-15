@@ -3,7 +3,6 @@ package oupson.apng
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import oupson.apng.ImageUtils.PnnQuantizer
-import oupson.apng.Utils.Companion.convertImage
 import oupson.apng.Utils.Companion.getBlend_op
 import oupson.apng.Utils.Companion.getDispose_op
 import oupson.apng.Utils.Companion.pngSignature
@@ -12,7 +11,6 @@ import oupson.apng.Utils.Companion.to4Bytes
 import oupson.apng.Utils.Companion.toByteArray
 import oupson.apng.chunks.IDAT
 import oupson.apng.exceptions.NoFrameException
-import java.io.ByteArrayOutputStream
 import java.util.zip.CRC32
 
 

@@ -20,13 +20,13 @@ import java.util.Map;
 import java.util.Random;
 
 public class PnnQuantizer {
-    protected final short SHORT_MAX = Short.MAX_VALUE;
-    protected final char BYTE_MAX = -Byte.MIN_VALUE + Byte.MAX_VALUE;
-    protected boolean hasTransparency = false, hasSemiTransparency = false;
+    private final short SHORT_MAX = Short.MAX_VALUE;
+    private final char BYTE_MAX = -Byte.MIN_VALUE + Byte.MAX_VALUE;
+    private boolean hasTransparency = false, hasSemiTransparency = false;
     protected int width, height;
     protected int pixels[] = null;
-    protected Integer m_transparentColor;
-    protected Map<Integer, short[]> closestMap = new HashMap<>();
+    private Integer m_transparentColor;
+    private Map<Integer, short[]> closestMap = new HashMap();
 
     public PnnQuantizer(String fname) throws IOException {
         fromBitmap(fname);
@@ -54,7 +54,7 @@ public class PnnQuantizer {
         int nn, fw, bk, tm, mtm;
     }
 
-    protected int getColorIndex(final int c)
+    private int getColorIndex(final int c)
     {
         if(hasSemiTransparency)
             return (Color.alpha(c) & 0xF0) << 8 | (Color.red(c) & 0xF0) << 4 | (Color.green(c) & 0xF0) | (Color.blue(c) >> 4);
@@ -63,7 +63,7 @@ public class PnnQuantizer {
         return (Color.red(c) & 0xF8) << 8 | (Color.green(c) & 0xFC) << 3 | (Color.blue(c) >> 3);
     }
 
-    protected double sqr(double value)
+    private double sqr(double value)
     {
         return value * value;
     }
@@ -412,7 +412,7 @@ public class PnnQuantizer {
         return true;
     }
 
-    protected Bitmap quantize_image(final int[] pixels, int[] qPixels)
+    private Bitmap quantize_image(final int[] pixels, int[] qPixels)
     {
         int pixelIndex = 0;
         boolean odd_scanline = false;

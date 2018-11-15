@@ -1,6 +1,5 @@
 package oupson.apngcreator
 
-import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.os.Environment
 import android.support.v7.app.AppCompatActivity
@@ -8,14 +7,11 @@ import android.util.Log
 import android.widget.SeekBar
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_main.*
-import oupson.apng.ApngAnimator
-import android.widget.Toast
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.toast
 import oupson.apng.APNGDisassembler
-import oupson.apng.Apng
+import oupson.apng.ApngAnimator
 import oupson.apng.Loader
-import oupson.apngcreator.R.id.imageView
 import java.io.File
 import java.net.URL
 
@@ -40,9 +36,9 @@ class MainActivity : AppCompatActivity() {
 
 
         doAsync {
-            Loader().load(applicationContext, URL(imageUrl)).apply {
-                val a = APNGDisassembler(this).apng
-                a.reduceSize(100, false, 75)
+            Loader.load(applicationContext, URL(imageUrl)).apply {
+                val a = APNGDisassembler.disassemble(this)
+                a.reduceSize(100, false, 60)
                 File(File(Environment.getExternalStorageDirectory(), "Documents"), "apng.png").writeBytes(a.toByteArray())
                 runOnUiThread {
                     toast("Converted ! ")

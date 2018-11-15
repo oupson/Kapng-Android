@@ -2,7 +2,6 @@ package oupson.apng
 
 import android.content.Context
 import android.graphics.*
-import android.os.Handler
 import android.widget.ImageView
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
@@ -13,7 +12,7 @@ import java.net.URL
 /**
  * Class to play APNG
  */
-class ApngAnimator(val context: Context) {
+class ApngAnimator(private val context: Context) {
     var isPlaying = true
         private set(value) {
             field = value
@@ -54,7 +53,7 @@ class ApngAnimator(val context: Context) {
         doAsync {
             this@ApngAnimator.speed = speed
             // Download PNG
-            APNGDisassembler(file.readBytes()).pngList.apply {
+            APNGDisassembler.disassemble(file.readBytes()).frames.apply {
                 draw(this)
             }
             setupAnimationDrawableAndStart()
@@ -71,7 +70,7 @@ class ApngAnimator(val context: Context) {
         doAsync(exceptionHandler = { e -> e.printStackTrace() }) {
             this@ApngAnimator.speed = speed
             // Download PNG
-            APNGDisassembler(Loader().load(context, url)).pngList.apply {
+            APNGDisassembler.disassemble(Loader.load(context, url)).frames.apply {
                 draw(this)
             }
             setupAnimationDrawableAndStart()
@@ -87,7 +86,7 @@ class ApngAnimator(val context: Context) {
     fun load(byteArray: ByteArray, speed: Float? = null) {
         doAsync {
             this@ApngAnimator.speed = speed
-            APNGDisassembler(byteArray).pngList.apply {
+            APNGDisassembler.disassemble(byteArray).frames.apply {
                 draw(this)
             }
             setupAnimationDrawableAndStart()
