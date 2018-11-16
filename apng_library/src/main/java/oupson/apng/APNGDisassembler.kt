@@ -9,9 +9,8 @@ import oupson.apng.chunks.fcTL
 import oupson.apng.exceptions.NotApngException
 import java.util.zip.CRC32
 
-class APNGDisassembler() {
+class APNGDisassembler {
     companion object {
-
         fun disassemble(byteArray: ByteArray) : Apng {
             val pngList = ArrayList<Frame>()
             var png: ArrayList<Byte>? = null

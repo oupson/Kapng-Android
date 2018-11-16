@@ -27,7 +27,7 @@ public class PnnQuantizer {
     protected int width, height;
     protected int pixels[] = null;
     private Integer m_transparentColor;
-    private Map<Integer, short[]> closestMap = new HashMap();
+    private HashMap<Integer, short[]> closestMap = new HashMap();
 
     public PnnQuantizer(String fname) throws IOException {
         fromBitmap(fname);
@@ -156,7 +156,7 @@ public class PnnQuantizer {
         /* Merge bins which increase error the least */
         int extbins = maxbins - nMaxColors;
         for (int i = 0; i < extbins; ) {
-            Pnnbin tb = null;
+            Pnnbin tb;
             /* Use heap to find which bins to merge */
             for (;;) {
                 int b1 = heap[1];
@@ -253,7 +253,7 @@ public class PnnQuantizer {
         return k;
     }
 
-    private short closestColorIndex(final Integer[] palette, final int[] squares3, final int c)
+    private short closestColorIndex(final Integer[] palette, final int c)
     {
         short k = 0;
         short[] closest = new short[5];
@@ -407,7 +407,7 @@ public class PnnQuantizer {
         }
         else {
             for (int i = 0; i < qPixels.length; i++)
-                qPixels[i] = palette[closestColorIndex(palette, squares3, pixels[i])];
+                qPixels[i] = palette[closestColorIndex(palette, pixels[i])];
         }
 
         return true;

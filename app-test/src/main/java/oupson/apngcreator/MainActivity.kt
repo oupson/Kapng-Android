@@ -34,12 +34,11 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-
         doAsync {
             Loader.load(applicationContext, URL(imageUrl)).apply {
                 val a = APNGDisassembler.disassemble(this)
                 a.reduceSize(100, false, 60)
-                File(File(Environment.getExternalStorageDirectory(), "Documents"), "apng.png").writeBytes(a.toByteArray())
+                File(File(Environment.getExternalStorageDirectory(), "Download"), "apng.png").writeBytes(a.toByteArray())
                 runOnUiThread {
                     toast("Converted ! ")
                 }
@@ -47,18 +46,13 @@ class MainActivity : AppCompatActivity() {
         }
 
         this.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            internal var progress = 0
 
-            // When Progress value changed.
             override fun onProgressChanged(seekBar: SeekBar, progressValue: Int, fromUser: Boolean) {
-                progress = progressValue
             }
 
-            // Notification that the user has started a touch gesture.
             override fun onStartTrackingTouch(seekBar: SeekBar) {
             }
 
-            // Notification that the user has finished a touch gesture
             override fun onStopTrackingTouch(seekBar: SeekBar) {
                 Log.e("TAG" , (seekBar.progress.toFloat() / 100f).toString())
                 animator.speed = (seekBar.progress.toFloat() / 100f)
