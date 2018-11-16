@@ -62,7 +62,13 @@ class Main2Activity : AppCompatActivity() {
             }
         } else {
             try {
-                animator.load(getImageRealPath(contentResolver, uri, null))
+                val bytes = contentResolver.openInputStream(uri).readBytes()
+                if (isApng(bytes)) {
+                    animator.load(bytes)
+                } else {
+                    imageView3.setImageBitmap(BitmapFactory.decodeFile(getImageRealPath(contentResolver, uri, null)))
+                    Snackbar.make(constraint, "Not an APNG", Snackbar.LENGTH_LONG).show()
+                }
             } catch (e: NotApngException) {
                 imageView3.setImageBitmap(BitmapFactory.decodeFile(getImageRealPath(contentResolver, uri, null)))
                 Snackbar.make(constraint, "Not an APNG", Snackbar.LENGTH_LONG).show()

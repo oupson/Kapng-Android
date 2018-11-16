@@ -9,9 +9,10 @@ Copyright (c) 2018 Miller Cy Chan
     https://github.com/mcychan/nQuant.android/blob/master/nQuant.master/src/main/java/com/android/nQuant/PnnQuantizer.java
  */
 
-import android.graphics.Color;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;

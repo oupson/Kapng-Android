@@ -29,7 +29,7 @@ class MainActivity : AppCompatActivity() {
             load(imageUrl)
             onLoaded {
                 setOnAnimationLoopListener {
-                    Log.e("app-test", "onLoop")
+                    // Log.e("app-test", "onLoop")
                 }
             }
         }
