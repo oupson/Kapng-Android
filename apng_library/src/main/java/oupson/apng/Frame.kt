@@ -1,11 +1,12 @@
 package oupson.apng
 
 import android.graphics.BitmapFactory
-import oupson.apng.Utils.Companion.isPng
-import oupson.apng.Utils.Companion.toByteArray
+import oupson.apng.utils.Utils.Companion.isPng
+import oupson.apng.utils.Utils.Companion.toByteArray
 import oupson.apng.chunks.IDAT
 import oupson.apng.chunks.IHDR
 import oupson.apng.exceptions.NotPngException
+import oupson.apng.utils.Utils
 
 /**
  * A frame for an animated png

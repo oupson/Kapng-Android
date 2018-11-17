@@ -1,4 +1,4 @@
-package oupson.apng
+package oupson.apng.utils
 
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -69,9 +69,9 @@ class Utils {
          */
         fun getDispose_op(int: Int) : dispose_op {
             return when(int) {
-                0 -> Companion.dispose_op.APNG_DISPOSE_OP_NONE
-                1 -> Companion.dispose_op.APNG_DISPOSE_OP_BACKGROUND
-                2 -> Companion.dispose_op.APNG_DISPOSE_OP_PREVIOUS
+                0 -> dispose_op.APNG_DISPOSE_OP_NONE
+                1 -> dispose_op.APNG_DISPOSE_OP_BACKGROUND
+                2 -> dispose_op.APNG_DISPOSE_OP_PREVIOUS
                 else -> dispose_op.APNG_DISPOSE_OP_NONE
             }
         }
@@ -98,10 +98,10 @@ class Utils {
          * @param int Int of the blend_op
          * @return A blend_op
          */
-        fun getBlend_op(int : Int) : blend_op{
+        fun getBlend_op(int : Int) : blend_op {
             return when(int) {
-                0 -> Companion.blend_op.APNG_BLEND_OP_SOURCE
-                1 -> Companion.blend_op.APNG_BLEND_OP_OVER
+                0 -> blend_op.APNG_BLEND_OP_SOURCE
+                1 -> blend_op.APNG_BLEND_OP_OVER
                 else -> blend_op.APNG_BLEND_OP_SOURCE
             }
         }

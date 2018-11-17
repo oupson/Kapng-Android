@@ -1,12 +1,13 @@
 package oupson.apng
 
 import android.graphics.BitmapFactory
-import oupson.apng.Utils.Companion.isApng
-import oupson.apng.Utils.Companion.pngSignature
-import oupson.apng.Utils.Companion.to4Bytes
+import oupson.apng.utils.Utils.Companion.isApng
+import oupson.apng.utils.Utils.Companion.pngSignature
+import oupson.apng.utils.Utils.Companion.to4Bytes
 import oupson.apng.chunks.IHDR
 import oupson.apng.chunks.fcTL
 import oupson.apng.exceptions.NotApngException
+import oupson.apng.utils.Utils
 import java.util.zip.CRC32
 
 class APNGDisassembler {

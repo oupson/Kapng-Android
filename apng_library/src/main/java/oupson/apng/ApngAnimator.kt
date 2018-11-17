@@ -6,10 +6,13 @@ import android.graphics.*
 import android.net.Uri
 import android.widget.ImageView
 import org.jetbrains.anko.doAsync
+import org.jetbrains.anko.image
 import org.jetbrains.anko.runOnUiThread
 import org.jetbrains.anko.uiThread
-import oupson.apng.Utils.Companion.isApng
+import oupson.apng.utils.Utils.Companion.isApng
 import oupson.apng.exceptions.NotApngException
+import oupson.apng.utils.ApngAnimatorOptions
+import oupson.apng.utils.Utils
 import java.io.File
 import java.net.URL
 
@@ -41,6 +44,7 @@ class ApngAnimator(private val context: Context) {
     private var doOnLoaded : (ApngAnimator) -> Unit = {}
     private var AnimationLoopListener : () -> Unit = {}
     private var duration : ArrayList<Float>? = null
+    private var scaleType : ImageView.ScaleType? = null
 
     var isApng = false
     var loadNotApng = true
@@ -74,7 +78,7 @@ class ApngAnimator(private val context: Context) {
      * @param speed The speed
      * @throws NotApngException
      */
-    fun load(file: File, speed: Float? = null) {
+    fun load(file: File, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) {
         doAsync {
             val bytes = file.readBytes()
             if (isApng(bytes)) {
@@ -84,10 +88,12 @@ class ApngAnimator(private val context: Context) {
                 APNGDisassembler.disassemble(file.readBytes()).frames.apply {
                     draw(this)
                 }
+                scaleType = apngAnimatorOptions?.scaleType
                 setupAnimationDrawableAndStart()
             } else {
                 if (loadNotApng) {
                     context.runOnUiThread {
+                        imageView?.scaleType = this@ApngAnimator.scaleType ?: ImageView.ScaleType.FIT_CENTER
                         imageView?.setImageBitmap(BitmapFactory.decodeByteArray(bytes, 0, bytes.size))
                     }
                 } else {
@@ -103,7 +109,7 @@ class ApngAnimator(private val context: Context) {
      * @param speed The speed
      * @throws NotApngException
      */
-    fun load(uri : Uri, speed: Float? = null) {
+    fun load(uri : Uri, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) {
         doAsync {
             val bytes = context.contentResolver.openInputStream(uri).readBytes()
             if (isApng(bytes)) {
@@ -113,10 +119,12 @@ class ApngAnimator(private val context: Context) {
                 APNGDisassembler.disassemble(bytes).frames.apply {
                     draw(this)
                 }
+                scaleType = apngAnimatorOptions?.scaleType
                 setupAnimationDrawableAndStart()
             } else {
                 if (loadNotApng) {
                     context.runOnUiThread {
+                        imageView?.scaleType = this@ApngAnimator.scaleType ?: ImageView.ScaleType.FIT_CENTER
                         imageView?.setImageBitmap(BitmapFactory.decodeByteArray(bytes, 0, bytes.size))
                     }
                 } else {
@@ -132,7 +140,7 @@ class ApngAnimator(private val context: Context) {
      * @param speed The speed
      * @throws NotApngException
      */
-    fun loadUrl(url: URL, speed: Float? = null) {
+    fun loadUrl(url: URL, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) {
         doAsync(exceptionHandler = { e -> e.printStackTrace() }) {
             this@ApngAnimator.speed = speed
             // Download PNG
@@ -142,10 +150,12 @@ class ApngAnimator(private val context: Context) {
                     APNGDisassembler.disassemble(this).frames.apply {
                         draw(this)
                     }
+                    scaleType = apngAnimatorOptions?.scaleType
                     setupAnimationDrawableAndStart()
                 } else {
                     if (loadNotApng) {
                         context.runOnUiThread {
+                            imageView?.scaleType = this@ApngAnimator.scaleType ?: ImageView.ScaleType.FIT_CENTER
                             imageView?.setImageBitmap(BitmapFactory.decodeByteArray(this@apply, 0, this@apply.size))
                         }
                     } else {
@@ -165,7 +175,7 @@ class ApngAnimator(private val context: Context) {
      * @param speed The speed
      * @throws NotApngException
      */
-    fun load(byteArray: ByteArray, speed: Float? = null) {
+    fun load(byteArray: ByteArray, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions?) {
         doAsync {
             this@ApngAnimator.speed = speed
             if (isApng(byteArray)) {
@@ -173,10 +183,12 @@ class ApngAnimator(private val context: Context) {
                 APNGDisassembler.disassemble(byteArray).frames.apply {
                     draw(this)
                 }
+                scaleType = apngAnimatorOptions?.scaleType
                 setupAnimationDrawableAndStart()
             } else {
                 if (loadNotApng) {
                     context.runOnUiThread {
+                        imageView?.scaleType = this@ApngAnimator.scaleType ?: ImageView.ScaleType.FIT_CENTER
                         imageView?.setImageBitmap(BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size))
                     }
                 } else {
@@ -192,18 +204,18 @@ class ApngAnimator(private val context: Context) {
      * @param speed The speed
      * @throws NotApngException
      */
-    fun load(string: String, speed : Float? = null) {
+    fun load(string: String, speed : Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) {
         doAsync {
             this@ApngAnimator.speed = speed
             if (string.contains("http") || string.contains("https")) {
                 val url = URL(string)
-                loadUrl(url, speed)
+                loadUrl(url, speed, apngAnimatorOptions)
             } else if (File(string).exists()) {
                 var pathToLoad = if (string.startsWith("content://")) string else "file://$string"
                 pathToLoad = pathToLoad.replace("%", "%25").replace("#", "%23")
                 val bytes = context.contentResolver.openInputStream(Uri.parse(pathToLoad)).readBytes()
                 if (isApng(bytes)) {
-                    load(bytes, speed)
+                    load(bytes, speed, apngAnimatorOptions)
                 } else {
                     if (loadNotApng) {
                         context.runOnUiThread {
@@ -226,10 +238,12 @@ class ApngAnimator(private val context: Context) {
             activeAnimation = anim
             uiThread {
                 imageView?.apply {
+                    scaleType = this@ApngAnimator.scaleType ?: ImageView.ScaleType.FIT_CENTER
                     setImageBitmap(generatedFrame[0])
                     setImageDrawable(activeAnimation)
                 }
                 activeAnimation?.start()
+                isPlaying = true
                 doOnLoaded(this@ApngAnimator)
             }
         }
@@ -341,6 +355,20 @@ class ApngAnimator(private val context: Context) {
      */
     fun onLoaded(f : (ApngAnimator) -> Unit) {
         doOnLoaded = f
+    }
+
+    fun centerCrop(boolean: Boolean) {
+        if (isApng) {
+            if (boolean) {
+                imageView?.scaleType = ImageView.ScaleType.CENTER_CROP
+                pause()
+                play()
+            } else {
+                imageView?.scaleType = null
+                pause()
+                play()
+            }
+        }
     }
 
     /**

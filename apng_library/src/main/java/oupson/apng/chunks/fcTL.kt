@@ -1,8 +1,8 @@
 package oupson.apng.chunks
 
-import oupson.apng.Utils
-import oupson.apng.Utils.Companion.getBlend_op
-import oupson.apng.Utils.Companion.getDispose_op
+import oupson.apng.utils.Utils
+import oupson.apng.utils.Utils.Companion.getBlend_op
+import oupson.apng.utils.Utils.Companion.getDispose_op
 
 class fcTL(byteArray: ByteArray) {
 
