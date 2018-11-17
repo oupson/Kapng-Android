@@ -34,17 +34,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        doAsync {
-            Loader.load(applicationContext, URL(imageUrl)).apply {
-                val a = APNGDisassembler.disassemble(this)
-                a.reduceSize(100, false, 60)
-                File(File(Environment.getExternalStorageDirectory(), "Download"), "apng.png").writeBytes(a.toByteArray())
-                runOnUiThread {
-                    toast("Converted ! ")
-                }
-            }
-        }
-
         this.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
 
             override fun onProgressChanged(seekBar: SeekBar, progressValue: Int, fromUser: Boolean) {
