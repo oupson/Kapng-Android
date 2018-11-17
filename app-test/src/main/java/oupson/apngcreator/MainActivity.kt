@@ -1,19 +1,12 @@
 package oupson.apngcreator
 
 import android.os.Bundle
-import android.os.Environment
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.widget.SeekBar
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_main.*
-import org.jetbrains.anko.doAsync
-import org.jetbrains.anko.toast
-import oupson.apng.APNGDisassembler
 import oupson.apng.ApngAnimator
-import oupson.apng.Loader
-import java.io.File
-import java.net.URL
 
 
 class MainActivity : AppCompatActivity() {
