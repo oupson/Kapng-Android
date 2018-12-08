@@ -1,13 +1,13 @@
 package oupson.apng
 
 import android.graphics.BitmapFactory
-import oupson.apng.utils.Utils.Companion.isApng
-import oupson.apng.utils.Utils.Companion.pngSignature
-import oupson.apng.utils.Utils.Companion.to4Bytes
 import oupson.apng.chunks.IHDR
 import oupson.apng.chunks.fcTL
 import oupson.apng.exceptions.NotApngException
 import oupson.apng.utils.Utils
+import oupson.apng.utils.Utils.Companion.isApng
+import oupson.apng.utils.Utils.Companion.pngSignature
+import oupson.apng.utils.Utils.Companion.to4Bytes
 import java.util.zip.CRC32
 
 class APNGDisassembler {
@@ -45,9 +45,9 @@ class APNGDisassembler {
                                 crC32.update(iend, 0, iend.size)
                                 cover.addAll(iend.toList())
                                 cover.addAll(to4Bytes(crC32.value.toInt()).toList())
-
                                 apng.cover = BitmapFactory.decodeByteArray(cover.toByteArray(), 0, cover.size)
                             }
+
                             png = ArrayList()
                             val fcTL = fcTL(byteArray.copyOfRange(i - 4, i + 36))
                             delay = fcTL.delay
