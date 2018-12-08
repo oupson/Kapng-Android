@@ -3,6 +3,7 @@ package oupson.apng.utils
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import java.io.ByteArrayOutputStream
+import java.util.*
 
 class Utils {
     companion object {
@@ -155,5 +156,12 @@ class Utils {
             result[1] = i /*>> 0*/.toByte()
             return result
         }
+
+        val fcTL = Arrays.toString(byteArrayOf(0x66, 0x63, 0x54, 0x4c))
+        val IEND = Arrays.toString(byteArrayOf(0x49, 0x45, 0x4e, 0x44))
+        val IDAT = Arrays.toString(byteArrayOf(0x49, 0x44, 0x41, 0x54))
+        val fdAT = Arrays.toString(byteArrayOf(0x66, 0x64, 0x41, 0x54))
+        val plte = Arrays.toString(byteArrayOf(0x50, 0x4c, 0x54, 0x45))
+        val tnrs = Arrays.toString(byteArrayOf(0x74, 0x52, 0x4e, 0x53))
     }
 }
