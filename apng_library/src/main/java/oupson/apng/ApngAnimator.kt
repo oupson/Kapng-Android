@@ -150,7 +150,7 @@ class ApngAnimator(private val context: Context) {
                     this@ApngAnimator.speed = speed
                     scaleType = apngAnimatorOptions?.scaleType
                     // Download PNG
-                    snapshotAPNGDisassembler.disassemble(this).frames.apply {
+                    APNGDisassembler.disassemble(this).frames.apply {
                         draw(this).apply {
                             setupAnimationDrawableAndStart(this)
                         }
