@@ -39,12 +39,14 @@ class ApngAnimator(private val context: Context) {
     private var anim: CustomAnimationDrawable? = null
     private var activeAnimation: CustomAnimationDrawable? = null
     private var doOnLoaded : (ApngAnimator) -> Unit = {}
+    @SuppressWarnings("WeakerAccess")
     private var AnimationLoopListener : () -> Unit = {}
     private var duration : ArrayList<Float>? = null
     private var scaleType : ImageView.ScaleType? = null
-
     var isApng = false
+    @SuppressWarnings("WeakerAccess")
     var loadNotApng = true
+
     private val sharedPreferences : SharedPreferences = context.getSharedPreferences("apngAnimator", Context.MODE_PRIVATE)
 
     init {
@@ -54,6 +56,7 @@ class ApngAnimator(private val context: Context) {
     /**
      * Specify if the library could load non apng file
      */
+    @SuppressWarnings("WeakerAccess")
     fun loadNotApng(boolean: Boolean) {
         val editor = sharedPreferences.edit()
         editor.putBoolean("loadNotApng", boolean)
@@ -75,7 +78,7 @@ class ApngAnimator(private val context: Context) {
      * @param speed The speed
      * @throws NotApngException
      */
-    @JvmOverloads
+    @SuppressWarnings("WeakerAccess")
     fun load(file: File, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) {
         doAsync {
             val bytes = file.readBytes()
@@ -140,6 +143,7 @@ class ApngAnimator(private val context: Context) {
      * @param speed The speed
      * @throws NotApngException
      */
+    @SuppressWarnings("WeakerAccess")
     fun loadUrl(url: URL, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) {
         doAsync(exceptionHandler = { e -> e.printStackTrace() }) {
             this@ApngAnimator.speed = speed
@@ -171,13 +175,13 @@ class ApngAnimator(private val context: Context) {
         }
     }
 
-
     /**
      * Load an APNG file and starts playing the animation.
      * @param byteArray ByteArray of the file
      * @param speed The speed
      * @throws NotApngException
      */
+    @SuppressWarnings("WeakerAccess")
     fun load(byteArray: ByteArray, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) {
         doAsync {
             this@ApngAnimator.speed = speed

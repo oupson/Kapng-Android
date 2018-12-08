@@ -6,6 +6,7 @@ import oupson.apng.chunks.fcTL
 import oupson.apng.exceptions.NotApngException
 import oupson.apng.utils.Utils
 import oupson.apng.utils.Utils.Companion.isApng
+import oupson.apng.utils.Utils.Companion.parseLength
 import oupson.apng.utils.Utils.Companion.pngSignature
 import oupson.apng.utils.Utils.Companion.to4Bytes
 import java.util.*
@@ -24,12 +25,17 @@ class APNGDisassembler {
         private var maxHeight = 0
         private var blend_op: Utils.Companion.blend_op = Utils.Companion.blend_op.APNG_BLEND_OP_SOURCE
         private var dispose_op: Utils.Companion.dispose_op = Utils.Companion.dispose_op.APNG_DISPOSE_OP_NONE
-        var apng: Apng = Apng()
         private val ihdr = IHDR()
+
+        var apng: Apng = Apng()
+        /**
+         * Disassemble an Apng file
+         * @param byteArray The Byte Array of the file
+         * @return The apng decoded
+         */
         fun disassemble(byteArray: ByteArray) : Apng {
             if (isApng(byteArray)) {
-                apng = Apng()
-                ihdr.parseIHDR(byteArray)
+                ihdr.parse(byteArray)
                 maxWidth = ihdr.pngWidth
                 maxHeight = ihdr.pngHeight
                 var cursor = 8
@@ -44,20 +50,12 @@ class APNGDisassembler {
             }
         }
 
-        private fun parseLength(byteArray: ByteArray) : Int {
-            var lengthString = ""
-            byteArray.forEach {
-                lengthString += String.format("%02x", it)
-            }
-            return lengthString.toLong(16).toInt()
-        }
-
         private fun generateIhdr(ihdrOfApng: IHDR, width : Int, height : Int) : ByteArray {
             val ihdr = ArrayList<Byte>()
             // We need a body var to know body length and generate crc
             val ihdrBody = ArrayList<Byte>()
             // Add chunk body length
-            ihdr.addAll(to4Bytes(ihdrOfApng.ihdrCorps.size).toList())
+            ihdr.addAll(to4Bytes(ihdrOfApng.body.size).toList())
             // Add IHDR
             ihdrBody.addAll(byteArrayOf(0x49.toByte(), 0x48.toByte(), 0x44.toByte(), 0x52.toByte()).toList())
             // Add the max width and height
@@ -65,7 +63,7 @@ class APNGDisassembler {
             ihdrBody.addAll(to4Bytes(height).toList())
             // Add complicated stuff like depth color ...
             // If you want correct png you need same parameters. Good solution is to create new png.
-            ihdrBody.addAll(ihdrOfApng.ihdrCorps.copyOfRange(8, 13).toList())
+            ihdrBody.addAll(ihdrOfApng.body.copyOfRange(8, 13).toList())
             // Generate CRC
             val crC32 = CRC32()
             crC32.update(ihdrBody.toByteArray(), 0, ihdrBody.size)
@@ -91,9 +89,9 @@ class APNGDisassembler {
                             it.addAll(to4Bytes(crC32.value.toInt()).toList())
                             apng.cover = BitmapFactory.decodeByteArray(it.toByteArray(), 0, it.size)
                         }
-
                         png = ArrayList()
-                        val fcTL = fcTL(byteArray)
+                        val fcTL = fcTL()
+                        fcTL.parse(byteArray)
                         delay = fcTL.delay
                         yOffset = fcTL.y_offset
                         xOffset = fcTL.x_offset
@@ -103,11 +101,9 @@ class APNGDisassembler {
                         val height = fcTL.pngHeight
                         png!!.addAll(pngSignature.toList())
                         png!!.addAll(generateIhdr(ihdr, width, height).toList())
-
                         plte?.let {
                             png!!.addAll(it.toList())
                         }
-
                         tnrs?.let {
                             png!!.addAll(it.toList())
                         }
@@ -122,15 +118,12 @@ class APNGDisassembler {
                         png!!.addAll(iend.toList())
                         png!!.addAll(to4Bytes(crC32.value.toInt()).toList())
                         apng.frames.add(Frame(png!!.toByteArray(), delay, xOffset, yOffset, maxWidth, maxHeight, blend_op, dispose_op))
-
                         png = ArrayList()
-
-                        val fcTL = fcTL(byteArray)
+                        val fcTL = fcTL()
+                        fcTL.parse(byteArray)
                         delay = fcTL.delay
-
                         yOffset = fcTL.y_offset
                         xOffset = fcTL.x_offset
-
                         blend_op = fcTL.blend_op
                         dispose_op = fcTL.dispose_op
                         val width = fcTL.pngWidth
@@ -140,7 +133,6 @@ class APNGDisassembler {
                         plte?.let {
                             png!!.addAll(it.toList())
                         }
-
                         tnrs?.let {
                             png!!.addAll(it.toList())
                         }

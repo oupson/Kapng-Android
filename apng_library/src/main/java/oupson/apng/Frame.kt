@@ -45,14 +45,14 @@ class Frame {
             this.byteArray = bytes
             // Get width and height for image
             ihdr = IHDR()
-            ihdr.parseIHDR(bytes)
+            ihdr.parse(bytes)
 
             width = ihdr.pngWidth
             height = ihdr.pngHeight
 
             // Get IDAT Bytes
             idat = IDAT()
-            idat.parseIDAT(bytes)
+            idat.parse(bytes)
 
             delay = 1000f
 
@@ -69,14 +69,14 @@ class Frame {
             this.byteArray = bytes
             // Get width and height for image
             ihdr = IHDR()
-            ihdr.parseIHDR(bytes)
+            ihdr.parse(bytes)
 
             width = ihdr.pngWidth
             height = ihdr.pngHeight
 
             // Get IDAT Bytes
             idat = IDAT()
-            idat.parseIDAT(bytes)
+            idat.parse(bytes)
 
             this.delay = delay
             blend_op = Utils.Companion.blend_op.APNG_BLEND_OP_SOURCE
@@ -93,14 +93,14 @@ class Frame {
             this.byteArray = bytes
             // Get width and height for image
             ihdr = IHDR()
-            ihdr.parseIHDR(bytes)
+            ihdr.parse(bytes)
 
             width = ihdr.pngWidth
             height = ihdr.pngHeight
 
             // Get IDAT Bytes
             idat = IDAT()
-            idat.parseIDAT(bytes)
+            idat.parse(bytes)
 
             this.delay = delay
 
@@ -121,14 +121,14 @@ class Frame {
             this.byteArray = bytes
             // Get width and height for image
             ihdr = IHDR()
-            ihdr.parseIHDR(bytes)
+            ihdr.parse(bytes)
 
             width = ihdr.pngWidth
             height = ihdr.pngHeight
 
             // Get IDAT Bytes
             idat = IDAT()
-            idat.parseIDAT(bytes)
+            idat.parse(bytes)
 
             this.delay = delay
 
@@ -149,14 +149,14 @@ class Frame {
             this.byteArray = byteArray
             // Get width and height for image
             ihdr = IHDR()
-            ihdr.parseIHDR(byteArray)
+            ihdr.parse(byteArray)
 
             width = ihdr.pngWidth
             height = ihdr.pngHeight
 
             // Get IDAT Bytes
             idat = IDAT()
-            idat.parseIDAT(byteArray)
+            idat.parse(byteArray)
 
             this.delay = delay
 

@@ -1,30 +1,20 @@
 package oupson.apng.chunks
 
-class IDAT {
-    private var bodySize = -1
-    var IDATBody: ArrayList<ByteArray> = ArrayList()
+import oupson.apng.utils.Utils.Companion.parseLength
 
-    fun parseIDAT(byteArray: ByteArray) {
+class IDAT : Chunk {
+    var IDATBody: ArrayList<ByteArray> = ArrayList()
+    override var body = byteArrayOf()
+
+    override fun parse(byteArray: ByteArray) {
         for (i in 0 until byteArray.size) {
             // Find IDAT chunk
             if (byteArray[i] == 0x49.toByte() && byteArray[i + 1] == 0x44.toByte() && byteArray[ i + 2 ] == 0x41.toByte() && byteArray[ i + 3 ] == 0x54.toByte()) {
-
                 // Find the chunk length
-                var lengthString = ""
-                byteArray.copyOfRange( i - 4, i).forEach {
-                    lengthString += String.format("%02x", it)
-                }
-                bodySize = lengthString.toLong(16).toInt()
-
+                val bodySize = parseLength(byteArray.copyOfRange(i - 4, i))
                 // Get image bytes
-                val _IDATbody = ArrayList<Byte>()
-                for (j in i +4 until i + 4 + bodySize) {
-                    _IDATbody.add(byteArray[j])
-                }
-                IDATBody.add(_IDATbody.toByteArray())
+                IDATBody.add(byteArray.copyOfRange(i + 4, i + 4 + bodySize))
             }
         }
-
     }
-
 }

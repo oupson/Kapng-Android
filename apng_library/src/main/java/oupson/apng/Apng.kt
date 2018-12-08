@@ -14,12 +14,10 @@ import oupson.apng.utils.Utils.Companion.to4Bytes
 import oupson.apng.utils.Utils.Companion.toByteArray
 import java.util.zip.CRC32
 
-
 /**
  * Create an APNG file
  */
 class Apng {
-
     var maxWidth : Int? = null
     var maxHeight : Int? = null
 
@@ -226,7 +224,7 @@ class Apng {
             // Add cover image : Not part of animation
             // region IDAT
             val idat = IDAT()
-            idat.parseIDAT(toByteArray(cover!!))
+            idat.parse(toByteArray(cover!!))
             idat.IDATBody.forEach {
                 val idatByteArray = ArrayList<Byte>()
                 framesByte.addAll(to4Bytes(it.size).toList())
@@ -427,7 +425,7 @@ class Apng {
         }
 
         // Add chunk body length
-        ihdr.addAll(to4Bytes(frames[0].ihdr.ihdrCorps.size).toList())
+        ihdr.addAll(to4Bytes(frames[0].ihdr.body.size).toList())
         // Add IHDR
         ihdr_body.addAll(byteArrayOf(0x49.toByte(), 0x48.toByte(), 0x44.toByte(), 0x52.toByte()).toList())
 
@@ -437,7 +435,7 @@ class Apng {
 
         // Add complicated stuff like depth color ...
         // If you want correct png you need same parameters. Good solution is to create new png.
-        ihdr_body.addAll(frames[0].ihdr.ihdrCorps.copyOfRange(8, 13).toList())
+        ihdr_body.addAll(frames[0].ihdr.body.copyOfRange(8, 13).toList())
 
         // Generate CRC
         val crC32 = CRC32()

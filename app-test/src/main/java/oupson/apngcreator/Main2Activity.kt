@@ -7,11 +7,9 @@ import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.view.View
-import android.widget.ImageView
 import kotlinx.android.synthetic.main.activity_main2.*
 import org.jetbrains.anko.sdk27.coroutines.onClick
 import oupson.apng.ApngAnimator
-import oupson.apng.utils.ApngAnimatorOptions
 
 
 class Main2Activity : AppCompatActivity() {
@@ -42,7 +40,7 @@ class Main2Activity : AppCompatActivity() {
     fun load() {
         val animator = ApngAnimator(applicationContext).loadInto(imageView3)
         val uri = intent.data
-        animator.load(uri, null, ApngAnimatorOptions(ImageView.ScaleType.CENTER_CROP))
+        animator.load(uri, null)
         imageView3.onClick {
             try {
                 if (animator.isPlaying) {

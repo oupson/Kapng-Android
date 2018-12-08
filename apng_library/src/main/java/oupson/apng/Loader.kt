@@ -8,6 +8,12 @@ import java.net.URL
 
 class Loader {
     companion object {
+        /**
+         * Download file from given url
+         * @param context Context of app
+         * @param url Url of the file to download
+         * @return [ByteArray] of the file
+         */
         @Throws(IOException::class)
         fun load(context: Context, url: URL): ByteArray {
             val currentDir = context.filesDir

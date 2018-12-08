@@ -157,6 +157,14 @@ class Utils {
             return result
         }
 
+        fun parseLength(byteArray: ByteArray) : Int {
+            var lengthString = ""
+            byteArray.forEach {
+                lengthString += String.format("%02x", it)
+            }
+            return lengthString.toLong(16).toInt()
+        }
+
         val fcTL = Arrays.toString(byteArrayOf(0x66, 0x63, 0x54, 0x4c))
         val IEND = Arrays.toString(byteArrayOf(0x49, 0x45, 0x4e, 0x44))
         val IDAT = Arrays.toString(byteArrayOf(0x49, 0x44, 0x41, 0x54))
