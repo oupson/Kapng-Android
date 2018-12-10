@@ -1,8 +1,5 @@
 package oupson.apng.utils
 
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import java.io.ByteArrayOutputStream
 import java.util.*
 
 class Utils {
@@ -42,7 +39,6 @@ class Utils {
          * Signature for png / APNG files
          */
         val pngSignature: ByteArray = byteArrayOf(0x89.toByte(), 0x50.toByte(), 0x4E.toByte(), 0x47.toByte(), 0x0D.toByte(), 0x0A.toByte(), 0x1A.toByte(), 0x0A.toByte())
-
 
         enum class dispose_op {
             APNG_DISPOSE_OP_NONE,
@@ -105,30 +101,6 @@ class Utils {
                 1 -> blend_op.APNG_BLEND_OP_OVER
                 else -> blend_op.APNG_BLEND_OP_SOURCE
             }
-        }
-
-        /**
-         * Get PNG ByteArray of Bitmap
-         * @param bitmap The bitmap to convert
-         * @return PNG ByteArray of the Bitmap
-         */
-        fun toByteArray(bitmap: Bitmap) : ByteArray {
-            val bos = ByteArrayOutputStream();
-            convertImage(bitmap).compress(Bitmap.CompressFormat.PNG, 100 /*ignored for PNG*/, bos);
-            return bos.toByteArray();
-        }
-
-        /**
-         * Convert the image
-         * @param bitmap Bitmap to convert
-         * @return Bitmap converted
-         */
-        fun convertImage(bitmap: Bitmap) : Bitmap{
-            val btm = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
-            btm.setHasAlpha(true)
-            val canvas = Canvas(btm)
-            canvas.drawBitmap(bitmap, 0f, 0f, null)
-            return btm
         }
 
         /**

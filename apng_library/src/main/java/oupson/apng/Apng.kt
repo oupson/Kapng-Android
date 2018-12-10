@@ -5,13 +5,13 @@ import android.graphics.BitmapFactory
 import oupson.apng.ImageUtils.PnnQuantizer
 import oupson.apng.chunks.IDAT
 import oupson.apng.exceptions.NoFrameException
+import oupson.apng.utils.PngEncoder
 import oupson.apng.utils.Utils
 import oupson.apng.utils.Utils.Companion.getBlend_op
 import oupson.apng.utils.Utils.Companion.getDispose_op
 import oupson.apng.utils.Utils.Companion.pngSignature
 import oupson.apng.utils.Utils.Companion.to2Bytes
 import oupson.apng.utils.Utils.Companion.to4Bytes
-import oupson.apng.utils.Utils.Companion.toByteArray
 import java.util.zip.CRC32
 
 /**
@@ -37,7 +37,7 @@ class Apng {
      * @param bitmap The bitamp to add
      */
     fun addFrames(bitmap: Bitmap) {
-        frames.add(Frame(toByteArray(bitmap)))
+        frames.add(Frame(PngEncoder.encode(bitmap, true, 1)))
     }
 
     /**
@@ -46,7 +46,7 @@ class Apng {
      * @param delay Delay of the frame
      */
     fun addFrames(bitmap: Bitmap, delay : Float) {
-        frames.add(Frame(toByteArray(bitmap), delay))
+        frames.add(Frame(PngEncoder.encode(bitmap, true, 1), delay))
     }
 
     /**
@@ -57,7 +57,7 @@ class Apng {
      * @param blend_op `blend_op` specifies whether the frame is to be alpha blended into the current output buffer content, or whether it should completely replace its region in the output buffer.
      */
     fun addFrames(bitmap: Bitmap, delay: Float, dispose_op: Utils.Companion.dispose_op, blend_op: Utils.Companion.blend_op) {
-        frames.add(Frame(toByteArray(bitmap), delay, blend_op, dispose_op))
+        frames.add(Frame(PngEncoder.encode(bitmap, true, 1), delay, blend_op, dispose_op))
     }
 
     /**
@@ -70,7 +70,7 @@ class Apng {
      * @param blend_op `blend_op` specifies whether the frame is to be alpha blended into the current output buffer content, or whether it should completely replace its region in the output buffer.
      */
     fun addFrames(bitmap: Bitmap, delay: Float, xOffset : Int, yOffset : Int, dispose_op: Utils.Companion.dispose_op, blend_op: Utils.Companion.blend_op) {
-        frames.add(Frame(toByteArray(bitmap), delay, xOffset, yOffset, blend_op, dispose_op))
+        frames.add(Frame(PngEncoder.encode(bitmap, true, 1), delay, xOffset, yOffset, blend_op, dispose_op))
     }
 
     /**
@@ -79,7 +79,7 @@ class Apng {
      * @param bitmap The bitamp to add
      */
     fun addFrames(index : Int, bitmap: Bitmap) {
-        frames.add(index, Frame(toByteArray(bitmap)))
+        frames.add(index, Frame(PngEncoder.encode(bitmap, true, 1)))
     }
 
     /**
@@ -89,7 +89,7 @@ class Apng {
      * @param delay Delay of the frame
      */
     fun addFrames(index : Int, bitmap: Bitmap, delay : Float) {
-        frames.add(index, Frame(toByteArray(bitmap), delay))
+        frames.add(index, Frame(PngEncoder.encode(bitmap, true, 1), delay))
     }
 
     /**
@@ -101,7 +101,7 @@ class Apng {
      * @param blend_op `blend_op` specifies whether the frame is to be alpha blended into the current output buffer content, or whether it should completely replace its region in the output buffer.
      */
     fun addFrames(index: Int, bitmap: Bitmap, delay: Float, dispose_op: Utils.Companion.dispose_op, blend_op: Utils.Companion.blend_op) {
-        frames.add(index, Frame(toByteArray(bitmap), delay, blend_op, dispose_op))
+        frames.add(index, Frame(PngEncoder.encode(bitmap, true, 1), delay, blend_op, dispose_op))
     }
 
     /**
@@ -115,7 +115,7 @@ class Apng {
      * @param blend_op `blend_op` specifies whether the frame is to be alpha blended into the current output buffer content, or whether it should completely replace its region in the output buffer.
      */
     fun addFrames(index: Int, bitmap: Bitmap, delay: Float, xOffset : Int, yOffset : Int, dispose_op: Utils.Companion.dispose_op, blend_op: Utils.Companion.blend_op) {
-        frames.add(index, Frame(toByteArray(bitmap), delay, xOffset, yOffset, blend_op, dispose_op))
+        frames.add(index, Frame(PngEncoder.encode(bitmap, true, 1), delay, xOffset, yOffset, blend_op, dispose_op))
     }
 
     fun addFrames(frame : Frame) {
@@ -224,7 +224,7 @@ class Apng {
             // Add cover image : Not part of animation
             // region IDAT
             val idat = IDAT()
-            idat.parse(toByteArray(cover!!))
+            idat.parse(PngEncoder.encode(cover!!, true, 1))
             idat.IDATBody.forEach {
                 val idatByteArray = ArrayList<Byte>()
                 framesByte.addAll(to4Bytes(it.size).toList())
