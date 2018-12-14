@@ -1,4 +1,4 @@
-package oupson.apng.utils
+package oupson.apng.ImageUtils
 
 import android.graphics.Bitmap
 import java.io.ByteArrayOutputStream
@@ -80,22 +80,22 @@ class PngEncoder {
          * @param compressionLevel ! Don't use it : It's buggy
          */
         fun encode(image: Bitmap, encodeAlpha: Boolean = false, filter: Int = 0, compressionLevel: Int = 0): ByteArray {
-            this.filter = FILTER_NONE
+            Companion.filter = FILTER_NONE
             if (filter <= FILTER_LAST) {
-                this.filter = filter
+                Companion.filter = filter
             }
 
             if (compressionLevel in 0..9) {
-                this.compressionLevel = compressionLevel
+                Companion.compressionLevel = compressionLevel
             }
 
-            this.encodeAlpha = encodeAlpha
+            Companion.encodeAlpha = encodeAlpha
 
 
             val pngIdBytes = byteArrayOf(-119, 80, 78, 71, 13, 10, 26, 10)
             width = image.width
             height = image.height
-            this.image = image
+            Companion.image = image
             /*
             * start with an array that is big enough to hold all the pixels
             * (plus filter bytes), and an extra 200 bytes for header info

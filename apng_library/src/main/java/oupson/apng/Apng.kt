@@ -2,10 +2,10 @@ package oupson.apng
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import oupson.apng.ImageUtils.PngEncoder
 import oupson.apng.ImageUtils.PnnQuantizer
 import oupson.apng.chunks.IDAT
 import oupson.apng.exceptions.NoFrameException
-import oupson.apng.utils.PngEncoder
 import oupson.apng.utils.Utils
 import oupson.apng.utils.Utils.Companion.getBlend_op
 import oupson.apng.utils.Utils.Companion.getDispose_op
