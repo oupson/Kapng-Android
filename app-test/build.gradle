@@ -35,7 +35,6 @@ dependencies {
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
-
     //noinspection GradleCompatible
     implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation 'com.android.support.constraint:constraint-layout:1.1.3'
@@ -48,6 +47,7 @@ dependencies {
     // implementation fileTree(include: ['*.aar'], dir: 'libs')
     //implementation 'com.github.oupson:Kapng-Android:1.0.0'
     implementation 'com.android.support:design:27.1.1' // where X.X.X version
+    implementation 'asia.ivity.android:drag-sort-listview:1.0'
 }
 kotlin {
     experimental {

@@ -4,11 +4,13 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import oupson.apng.utils.Utils
 
-class BitmapDiffCalculator(val firstBitmap: Bitmap, val secondBitmap : Bitmap) {
+class BitmapDiffCalculator(firstBitmap: Bitmap, secondBitmap : Bitmap) {
     val res : Bitmap
     var xOffset : Int = 0
     var yOffset : Int = 0
+    var blend_op = Utils.Companion.blend_op.APNG_BLEND_OP_OVER
     init {
         val difBitmap = Bitmap.createBitmap(firstBitmap.width, firstBitmap.height, Bitmap.Config.ARGB_8888)
         val difCanvas = Canvas(difBitmap)
@@ -35,7 +37,9 @@ class BitmapDiffCalculator(val firstBitmap: Bitmap, val secondBitmap : Bitmap) {
         }
         bottomLoop@ while (true) {
             for (x in 0 until difBitmap.width) {
-                if (difBitmap.getPixel(x, height - 1) != Color.TRANSPARENT) {
+                if (height - 1 < 0) {
+                  break@bottomLoop
+                } else if (difBitmap.getPixel(x, height - 1) != Color.TRANSPARENT) {
                     break@bottomLoop
                 }
             }

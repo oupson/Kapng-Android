@@ -3,10 +3,10 @@ package oupson.apng
 import android.graphics.drawable.AnimationDrawable
 
 /**
- * Extension of the [AnimationDrawable] that provides an [AnimationListener]. This will allow
+ * Extension of the [AnimationDrawable] that provides an animationListener This will allow
  * for the caller to listen for specific animation related events.
  */
-internal class CustomAnimationDrawable : AnimationDrawable() {
+class CustomAnimationDrawable : AnimationDrawable() {
     private var onAnimationLoop : () -> Unit = {}
 
     fun setOnAnimationLoopListener( f : () -> Unit) {

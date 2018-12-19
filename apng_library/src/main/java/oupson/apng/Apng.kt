@@ -2,6 +2,7 @@ package oupson.apng
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import oupson.apng.ImageUtils.BitmapDiffCalculator
 import oupson.apng.ImageUtils.PngEncoder
 import oupson.apng.ImageUtils.PnnQuantizer
 import oupson.apng.chunks.IDAT
@@ -37,7 +38,7 @@ class Apng {
      * @param bitmap The bitamp to add
      */
     fun addFrames(bitmap: Bitmap) {
-        frames.add(Frame(PngEncoder.encode(bitmap, true, 1)))
+        frames.add(Frame(PngEncoder.encode(bitmap, true)))
     }
 
     /**
@@ -46,7 +47,7 @@ class Apng {
      * @param delay Delay of the frame
      */
     fun addFrames(bitmap: Bitmap, delay : Float) {
-        frames.add(Frame(PngEncoder.encode(bitmap, true, 1), delay))
+        frames.add(Frame(PngEncoder.encode(bitmap, true), delay))
     }
 
     /**
@@ -57,7 +58,7 @@ class Apng {
      * @param blend_op `blend_op` specifies whether the frame is to be alpha blended into the current output buffer content, or whether it should completely replace its region in the output buffer.
      */
     fun addFrames(bitmap: Bitmap, delay: Float, dispose_op: Utils.Companion.dispose_op, blend_op: Utils.Companion.blend_op) {
-        frames.add(Frame(PngEncoder.encode(bitmap, true, 1), delay, blend_op, dispose_op))
+        frames.add(Frame(PngEncoder.encode(bitmap, true), delay, blend_op, dispose_op))
     }
 
     /**
@@ -70,7 +71,7 @@ class Apng {
      * @param blend_op `blend_op` specifies whether the frame is to be alpha blended into the current output buffer content, or whether it should completely replace its region in the output buffer.
      */
     fun addFrames(bitmap: Bitmap, delay: Float, xOffset : Int, yOffset : Int, dispose_op: Utils.Companion.dispose_op, blend_op: Utils.Companion.blend_op) {
-        frames.add(Frame(PngEncoder.encode(bitmap, true, 1), delay, xOffset, yOffset, blend_op, dispose_op))
+        frames.add(Frame(PngEncoder.encode(bitmap, true), delay, xOffset, yOffset, blend_op, dispose_op))
     }
 
     /**
@@ -79,7 +80,7 @@ class Apng {
      * @param bitmap The bitamp to add
      */
     fun addFrames(index : Int, bitmap: Bitmap) {
-        frames.add(index, Frame(PngEncoder.encode(bitmap, true, 1)))
+        frames.add(index, Frame(PngEncoder.encode(bitmap, true)))
     }
 
     /**
@@ -89,7 +90,7 @@ class Apng {
      * @param delay Delay of the frame
      */
     fun addFrames(index : Int, bitmap: Bitmap, delay : Float) {
-        frames.add(index, Frame(PngEncoder.encode(bitmap, true, 1), delay))
+        frames.add(index, Frame(PngEncoder.encode(bitmap, true), delay))
     }
 
     /**
@@ -101,7 +102,7 @@ class Apng {
      * @param blend_op `blend_op` specifies whether the frame is to be alpha blended into the current output buffer content, or whether it should completely replace its region in the output buffer.
      */
     fun addFrames(index: Int, bitmap: Bitmap, delay: Float, dispose_op: Utils.Companion.dispose_op, blend_op: Utils.Companion.blend_op) {
-        frames.add(index, Frame(PngEncoder.encode(bitmap, true, 1), delay, blend_op, dispose_op))
+        frames.add(index, Frame(PngEncoder.encode(bitmap, true), delay, blend_op, dispose_op))
     }
 
     /**
@@ -115,7 +116,7 @@ class Apng {
      * @param blend_op `blend_op` specifies whether the frame is to be alpha blended into the current output buffer content, or whether it should completely replace its region in the output buffer.
      */
     fun addFrames(index: Int, bitmap: Bitmap, delay: Float, xOffset : Int, yOffset : Int, dispose_op: Utils.Companion.dispose_op, blend_op: Utils.Companion.blend_op) {
-        frames.add(index, Frame(PngEncoder.encode(bitmap, true, 1), delay, xOffset, yOffset, blend_op, dispose_op))
+        frames.add(index, Frame(PngEncoder.encode(bitmap, true), delay, xOffset, yOffset, blend_op, dispose_op))
     }
 
     fun addFrames(frame : Frame) {
@@ -507,5 +508,21 @@ class Apng {
             }
         }
         frames = apng.frames
+    }
+
+    fun optimiseFrame() {
+        maxHeight = frames.sortedByDescending { it.height }[0].height
+        maxWidth = frames.sortedByDescending { it.width }[0].width
+        frames.forEach {
+            it.maxWidth = maxWidth
+            it.maxHeight = maxHeight
+        }
+        val drawedFrame = ApngAnimator(null).draw(frames)
+        for (i in 1 until frames.size) {
+            val diffCalculator = BitmapDiffCalculator(drawedFrame[i - 1], drawedFrame[i])
+            frames[i].byteArray = PngEncoder.encode(diffCalculator.res)
+            frames[i].x_offsets = diffCalculator.xOffset
+            frames[i].y_offsets = diffCalculator.yOffset
+        }
     }
 }

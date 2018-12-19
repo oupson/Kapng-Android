@@ -143,5 +143,6 @@ class Utils {
         val fdAT = Arrays.toString(byteArrayOf(0x66, 0x64, 0x41, 0x54))
         val plte = Arrays.toString(byteArrayOf(0x50, 0x4c, 0x54, 0x45))
         val tnrs = Arrays.toString(byteArrayOf(0x74, 0x52, 0x4e, 0x53))
+        val IHDR = Arrays.toString(byteArrayOf(0x49, 0x48, 0x44, 0x52))
     }
 }
