@@ -79,7 +79,7 @@ class ApngAnimator(private val context: Context?) {
      * @throws NotApngException
      */
     @SuppressWarnings("WeakerAccess")
-    fun load(file: File, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) {
+    fun load(file: File, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) : ApngAnimator {
         doAsync {
             val bytes = file.readBytes()
             if (isApng(bytes)) {
@@ -103,6 +103,7 @@ class ApngAnimator(private val context: Context?) {
                 }
             }
         }
+        return this
     }
 
 
@@ -113,7 +114,7 @@ class ApngAnimator(private val context: Context?) {
      * @param speed The speed
      * @throws NotApngException
      */
-    fun load(uri : Uri, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) {
+    fun load(uri : Uri, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) : ApngAnimator {
         doAsync {
             context?.contentResolver?.openInputStream(uri)?.readBytes()?.let {
                 if (isApng(it)) {
@@ -138,6 +139,7 @@ class ApngAnimator(private val context: Context?) {
                 }
             }
         }
+        return this
     }
 
     /**
@@ -147,7 +149,7 @@ class ApngAnimator(private val context: Context?) {
      * @throws NotApngException
      */
     @SuppressWarnings("WeakerAccess")
-    fun loadUrl(url: URL, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) {
+    fun loadUrl(url: URL, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) : ApngAnimator {
         doAsync(exceptionHandler = { e -> e.printStackTrace() }) {
             this@ApngAnimator.speed = speed
             // Download PNG
@@ -176,6 +178,7 @@ class ApngAnimator(private val context: Context?) {
 
 
         }
+        return this
     }
 
     /**
@@ -185,7 +188,7 @@ class ApngAnimator(private val context: Context?) {
      * @throws NotApngException
      */
     @SuppressWarnings("WeakerAccess")
-    fun load(byteArray: ByteArray, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) {
+    fun load(byteArray: ByteArray, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) : ApngAnimator {
         doAsync {
             this@ApngAnimator.speed = speed
             if (isApng(byteArray)) {
@@ -209,6 +212,7 @@ class ApngAnimator(private val context: Context?) {
                 }
             }
         }
+        return this
     }
 
     /**
@@ -217,7 +221,7 @@ class ApngAnimator(private val context: Context?) {
      * @param speed The speed
      * @throws NotApngException
      */
-    fun load(string: String, speed : Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) {
+    fun load(string: String, speed : Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) : ApngAnimator {
         doAsync {
             this@ApngAnimator.speed = speed
             if (string.contains("http") || string.contains("https")) {
@@ -240,6 +244,7 @@ class ApngAnimator(private val context: Context?) {
                 }
             }
         }
+        return this
     }
 
     /**

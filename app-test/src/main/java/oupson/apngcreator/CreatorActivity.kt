@@ -4,11 +4,9 @@ import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Canvas
 import android.os.Bundle
 import android.os.Environment
 import android.support.v7.app.AppCompatActivity
-import android.util.Log
 import kotlinx.android.synthetic.main.activity_creator.*
 import org.jetbrains.anko.alert
 import org.jetbrains.anko.customView
@@ -17,7 +15,6 @@ import org.jetbrains.anko.sdk27.coroutines.onClick
 import oupson.apng.APNGDisassembler
 import oupson.apng.Apng
 import oupson.apng.ApngAnimator
-import oupson.apng.ImageUtils.PngEncoder
 import oupson.apngcreator.adapter.frameListViewAdapter
 import java.io.File
 
@@ -45,33 +42,30 @@ class CreatorActivity : AppCompatActivity() {
         fab_create.onClick {
             var apngCreated = Apng()
 
-            items.forEach {
-                apngCreated.addFrames(it)
+            items.forEach { bitmap ->
+                apngCreated.addFrames(bitmap)
             }
 
-
-            Log.e("tag", apngCreated.frames.size.toString())
-            apngCreated = APNGDisassembler.disassemble(apngCreated.toByteArray())
-            apngCreated.optimiseFrame()
-            File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "vtm").writeBytes(apngCreated.toByteArray())
+            apngCreated = APNGDisassembler.disassemble(apngCreated.toByteArray()).apply {
+                optimiseFrame()
+            }
             val a = ApngAnimator(applicationContext)
-
-
+            File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "apn.png").writeBytes(apngCreated.toByteArray())
             a.load(apngCreated.toByteArray())
-            a.onLoaded {
-                    alert {
+            a.onLoaded { anim ->
+                alert {
                         customView {
                             imageView {
-                                Log.e("tag", "${it.anim?.numberOfFrames.toString()} : ${items.size}")
-                                it.anim?.let {
-                                    for (i in 0 until it.numberOfFrames) {
-                                        val vt = Bitmap.createBitmap(it.getFrame(i).intrinsicWidth, it.getFrame(i).intrinsicHeight, Bitmap.Config.ARGB_8888)
+                                /**anim.anim?.let {cu ->
+                                    for (i in 0 until cu.numberOfFrames) {
+                                        val vt = Bitmap.createBitmap(cu.getFrame(i).intrinsicWidth, cu.getFrame(i).intrinsicHeight, Bitmap.Config.ARGB_8888)
                                         val canvas = Canvas(vt)
-                                        it.getFrame(i).draw(canvas)
-                                        File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "frame$i.png").writeBytes(PngEncoder.encode(vt))
+                                        cu.getFrame(i).draw(canvas)
+                                        File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "frameCreated$i.png").writeBytes(PngEncoder.encode(vt))
                                     }
                                 }
-                                this.setImageDrawable(it.anim)
+                                this.setImageDrawable(anim.anim)
+                                */
                             }
                         }
                     }.show()

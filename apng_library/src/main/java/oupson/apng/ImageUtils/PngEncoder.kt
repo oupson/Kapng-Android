@@ -80,22 +80,22 @@ class PngEncoder {
          * @param compressionLevel ! Don't use it : It's buggy
          */
         fun encode(image: Bitmap, encodeAlpha: Boolean = false, filter: Int = 0, compressionLevel: Int = 0): ByteArray {
-            Companion.filter = FILTER_NONE
+            this.filter = FILTER_NONE
             if (filter <= FILTER_LAST) {
-                Companion.filter = filter
+                this.filter = filter
             }
 
             if (compressionLevel in 0..9) {
-                Companion.compressionLevel = compressionLevel
+                this.compressionLevel = compressionLevel
             }
 
-            Companion.encodeAlpha = encodeAlpha
+            this.encodeAlpha = encodeAlpha
 
 
             val pngIdBytes = byteArrayOf(-119, 80, 78, 71, 13, 10, 26, 10)
             width = image.width
             height = image.height
-            Companion.image = image
+            this.image = image
             /*
             * start with an array that is big enough to hold all the pixels
             * (plus filter bytes), and an extra 200 bytes for header info
@@ -221,9 +221,8 @@ class PngEncoder {
          * Write a PNG "IHDR" chunk into the pngBytes array.
          */
         private fun writeHeader() {
-            val startPos: Int = bytePos
-
             bytePos = writeInt4(13, bytePos)
+            val startPos: Int = bytePos
             bytePos = writeBytes(IHDR, bytePos)
             width = image!!.width
             height = image!!.height

@@ -2,6 +2,7 @@ package oupson.apng
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.os.Environment
 import oupson.apng.ImageUtils.BitmapDiffCalculator
 import oupson.apng.ImageUtils.PngEncoder
 import oupson.apng.ImageUtils.PnnQuantizer
@@ -13,6 +14,7 @@ import oupson.apng.utils.Utils.Companion.getDispose_op
 import oupson.apng.utils.Utils.Companion.pngSignature
 import oupson.apng.utils.Utils.Companion.to2Bytes
 import oupson.apng.utils.Utils.Companion.to4Bytes
+import java.io.File
 import java.util.zip.CRC32
 
 /**
@@ -516,6 +518,9 @@ class Apng {
         frames.forEach {
             it.maxWidth = maxWidth
             it.maxHeight = maxHeight
+        }
+        for (i in 0 until frames.size){
+            File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "frameCreated$i.png").writeBytes(frames[i].byteArray)
         }
         val drawedFrame = ApngAnimator(null).draw(frames)
         for (i in 1 until frames.size) {

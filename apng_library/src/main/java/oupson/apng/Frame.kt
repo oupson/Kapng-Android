@@ -1,10 +1,14 @@
 package oupson.apng
 
+import android.util.Log
 import oupson.apng.chunks.IDAT
 import oupson.apng.chunks.IHDR
 import oupson.apng.exceptions.NotPngException
 import oupson.apng.utils.Utils
+import oupson.apng.utils.Utils.Companion.IDAT
+import oupson.apng.utils.Utils.Companion.IHDR
 import oupson.apng.utils.Utils.Companion.isPng
+import java.util.*
 
 /**
  * A frame for an animated png
@@ -18,12 +22,12 @@ class Frame {
 
     var byteArray : ByteArray
 
-    var width : Int
-    var height : Int
+    var width : Int = -1
+    var height : Int = -1
 
-    var ihdr : IHDR
+    lateinit var ihdr : IHDR
 
-    var idat : IDAT
+    lateinit var idat : IDAT
 
     val delay : Float
 
@@ -39,21 +43,17 @@ class Frame {
     constructor(byteArray: ByteArray) {
         if (isPng(byteArray)) {
             this.byteArray = byteArray
+            Log.e("tag", byteArray.size.toString())
             // Get width and height for image
-            ihdr = IHDR()
-            ihdr.parse(byteArray)
-
-            width = ihdr.pngWidth
-            height = ihdr.pngHeight
-
-            // Get IDAT Bytes
-            idat = IDAT()
-            idat.parse(byteArray)
-
             delay = 1000f
-
             blend_op = Utils.Companion.blend_op.APNG_BLEND_OP_SOURCE
             dispose_op = Utils.Companion.dispose_op.APNG_DISPOSE_OP_NONE
+            var cursor = 8
+            while (cursor < byteArray.size) {
+                val chunk = byteArray.copyOfRange(cursor, cursor + Utils.parseLength(byteArray.copyOfRange(cursor, cursor + 4)) + 12)
+                parseChunk(chunk)
+                cursor += Utils.parseLength(byteArray.copyOfRange(cursor, cursor + 4)) + 12
+            }
         } else {
             throw NotPngException()
         }
@@ -62,15 +62,12 @@ class Frame {
         if (isPng(byteArray)) {
             this.byteArray = byteArray
             // Get width and height for image
-            ihdr = IHDR()
-            ihdr.parse(byteArray)
-
-            width = ihdr.pngWidth
-            height = ihdr.pngHeight
-
-            // Get IDAT Bytes
-            idat = IDAT()
-            idat.parse(byteArray)
+            var cursor = 8
+            while (cursor < byteArray.size) {
+                val chunk = byteArray.copyOfRange(cursor, cursor + Utils.parseLength(byteArray.copyOfRange(cursor, cursor + 4)) + 12)
+                parseChunk(chunk)
+                cursor += Utils.parseLength(byteArray.copyOfRange(cursor, cursor + 4)) + 12
+            }
 
             this.delay = delay
             blend_op = Utils.Companion.blend_op.APNG_BLEND_OP_SOURCE
@@ -84,15 +81,12 @@ class Frame {
         if (isPng(byteArray)) {
             this.byteArray = byteArray
             // Get width and height for image
-            ihdr = IHDR()
-            ihdr.parse(byteArray)
-
-            width = ihdr.pngWidth
-            height = ihdr.pngHeight
-
-            // Get IDAT Bytes
-            idat = IDAT()
-            idat.parse(byteArray)
+            var cursor = 8
+            while (cursor < byteArray.size) {
+                val chunk = byteArray.copyOfRange(cursor, cursor + Utils.parseLength(byteArray.copyOfRange(cursor, cursor + 4)) + 12)
+                parseChunk(chunk)
+                cursor += Utils.parseLength(byteArray.copyOfRange(cursor, cursor + 4)) + 12
+            }
 
             this.delay = delay
 
@@ -110,15 +104,12 @@ class Frame {
         if (isPng(byteArray)) {
             this.byteArray = byteArray
             // Get width and height for image
-            ihdr = IHDR()
-            ihdr.parse(byteArray)
-
-            width = ihdr.pngWidth
-            height = ihdr.pngHeight
-
-            // Get IDAT Bytes
-            idat = IDAT()
-            idat.parse(byteArray)
+            var cursor = 8
+            while (cursor < byteArray.size) {
+                val chunk = byteArray.copyOfRange(cursor, cursor + Utils.parseLength(byteArray.copyOfRange(cursor, cursor + 4)) + 12)
+                parseChunk(chunk)
+                cursor += Utils.parseLength(byteArray.copyOfRange(cursor, cursor + 4)) + 12
+            }
 
             this.delay = delay
 
@@ -138,15 +129,12 @@ class Frame {
         if (isPng(byteArray)) {
             this.byteArray = byteArray
             // Get width and height for image
-            ihdr = IHDR()
-            ihdr.parse(byteArray)
-
-            width = ihdr.pngWidth
-            height = ihdr.pngHeight
-
-            // Get IDAT Bytes
-            idat = IDAT()
-            idat.parse(byteArray)
+            var cursor = 8
+            while (cursor < byteArray.size) {
+                val chunk = byteArray.copyOfRange(cursor, cursor + Utils.parseLength(byteArray.copyOfRange(cursor, cursor + 4)) + 12)
+                parseChunk(chunk)
+                cursor += Utils.parseLength(byteArray.copyOfRange(cursor, cursor + 4)) + 12
+            }
 
             this.delay = delay
 
@@ -159,6 +147,22 @@ class Frame {
             this.dispose_op = dispose_op
         } else {
             throw NotPngException()
+        }
+    }
+
+    fun parseChunk(byteArray: ByteArray) {
+        when(Arrays.toString(byteArray.copyOfRange(4, 8))) {
+            IHDR -> {
+                ihdr = IHDR()
+                ihdr.parse(byteArray)
+                width = ihdr.pngWidth
+                height = ihdr.pngHeight
+            }
+            IDAT -> {
+                // Get IDAT Bytes
+                idat = IDAT()
+                idat.parse(byteArray)
+            }
         }
     }
 }
