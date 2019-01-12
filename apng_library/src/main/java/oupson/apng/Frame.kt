@@ -31,8 +31,8 @@ class Frame {
 
     val delay : Float
 
-    var x_offsets : Int? = null
-    var y_offsets : Int? = null
+    var x_offsets : Int = 0
+    var y_offsets : Int = 0
 
     var maxWidth : Int? = null
     var maxHeight : Int? = null

@@ -186,8 +186,8 @@ class Apng {
                     fcTL.addAll(to4Bytes(0).toList())
                 }
             } else {
-                fcTL.addAll(to4Bytes(frames[0].x_offsets!!).toList())
-                fcTL.addAll(to4Bytes(frames[0].y_offsets!!).toList())
+                fcTL.addAll(to4Bytes(frames[0].x_offsets).toList())
+                fcTL.addAll(to4Bytes(frames[0].y_offsets).toList())
             }
 
             // Set frame delay
@@ -519,15 +519,14 @@ class Apng {
             it.maxWidth = maxWidth
             it.maxHeight = maxHeight
         }
-        for (i in 0 until frames.size){
-            File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "frameCreated$i.png").writeBytes(frames[i].byteArray)
-        }
         val drawedFrame = ApngAnimator(null).draw(frames)
         for (i in 1 until frames.size) {
             val diffCalculator = BitmapDiffCalculator(drawedFrame[i - 1], drawedFrame[i])
-            frames[i].byteArray = PngEncoder.encode(diffCalculator.res)
+            File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "frame$i.png").writeBytes(PngEncoder.encode(diffCalculator.res, true))
+            frames[i].byteArray = PngEncoder.encode(diffCalculator.res, true)
             frames[i].x_offsets = diffCalculator.xOffset
             frames[i].y_offsets = diffCalculator.yOffset
+            frames[i].blend_op = Utils.Companion.blend_op.APNG_BLEND_OP_OVER
         }
     }
 }

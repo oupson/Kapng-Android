@@ -30,7 +30,6 @@ android {
     productFlavors {
     }
 }
-ext.anko_version = '0.10.8'
 dependencies {
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
@@ -47,7 +46,8 @@ dependencies {
     // implementation fileTree(include: ['*.aar'], dir: 'libs')
     //implementation 'com.github.oupson:Kapng-Android:1.0.0'
     implementation 'com.android.support:design:27.1.1' // where X.X.X version
-    implementation 'asia.ivity.android:drag-sort-listview:1.0'
+    implementation "org.jetbrains.anko:anko-appcompat-v7:$anko_version"
+    implementation "org.jetbrains.anko:anko-design:$anko_version"
 }
 kotlin {
     experimental {

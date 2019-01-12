@@ -3,6 +3,7 @@ package oupson.apng
 import android.graphics.BitmapFactory
 import oupson.apng.chunks.IHDR
 import oupson.apng.chunks.fcTL
+import oupson.apng.exceptions.BadApng
 import oupson.apng.exceptions.BadCRC
 import oupson.apng.exceptions.NotApngException
 import oupson.apng.utils.Utils
@@ -103,6 +104,13 @@ class APNGDisassembler {
                             dispose_op = fcTL.dispose_op
                             val width = fcTL.pngWidth
                             val height = fcTL.pngHeight
+
+                            if (xOffset + width > maxWidth) {
+                                throw BadApng("`y_offset` + `height` must be <= `IHDR` height")
+                            } else if (yOffset + height > maxHeight) {
+                                throw BadApng("`y_offset` + `height` must be <= `IHDR` height")
+                            }
+
                             png!!.addAll(pngSignature.toList())
                             png!!.addAll(generateIhdr(ihdr, width, height).toList())
                             plte?.let {
