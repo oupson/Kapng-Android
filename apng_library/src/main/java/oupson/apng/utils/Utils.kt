@@ -38,7 +38,18 @@ class Utils {
         /**
          * Signature for png / APNG files
          */
-        val pngSignature: ByteArray = byteArrayOf(0x89.toByte(), 0x50.toByte(), 0x4E.toByte(), 0x47.toByte(), 0x0D.toByte(), 0x0A.toByte(), 0x1A.toByte(), 0x0A.toByte())
+        val pngSignature: ByteArray by lazy {
+            byteArrayOf(
+                0x89.toByte(),
+                0x50.toByte(),
+                0x4E.toByte(),
+                0x47.toByte(),
+                0x0D.toByte(),
+                0x0A.toByte(),
+                0x1A.toByte(),
+                0x0A.toByte()
+            )
+        }
 
         enum class DisposeOp {
             APNG_DISPOSE_OP_NONE,
@@ -137,12 +148,12 @@ class Utils {
             return lengthString.toLong(16).toInt()
         }
 
-        val fcTL : String = Arrays.toString(byteArrayOf(0x66, 0x63, 0x54, 0x4c))
-        val IEND : String = Arrays.toString(byteArrayOf(0x49, 0x45, 0x4e, 0x44))
-        val IDAT : String = Arrays.toString(byteArrayOf(0x49, 0x44, 0x41, 0x54))
-        val fdAT : String = Arrays.toString(byteArrayOf(0x66, 0x64, 0x41, 0x54))
-        val plte : String = Arrays.toString(byteArrayOf(0x50, 0x4c, 0x54, 0x45))
-        val tnrs : String = Arrays.toString(byteArrayOf(0x74, 0x52, 0x4e, 0x53))
-        val IHDR : String = Arrays.toString(byteArrayOf(0x49, 0x48, 0x44, 0x52))
+        val fcTL : String by lazy { Arrays.toString(byteArrayOf(0x66, 0x63, 0x54, 0x4c)) }
+        val IEND : String by lazy { Arrays.toString(byteArrayOf(0x49, 0x45, 0x4e, 0x44)) }
+        val IDAT : String by lazy { Arrays.toString(byteArrayOf(0x49, 0x44, 0x41, 0x54)) }
+        val fdAT : String by lazy { Arrays.toString(byteArrayOf(0x66, 0x64, 0x41, 0x54)) }
+        val plte : String by lazy { Arrays.toString(byteArrayOf(0x50, 0x4c, 0x54, 0x45)) }
+        val tnrs : String by lazy { Arrays.toString(byteArrayOf(0x74, 0x52, 0x4e, 0x53)) }
+        val IHDR : String by lazy { Arrays.toString(byteArrayOf(0x49, 0x48, 0x44, 0x52)) }
     }
 }

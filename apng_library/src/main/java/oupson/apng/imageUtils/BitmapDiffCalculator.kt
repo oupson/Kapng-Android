@@ -8,6 +8,7 @@ import androidx.annotation.ColorInt
 import oupson.apng.utils.Utils
 import java.util.*
 
+// TODO Work on this class
 class BitmapDiffCalculator(firstBitmap: Bitmap, secondBitmap : Bitmap) {
     val res : Bitmap
     var xOffset : Int = 0

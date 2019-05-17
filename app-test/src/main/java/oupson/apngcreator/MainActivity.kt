@@ -123,7 +123,7 @@ class MainActivity : AppCompatActivity() {
                 )
                 val imageView = imageView {
                     id = View.generateViewId()
-                    animator = this.loadApng(imageUrl).apply {
+                    animator = this.loadApng(R.raw.bugbuckbunny).apply {
                         onLoaded {
                             setOnAnimationLoopListener {
                                 // Log.e("app-test", "onLoop")

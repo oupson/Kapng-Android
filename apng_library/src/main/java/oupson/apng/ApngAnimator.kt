@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import android.graphics.*
 import android.net.Uri
 import android.widget.ImageView
+import androidx.annotation.RawRes
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.runOnUiThread
 import org.jetbrains.anko.uiThread
@@ -19,7 +20,7 @@ import java.net.URL
 fun ImageView.loadApng(file: File, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) = ApngAnimator(this.context).loadInto(this).apply {
     load(file, speed, apngAnimatorOptions)
 }
-
+@Suppress("unused")
 fun ImageView.loadApng(uri : Uri, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) = ApngAnimator(this.context).loadInto(this).apply {
     load(uri, speed, apngAnimatorOptions)
 }
@@ -31,8 +32,13 @@ fun ImageView.loadApng(url: URL, speed: Float? = null, apngAnimatorOptions: Apng
 fun ImageView.loadApng(byteArray: ByteArray, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) = ApngAnimator(this.context).loadInto(this).apply {
     load(byteArray, speed, apngAnimatorOptions)
 }
+@Suppress("unused")
 fun ImageView.loadApng(string: String, speed : Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) = ApngAnimator(this.context).loadInto(this).apply {
     load(string, speed, apngAnimatorOptions)
+}
+@Suppress("unused")
+fun ImageView.loadApng(@RawRes res : Int, speed : Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) = ApngAnimator(this.context).loadInto(this).apply {
+    load(res, speed, apngAnimatorOptions)
 }
 
 /**
@@ -56,20 +62,26 @@ class ApngAnimator(private val context: Context?) {
             }
         }
     private var imageView: ImageView? = null
+
     var anim: CustomAnimationDrawable? = null
     private var activeAnimation: CustomAnimationDrawable? = null
+
     private var doOnLoaded : (ApngAnimator) -> Unit = {}
-    @Suppress("PrivatePropertyName")
-    @SuppressWarnings("WeakerAccess")
-    private var AnimationLoopListener : () -> Unit = {}
+    private var animationLoopListener : () -> Unit = {}
+
     private var duration : ArrayList<Float>? = null
+
     private var scaleType : ImageView.ScaleType? = null
+
     @Suppress("MemberVisibilityCanBePrivate")
     var isApng = false
-    @SuppressWarnings("WeakerAccess")
+
+    @Suppress("MemberVisibilityCanBePrivate")
     var loadNotApng = true
 
-    private val sharedPreferences : SharedPreferences? = context?.getSharedPreferences("apngAnimator", Context.MODE_PRIVATE)
+    private val sharedPreferences : SharedPreferences? by lazy {
+        context?.getSharedPreferences("apngAnimator", Context.MODE_PRIVATE)
+    }
 
     init {
         loadNotApng = sharedPreferences?.getBoolean("loadNotApng", true) ?: true
@@ -87,7 +99,7 @@ class ApngAnimator(private val context: Context?) {
     }
 
     /**
-     * Load into an imageview
+     * Load into an ImageView
      * @param imageView Image view selected.
      */
     fun loadInto(imageView: ImageView): ApngAnimator {
@@ -111,8 +123,8 @@ class ApngAnimator(private val context: Context?) {
                 this@ApngAnimator.speed = speed
                 scaleType = apngAnimatorOptions?.scaleType
                 // Download PNG
-                APNGDisassembler.disassemble(bytes).frames.apply {
-                    draw(this).apply {
+                APNGDisassembler.disassemble(bytes).frames.also {frames ->
+                    draw(frames).apply {
                         setupAnimationDrawableAndStart(this)
                     }
                 }
@@ -144,8 +156,8 @@ class ApngAnimator(private val context: Context?) {
                     this@ApngAnimator.speed = speed
                     scaleType = apngAnimatorOptions?.scaleType
                     // Download PNG
-                    APNGDisassembler.disassemble(it).frames.apply {
-                        draw(this).apply {
+                    APNGDisassembler.disassemble(it).frames.also {frames ->
+                        draw(frames).apply {
                             setupAnimationDrawableAndStart(this)
                         }
                     }
@@ -181,8 +193,8 @@ class ApngAnimator(private val context: Context?) {
                     this@ApngAnimator.speed = speed
                     scaleType = apngAnimatorOptions?.scaleType
                     // Download PNG
-                    APNGDisassembler.disassemble(this).frames.apply {
-                        draw(this).apply {
+                    APNGDisassembler.disassemble(this).frames.also { frames ->
+                        draw(frames).apply {
                             setupAnimationDrawableAndStart(this)
                         }
                     }
@@ -218,8 +230,8 @@ class ApngAnimator(private val context: Context?) {
                 this@ApngAnimator.speed = speed
                 scaleType = apngAnimatorOptions?.scaleType
                 // Download PNG
-                APNGDisassembler.disassemble(byteArray).frames.apply {
-                    draw(this).apply {
+                APNGDisassembler.disassemble(byteArray).frames.also { frames ->
+                    draw(frames).apply {
                         setupAnimationDrawableAndStart(this)
                     }
                 }
@@ -264,6 +276,34 @@ class ApngAnimator(private val context: Context?) {
                     } else {
                         throw NotApngException()
                     }
+                }
+            }
+        }
+        return this
+    }
+
+    fun load(@RawRes res : Int, speed : Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) : ApngAnimator {
+        doAsync {
+            val byteArray = context?.resources?.openRawResource(res)?.readBytes() ?: byteArrayOf()
+            this@ApngAnimator.speed = speed
+            if (isApng(byteArray)) {
+                isApng = true
+                this@ApngAnimator.speed = speed
+                scaleType = apngAnimatorOptions?.scaleType
+                // Download PNG
+                APNGDisassembler.disassemble(byteArray).frames.also { frames ->
+                    draw(frames).apply {
+                        setupAnimationDrawableAndStart(this)
+                    }
+                }
+            } else {
+                if (loadNotApng) {
+                    context?.runOnUiThread {
+                        imageView?.scaleType = this@ApngAnimator.scaleType ?: ImageView.ScaleType.FIT_CENTER
+                        imageView?.setImageBitmap(BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size))
+                    }
+                } else {
+                    throw NotApngException()
                 }
             }
         }
@@ -360,7 +400,7 @@ class ApngAnimator(private val context: Context?) {
                     }
                     activeAnimation = animResume
                     imageView?.setImageDrawable(activeAnimation)
-                    activeAnimation?.setOnAnimationLoopListener(AnimationLoopListener)
+                    activeAnimation?.setOnAnimationLoopListener(animationLoopListener)
                     imageView?.invalidate()
                     duration = dura
                     break@frameLoop
@@ -385,7 +425,7 @@ class ApngAnimator(private val context: Context?) {
      */
     fun setOnAnimationLoopListener(animationLoopListener : () -> Unit) {
         if (isApng) {
-            AnimationLoopListener = animationLoopListener
+            this.animationLoopListener = animationLoopListener
             anim?.setOnAnimationLoopListener(animationLoopListener)
         }
     }
