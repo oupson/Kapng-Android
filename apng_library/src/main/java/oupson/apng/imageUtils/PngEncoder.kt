@@ -1,4 +1,4 @@
-package oupson.apng.ImageUtils
+package oupson.apng.imageUtils
 
 import android.graphics.Bitmap
 import java.io.ByteArrayOutputStream
@@ -182,6 +182,7 @@ class PngEncoder {
          * @param offset The starting point to write to.
          * @return The next place to be written to in the pngBytes array.
          */
+        @Suppress("unused")
         private fun writeInt2(n: Int, offset: Int): Int {
             val temp = byteArrayOf((n shr 8 and 0xff).toByte(), (n and 0xff).toByte())
             return writeBytes(temp, offset)

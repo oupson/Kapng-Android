@@ -39,10 +39,12 @@ class ApngAnimator(private val context: Context?) {
     var anim: CustomAnimationDrawable? = null
     private var activeAnimation: CustomAnimationDrawable? = null
     private var doOnLoaded : (ApngAnimator) -> Unit = {}
+    @Suppress("PrivatePropertyName")
     @SuppressWarnings("WeakerAccess")
     private var AnimationLoopListener : () -> Unit = {}
     private var duration : ArrayList<Float>? = null
     private var scaleType : ImageView.ScaleType? = null
+    @Suppress("MemberVisibilityCanBePrivate")
     var isApng = false
     @SuppressWarnings("WeakerAccess")
     var loadNotApng = true
@@ -56,6 +58,7 @@ class ApngAnimator(private val context: Context?) {
     /**
      * Specify if the library could load non apng file
      */
+    @Suppress("unused")
     @SuppressWarnings("WeakerAccess")
     fun loadNotApng(boolean: Boolean) {
         val editor = sharedPreferences?.edit()
@@ -78,6 +81,7 @@ class ApngAnimator(private val context: Context?) {
      * @param speed The speed
      * @throws NotApngException
      */
+    @Suppress("unused")
     @SuppressWarnings("WeakerAccess")
     fun load(file: File, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) : ApngAnimator {
         doAsync {
@@ -230,12 +234,13 @@ class ApngAnimator(private val context: Context?) {
             } else if (File(string).exists()) {
                 var pathToLoad = if (string.startsWith("content://")) string else "file://$string"
                 pathToLoad = pathToLoad.replace("%", "%25").replace("#", "%23")
-                val bytes = context!!.contentResolver.openInputStream(Uri.parse(pathToLoad)).readBytes()
+                val bytes = context?.contentResolver?.openInputStream(Uri.parse(pathToLoad))?.readBytes()
+                bytes ?: throw Exception("File are empty")
                 if (isApng(bytes)) {
                     load(bytes, speed, apngAnimatorOptions)
                 } else {
                     if (loadNotApng) {
-                        context.runOnUiThread {
+                        context?.runOnUiThread {
                             imageView?.setImageBitmap(BitmapFactory.decodeByteArray(bytes, 0, bytes.size))
                         }
                     } else {
@@ -284,25 +289,25 @@ class ApngAnimator(private val context: Context?) {
             // Write buffer to canvas
             canvas.drawBitmap(bitmapBuffer, 0f, 0f, null)
             // Clear current frame rect
-            // If `blend_op` is APNG_BLEND_OP_SOURCE all color components of the frame, including alpha, overwrite the current contents of the frame's output buffer region.
-            if (it.blend_op == Utils.Companion.blend_op.APNG_BLEND_OP_SOURCE) {
-                canvas.drawRect(it.x_offsets!!.toFloat(), it.y_offsets!!.toFloat(), it.x_offsets!! + current.width.toFloat(), it.y_offsets!! + current.height.toFloat(), { val paint = Paint(); paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR); paint }())
+            // If `BlendOp` is APNG_BLEND_OP_SOURCE all color components of the frame, including alpha, overwrite the current contents of the frame's output buffer region.
+            if (it.blendOp == Utils.Companion.BlendOp.APNG_BLEND_OP_SOURCE) {
+                canvas.drawRect(it.x_offsets.toFloat(), it.y_offsets.toFloat(), it.x_offsets + current.width.toFloat(), it.y_offsets + current.height.toFloat(), { val paint = Paint(); paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR); paint }())
             }
             // Draw the bitmap
-            canvas.drawBitmap(current, it.x_offsets!!.toFloat(), it.y_offsets!!.toFloat(), null)
+            canvas.drawBitmap(current, it.x_offsets.toFloat(), it.y_offsets.toFloat(), null)
             generatedFrame.add(btm)
             // Don't add current frame to bitmap buffer
             when {
-                extractedFrame[i].dispose_op == Utils.Companion.dispose_op.APNG_DISPOSE_OP_PREVIOUS -> {
+                extractedFrame[i].disposeOp == Utils.Companion.DisposeOp.APNG_DISPOSE_OP_PREVIOUS -> {
                     //Do nothings
                 }
                 // Add current frame to bitmap buffer
                 // APNG_DISPOSE_OP_BACKGROUND: the frame's region of the output buffer is to be cleared to fully transparent black before rendering the next frame.
-                it.dispose_op == Utils.Companion.dispose_op.APNG_DISPOSE_OP_BACKGROUND -> {
+                it.disposeOp == Utils.Companion.DisposeOp.APNG_DISPOSE_OP_BACKGROUND -> {
                     val res = Bitmap.createBitmap(extractedFrame[0].maxWidth!!, extractedFrame[0].maxHeight!!, Bitmap.Config.ARGB_8888)
                     val can = Canvas(res)
                     can.drawBitmap(btm, 0f, 0f, null)
-                    can.drawRect(it.x_offsets!!.toFloat(), it.y_offsets!!.toFloat(), it.x_offsets!! + it.width.toFloat(), it.y_offsets!! + it.height.toFloat(), { val paint = Paint(); paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR); paint }())
+                    can.drawRect(it.x_offsets.toFloat(), it.y_offsets.toFloat(), it.x_offsets + it.width.toFloat(), it.y_offsets + it.height.toFloat(), { val paint = Paint(); paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR); paint }())
                     bitmapBuffer = res
                 }
                 else -> bitmapBuffer = btm

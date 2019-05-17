@@ -3,14 +3,14 @@ package oupson.apng
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Environment
-import oupson.apng.ImageUtils.BitmapDiffCalculator
-import oupson.apng.ImageUtils.PngEncoder
-import oupson.apng.ImageUtils.PnnQuantizer
 import oupson.apng.chunks.IDAT
 import oupson.apng.exceptions.NoFrameException
+import oupson.apng.imageUtils.BitmapDiffCalculator
+import oupson.apng.imageUtils.PngEncoder
+import oupson.apng.imageUtils.PnnQuantizer
 import oupson.apng.utils.Utils
-import oupson.apng.utils.Utils.Companion.getBlend_op
-import oupson.apng.utils.Utils.Companion.getDispose_op
+import oupson.apng.utils.Utils.Companion.getBlendOp
+import oupson.apng.utils.Utils.Companion.getDisposeOp
 import oupson.apng.utils.Utils.Companion.pngSignature
 import oupson.apng.utils.Utils.Companion.to2Bytes
 import oupson.apng.utils.Utils.Companion.to4Bytes
@@ -21,7 +21,9 @@ import java.util.zip.CRC32
  * Create an APNG file
  */
 class Apng {
+    @Suppress("MemberVisibilityCanBePrivate")
     var maxWidth : Int? = null
+    @Suppress("MemberVisibilityCanBePrivate")
     var maxHeight : Int? = null
 
     /**
@@ -34,99 +36,29 @@ class Apng {
     var frames : ArrayList<Frame> = ArrayList()
 
     // region addFrames
-
     /**
      * Add a frame to the APNG
-     * @param bitmap The bitamp to add
-     */
-    fun addFrames(bitmap: Bitmap) {
-        frames.add(Frame(PngEncoder.encode(bitmap, true)))
-    }
-
-    /**
-     * Add a frame to the APNG
-     * @param bitmap The bitamp to add
-     * @param delay Delay of the frame
-     */
-    fun addFrames(bitmap: Bitmap, delay : Float) {
-        frames.add(Frame(PngEncoder.encode(bitmap, true), delay))
-    }
-
-    /**
-     * Add a frame to the APNG
-     * @param bitmap The bitamp to add
-     * @param delay Delay of the frame
-     * @param dispose_op `dispose_op` specifies how the output buffer should be changed at the end of the delay (before rendering the next frame).
-     * @param blend_op `blend_op` specifies whether the frame is to be alpha blended into the current output buffer content, or whether it should completely replace its region in the output buffer.
-     */
-    fun addFrames(bitmap: Bitmap, delay: Float, dispose_op: Utils.Companion.dispose_op, blend_op: Utils.Companion.blend_op) {
-        frames.add(Frame(PngEncoder.encode(bitmap, true), delay, blend_op, dispose_op))
-    }
-
-    /**
-     * Add a frame to the APNG
-     * @param bitmap The bitamp to add
+     * @param bitmap The bitmap to add
      * @param delay Delay of the frame
      * @param xOffset The X offset where the frame should be rendered
      * @param yOffset The Y offset where the frame should be rendered
-     * @param dispose_op `dispose_op` specifies how the output buffer should be changed at the end of the delay (before rendering the next frame).
-     * @param blend_op `blend_op` specifies whether the frame is to be alpha blended into the current output buffer content, or whether it should completely replace its region in the output buffer.
+     * @param disposeOp `DisposeOp` specifies how the output buffer should be changed at the end of the delay (before rendering the next frame).
+     * @param blendOp `BlendOp` specifies whether the frame is to be alpha blended into the current output buffer content, or whether it should completely replace its region in the output buffer.
      */
-    fun addFrames(bitmap: Bitmap, delay: Float, xOffset : Int, yOffset : Int, dispose_op: Utils.Companion.dispose_op, blend_op: Utils.Companion.blend_op) {
-        frames.add(Frame(PngEncoder.encode(bitmap, true), delay, xOffset, yOffset, blend_op, dispose_op))
+
+    fun addFrames(bitmap : Bitmap, index : Int? = null, delay : Float = 1000f, xOffset : Int = 0, yOffset : Int = 0, disposeOp: Utils.Companion.DisposeOp = Utils.Companion.DisposeOp.APNG_DISPOSE_OP_NONE, blendOp: Utils.Companion.BlendOp = Utils.Companion.BlendOp.APNG_BLEND_OP_SOURCE) {
+        if (index == null)
+            frames.add(Frame(PngEncoder.encode(bitmap, true), delay, xOffset, yOffset, blendOp, disposeOp))
+        else
+            frames.add(index, Frame(PngEncoder.encode(bitmap, true), delay, xOffset, yOffset, blendOp, disposeOp))
     }
 
-    /**
-     * Add a frame to the APNG
-     * @param index Index where we add the frame
-     * @param bitmap The bitamp to add
-     */
-    fun addFrames(index : Int, bitmap: Bitmap) {
-        frames.add(index, Frame(PngEncoder.encode(bitmap, true)))
-    }
-
-    /**
-     * Add a frame to the APNG
-     * @param index Index where we add the frame
-     * @param bitmap The bitamp to add
-     * @param delay Delay of the frame
-     */
-    fun addFrames(index : Int, bitmap: Bitmap, delay : Float) {
-        frames.add(index, Frame(PngEncoder.encode(bitmap, true), delay))
-    }
-
-    /**
-     * Add a frame to the APNG
-     * @param index Index where we add the frame
-     * @param bitmap The bitamp to add
-     * @param delay Delay of the frame
-     * @param dispose_op `dispose_op` specifies how the output buffer should be changed at the end of the delay (before rendering the next frame).
-     * @param blend_op `blend_op` specifies whether the frame is to be alpha blended into the current output buffer content, or whether it should completely replace its region in the output buffer.
-     */
-    fun addFrames(index: Int, bitmap: Bitmap, delay: Float, dispose_op: Utils.Companion.dispose_op, blend_op: Utils.Companion.blend_op) {
-        frames.add(index, Frame(PngEncoder.encode(bitmap, true), delay, blend_op, dispose_op))
-    }
-
-    /**
-     * Add a frame to the APNG
-     * @param index Index where we add the frame
-     * @param bitmap The bitamp to add
-     * @param delay Delay of the frame
-     * @param xOffset The X offset where the frame should be rendered
-     * @param yOffset The Y offset where the frame should be rendered
-     * @param dispose_op `dispose_op` specifies how the output buffer should be changed at the end of the delay (before rendering the next frame).
-     * @param blend_op `blend_op` specifies whether the frame is to be alpha blended into the current output buffer content, or whether it should completely replace its region in the output buffer.
-     */
-    fun addFrames(index: Int, bitmap: Bitmap, delay: Float, xOffset : Int, yOffset : Int, dispose_op: Utils.Companion.dispose_op, blend_op: Utils.Companion.blend_op) {
-        frames.add(index, Frame(PngEncoder.encode(bitmap, true), delay, xOffset, yOffset, blend_op, dispose_op))
-    }
-
-    fun addFrames(frame : Frame) {
-        frames.add(frame)
-    }
-
-    fun addFrames(index: Int,frame : Frame) {
-        frames.add(index, frame)
+    @Suppress("unused")
+    fun addFrames(frame : Frame, index: Int? = null) {
+        if (index == null)
+            frames.add(frame)
+        else
+            frames.add(index, frame)
     }
     //endregion
 
@@ -139,7 +71,6 @@ class Apng {
         val res = ArrayList<Byte>()
         // Add PNG signature
         res.addAll(pngSignature.toList())
-
         // Add Image Header
         res.addAll(generateIhdr().toList())
 
@@ -178,9 +109,9 @@ class Apng {
             fcTL.addAll(to2Bytes(frames[0].delay.toInt()).toList())
             fcTL.addAll(to2Bytes(1000).toList())
 
-            // Add dispose_op and blend_op
-            fcTL.add(getDispose_op(frames[0].dispose_op).toByte())
-            fcTL.add(getBlend_op(frames[0].blend_op).toByte())
+            // Add DisposeOp and BlendOp
+            fcTL.add(getDisposeOp(frames[0].disposeOp).toByte())
+            fcTL.add(getBlendOp(frames[0].blendOp).toByte())
 
             // Create CRC
             val crc = CRC32()
@@ -247,9 +178,9 @@ class Apng {
             fcTL.addAll(to2Bytes(frames[0].delay.toInt()).toList())
             fcTL.addAll(to2Bytes(1000).toList())
 
-            // Add dispose_op and blend_op
-            fcTL.add(getDispose_op(frames[0].dispose_op).toByte())
-            fcTL.add(getBlend_op(frames[0].blend_op).toByte())
+            // Add DisposeOp and BlendOp
+            fcTL.add(getDisposeOp(frames[0].disposeOp).toByte())
+            fcTL.add(getBlendOp(frames[0].blendOp).toByte())
 
             // Generate CRC
             val crc = CRC32()
@@ -302,8 +233,8 @@ class Apng {
             fcTL.addAll(to2Bytes(frames[i].delay.toInt()).toList())
             fcTL.addAll(to2Bytes(1000).toList())
 
-            fcTL.add(getDispose_op(frames[i].dispose_op).toByte())
-            fcTL.add(getBlend_op(frames[i].blend_op).toByte())
+            fcTL.add(getDisposeOp(frames[i].disposeOp).toByte())
+            fcTL.add(getBlendOp(frames[i].blendOp).toByte())
 
             val crc = CRC32()
             crc.update(fcTL.toByteArray(), 0, fcTL.size)
@@ -359,6 +290,7 @@ class Apng {
      * @param maxHeight Max height of the APNG
      * @return An image cover
      */
+    @Suppress("MemberVisibilityCanBePrivate")
     fun generateCover(bitmap: Bitmap, maxWidth : Int, maxHeight : Int) : Bitmap {
         return Bitmap.createScaledBitmap(bitmap, maxWidth, maxHeight, false)
     }
@@ -371,7 +303,7 @@ class Apng {
         val ihdr = ArrayList<Byte>()
 
         // We need a body var to know body length and generate crc
-        val ihdr_body = ArrayList<Byte>()
+        val ihdrBody = ArrayList<Byte>()
 
         // Get max height and max width of all the frames
         maxHeight = frames.sortedByDescending { it.height }[0].height
@@ -384,20 +316,20 @@ class Apng {
         // Add chunk body length
         ihdr.addAll(to4Bytes(frames[0].ihdr.body.size).toList())
         // Add IHDR
-        ihdr_body.addAll(byteArrayOf(0x49.toByte(), 0x48.toByte(), 0x44.toByte(), 0x52.toByte()).toList())
+        ihdrBody.addAll(byteArrayOf(0x49.toByte(), 0x48.toByte(), 0x44.toByte(), 0x52.toByte()).toList())
 
         // Add the max width and height
-        ihdr_body.addAll(to4Bytes(maxWidth!!).toList())
-        ihdr_body.addAll(to4Bytes(maxHeight!!).toList())
+        ihdrBody.addAll(to4Bytes(maxWidth!!).toList())
+        ihdrBody.addAll(to4Bytes(maxHeight!!).toList())
 
         // Add complicated stuff like depth color ...
         // If you want correct png you need same parameters. Good solution is to create new png.
-        ihdr_body.addAll(frames[0].ihdr.body.copyOfRange(8, 13).toList())
+        ihdrBody.addAll(frames[0].ihdr.body.copyOfRange(8, 13).toList())
 
         // Generate CRC
         val crC32 = CRC32()
-        crC32.update(ihdr_body.toByteArray(), 0, ihdr_body.size)
-        ihdr.addAll(ihdr_body)
+        crC32.update(ihdrBody.toByteArray(), 0, ihdrBody.size)
+        ihdr.addAll(ihdrBody)
         ihdr.addAll(to4Bytes(crC32.value.toInt()).toList())
         return ihdr.toByteArray()
     }
@@ -437,12 +369,13 @@ class Apng {
      * @param keepCover Keep the cover
      * @param sizePercent Reduce image width/height by percents.
      */
-    fun reduceSize( maxColor : Int, keepCover : Boolean? = null, sizePercent : Int? = null) {
+    @Suppress("unused")
+    fun reduceSize(maxColor : Int, keepCover : Boolean? = null, sizePercent : Int? = null) {
         val apng = Apng()
         if (keepCover != false) {
             if (cover != null) {
                 if (sizePercent != null) {
-                    cover = Bitmap.createScaledBitmap(cover, (cover!!.width.toFloat() * sizePercent.toFloat() / 100f).toInt(), (cover!!.height.toFloat() * sizePercent.toFloat() / 100f).toInt(), false)
+                    cover = Bitmap.createScaledBitmap(cover!!, (cover!!.width.toFloat() * sizePercent.toFloat() / 100f).toInt(), (cover!!.height.toFloat() * sizePercent.toFloat() / 100f).toInt(), false)
                     val pnn = PnnQuantizer(cover)
                     cover = pnn.convert(maxColor, false)
                 }
@@ -458,9 +391,9 @@ class Apng {
             val pnn = PnnQuantizer(btm)
             val btmOptimised = pnn.convert(maxColor, false)
             if (sizePercent != null) {
-                apng.addFrames(btmOptimised, it.delay, (it.x_offsets.toFloat() * sizePercent.toFloat() / 100f).toInt(), (it.y_offsets.toFloat() * sizePercent.toFloat() / 100f).toInt(), it.dispose_op, it.blend_op)
+                apng.addFrames(btmOptimised, 0, it.delay, (it.x_offsets.toFloat() * sizePercent.toFloat() / 100f).toInt(), (it.y_offsets.toFloat() * sizePercent.toFloat() / 100f).toInt(), it.disposeOp, it.blendOp)
             } else {
-                apng.addFrames(btmOptimised, it.delay, it.x_offsets, it.y_offsets, it.dispose_op, it.blend_op)
+                apng.addFrames(btmOptimised, 0, it.delay, it.x_offsets, it.y_offsets, it.disposeOp, it.blendOp)
             }
         }
         frames = apng.frames
@@ -481,7 +414,7 @@ class Apng {
             frames[i].byteArray = PngEncoder.encode(diffCalculator.res, true)
             frames[i].x_offsets = diffCalculator.xOffset
             frames[i].y_offsets = diffCalculator.yOffset
-            frames[i].blend_op = Utils.Companion.blend_op.APNG_BLEND_OP_OVER
+            frames[i].blendOp = Utils.Companion.BlendOp.APNG_BLEND_OP_OVER
         }
     }
 }

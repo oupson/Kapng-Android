@@ -19,7 +19,7 @@ class Utils {
             if (!isPng(byteArray)) return false
             try {
                 val acTL = byteArrayOf(0x61, 0x63, 0x54, 0x4c)
-                val IDAT = byteArrayOf(0x49, 0x44, 0x41, 0x54)
+                @Suppress("LocalVariableName") val IDAT = byteArrayOf(0x49, 0x44, 0x41, 0x54)
                 for (i in 0 until byteArray.size) {
                     val it = byteArray.copyOfRange(i, i + 4)
                     // if byteArray contain acTL
@@ -40,66 +40,66 @@ class Utils {
          */
         val pngSignature: ByteArray = byteArrayOf(0x89.toByte(), 0x50.toByte(), 0x4E.toByte(), 0x47.toByte(), 0x0D.toByte(), 0x0A.toByte(), 0x1A.toByte(), 0x0A.toByte())
 
-        enum class dispose_op {
+        enum class DisposeOp {
             APNG_DISPOSE_OP_NONE,
             APNG_DISPOSE_OP_BACKGROUND,
             APNG_DISPOSE_OP_PREVIOUS
         }
 
         /**
-         * Get the int equivalent to the dispose_op
-         * @param dispose_op The dispose_op
-         * @return An int equivalent to the dispose_op
+         * Get the int equivalent to the DisposeOp
+         * @param disposeOp The DisposeOp
+         * @return An int equivalent to the DisposeOp
          */
-        fun getDispose_op(dispose_op: dispose_op) : Int {
-            return when(dispose_op) {
-                Companion.dispose_op.APNG_DISPOSE_OP_NONE -> 0
-                Companion.dispose_op.APNG_DISPOSE_OP_BACKGROUND -> 1
-                Companion.dispose_op.APNG_DISPOSE_OP_PREVIOUS -> 2
+        fun getDisposeOp(disposeOp: DisposeOp) : Int {
+            return when(disposeOp) {
+                Companion.DisposeOp.APNG_DISPOSE_OP_NONE -> 0
+                Companion.DisposeOp.APNG_DISPOSE_OP_BACKGROUND -> 1
+                Companion.DisposeOp.APNG_DISPOSE_OP_PREVIOUS -> 2
             }
         }
 
         /**
-         * Get the dispose_op enum equivalent to the int
-         * @param int Int of the dispose_op
-         * @return A dispose_op
+         * Get the DisposeOp enum equivalent to the int
+         * @param int Int of the DisposeOp
+         * @return A DisposeOp
          */
-        fun getDispose_op(int: Int) : dispose_op {
+        fun getDisposeOp(int: Int) : DisposeOp {
             return when(int) {
-                0 -> dispose_op.APNG_DISPOSE_OP_NONE
-                1 -> dispose_op.APNG_DISPOSE_OP_BACKGROUND
-                2 -> dispose_op.APNG_DISPOSE_OP_PREVIOUS
-                else -> dispose_op.APNG_DISPOSE_OP_NONE
+                0 -> DisposeOp.APNG_DISPOSE_OP_NONE
+                1 -> DisposeOp.APNG_DISPOSE_OP_BACKGROUND
+                2 -> DisposeOp.APNG_DISPOSE_OP_PREVIOUS
+                else -> DisposeOp.APNG_DISPOSE_OP_NONE
             }
         }
 
-        enum class blend_op() {
+        enum class BlendOp {
             APNG_BLEND_OP_SOURCE,
             APNG_BLEND_OP_OVER
         }
 
         /**
-         * Get the int equivalent to the blend_op
-         * @param blend_op The blend_op
-         * @return An int equivalent to the blend_op
+         * Get the int equivalent to the BlendOp
+         * @param blendOp The BlendOp
+         * @return An int equivalent to the BlendOp
          */
-        fun getBlend_op(blend_op: blend_op) : Int {
-            return when(blend_op) {
-                Companion.blend_op.APNG_BLEND_OP_SOURCE -> 0
-                Companion.blend_op.APNG_BLEND_OP_OVER -> 1
+        fun getBlendOp(blendOp: BlendOp) : Int {
+            return when(blendOp) {
+                Companion.BlendOp.APNG_BLEND_OP_SOURCE -> 0
+                Companion.BlendOp.APNG_BLEND_OP_OVER -> 1
             }
         }
 
         /**
-         * Get the blend_op enum equivalent to the int
-         * @param int Int of the blend_op
-         * @return A blend_op
+         * Get the BlendOp enum equivalent to the int
+         * @param int Int of the BlendOp
+         * @return A BlendOp
          */
-        fun getBlend_op(int : Int) : blend_op {
+        fun getBlendOp(int : Int) : BlendOp {
             return when(int) {
-                0 -> blend_op.APNG_BLEND_OP_SOURCE
-                1 -> blend_op.APNG_BLEND_OP_OVER
-                else -> blend_op.APNG_BLEND_OP_SOURCE
+                0 -> BlendOp.APNG_BLEND_OP_SOURCE
+                1 -> BlendOp.APNG_BLEND_OP_OVER
+                else -> BlendOp.APNG_BLEND_OP_SOURCE
             }
         }
 
@@ -137,12 +137,12 @@ class Utils {
             return lengthString.toLong(16).toInt()
         }
 
-        val fcTL = Arrays.toString(byteArrayOf(0x66, 0x63, 0x54, 0x4c))
-        val IEND = Arrays.toString(byteArrayOf(0x49, 0x45, 0x4e, 0x44))
-        val IDAT = Arrays.toString(byteArrayOf(0x49, 0x44, 0x41, 0x54))
-        val fdAT = Arrays.toString(byteArrayOf(0x66, 0x64, 0x41, 0x54))
-        val plte = Arrays.toString(byteArrayOf(0x50, 0x4c, 0x54, 0x45))
-        val tnrs = Arrays.toString(byteArrayOf(0x74, 0x52, 0x4e, 0x53))
-        val IHDR = Arrays.toString(byteArrayOf(0x49, 0x48, 0x44, 0x52))
+        val fcTL : String = Arrays.toString(byteArrayOf(0x66, 0x63, 0x54, 0x4c))
+        val IEND : String = Arrays.toString(byteArrayOf(0x49, 0x45, 0x4e, 0x44))
+        val IDAT : String = Arrays.toString(byteArrayOf(0x49, 0x44, 0x41, 0x54))
+        val fdAT : String = Arrays.toString(byteArrayOf(0x66, 0x64, 0x41, 0x54))
+        val plte : String = Arrays.toString(byteArrayOf(0x50, 0x4c, 0x54, 0x45))
+        val tnrs : String = Arrays.toString(byteArrayOf(0x74, 0x52, 0x4e, 0x53))
+        val IHDR : String = Arrays.toString(byteArrayOf(0x49, 0x48, 0x44, 0x52))
     }
 }

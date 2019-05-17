@@ -25,8 +25,8 @@ class APNGDisassembler {
         private var tnrs: ByteArray? = null
         private var maxWidth = 0
         private var maxHeight = 0
-        private var blend_op: Utils.Companion.blend_op = Utils.Companion.blend_op.APNG_BLEND_OP_SOURCE
-        private var dispose_op: Utils.Companion.dispose_op = Utils.Companion.dispose_op.APNG_DISPOSE_OP_NONE
+        private var blendOp: Utils.Companion.BlendOp = Utils.Companion.BlendOp.APNG_BLEND_OP_SOURCE
+        private var disposeOp: Utils.Companion.DisposeOp = Utils.Companion.DisposeOp.APNG_DISPOSE_OP_NONE
         private var ihdr = IHDR()
 
         var apng: Apng = Apng()
@@ -98,17 +98,17 @@ class APNGDisassembler {
                             val fcTL = fcTL()
                             fcTL.parse(byteArray)
                             delay = fcTL.delay
-                            yOffset = fcTL.y_offset
-                            xOffset = fcTL.x_offset
-                            blend_op = fcTL.blend_op
-                            dispose_op = fcTL.dispose_op
+                            yOffset = fcTL.yOffset
+                            xOffset = fcTL.xOffset
+                            blendOp = fcTL.blendOp
+                            disposeOp = fcTL.disposeOp
                             val width = fcTL.pngWidth
                             val height = fcTL.pngHeight
 
                             if (xOffset + width > maxWidth) {
-                                throw BadApng("`y_offset` + `height` must be <= `IHDR` height")
+                                throw BadApng("`yOffset` + `height` must be <= `IHDR` height")
                             } else if (yOffset + height > maxHeight) {
-                                throw BadApng("`y_offset` + `height` must be <= `IHDR` height")
+                                throw BadApng("`yOffset` + `height` must be <= `IHDR` height")
                             }
 
                             png?.addAll(pngSignature.toList())
@@ -129,15 +129,15 @@ class APNGDisassembler {
                             crC32.update(iend, 0, iend.size)
                             png!!.addAll(iend.toList())
                             png!!.addAll(to4Bytes(crC32.value.toInt()).toList())
-                            apng.frames.add(Frame(png!!.toByteArray(), delay, xOffset, yOffset, maxWidth, maxHeight, blend_op, dispose_op))
+                            apng.frames.add(Frame(png!!.toByteArray(), delay, xOffset, yOffset, maxWidth, maxHeight, blendOp, disposeOp))
                             png = ArrayList()
                             val fcTL = fcTL()
                             fcTL.parse(byteArray)
                             delay = fcTL.delay
-                            yOffset = fcTL.y_offset
-                            xOffset = fcTL.x_offset
-                            blend_op = fcTL.blend_op
-                            dispose_op = fcTL.dispose_op
+                            yOffset = fcTL.yOffset
+                            xOffset = fcTL.xOffset
+                            blendOp = fcTL.blendOp
+                            disposeOp = fcTL.disposeOp
                             val width = fcTL.pngWidth
                             val height = fcTL.pngHeight
                             png!!.addAll(pngSignature.toList())
@@ -159,7 +159,7 @@ class APNGDisassembler {
                         crC32.update(iend, 0, iend.size)
                         png!!.addAll(iend.toList())
                         png!!.addAll(to4Bytes(crC32.value.toInt()).toList())
-                        apng.frames.add(Frame(png!!.toByteArray(), delay, xOffset, yOffset, maxWidth, maxHeight, blend_op, dispose_op))
+                        apng.frames.add(Frame(png!!.toByteArray(), delay, xOffset, yOffset, maxWidth, maxHeight, blendOp, disposeOp))
                     }
                     Utils.IDAT -> {
                         if (png == null) {

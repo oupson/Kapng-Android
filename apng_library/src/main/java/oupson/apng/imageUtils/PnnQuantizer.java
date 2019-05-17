@@ -1,4 +1,4 @@
-package oupson.apng.ImageUtils;
+package oupson.apng.imageUtils;
 
 /* Fast pairwise nearest neighbor based algorithm for multilevel thresholding
 Copyright (C) 2004-2016 Mark Tyler and Dmitry Groshev

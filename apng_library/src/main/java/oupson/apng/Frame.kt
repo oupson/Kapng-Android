@@ -37,8 +37,8 @@ class Frame {
     var maxWidth : Int? = null
     var maxHeight : Int? = null
 
-    var blend_op: Utils.Companion.blend_op
-    var dispose_op : Utils.Companion.dispose_op
+    var blendOp: Utils.Companion.BlendOp
+    var disposeOp : Utils.Companion.DisposeOp
 
     constructor(byteArray: ByteArray) {
         if (isPng(byteArray)) {
@@ -46,8 +46,8 @@ class Frame {
             Log.e("tag", byteArray.size.toString())
             // Get width and height for image
             delay = 1000f
-            blend_op = Utils.Companion.blend_op.APNG_BLEND_OP_SOURCE
-            dispose_op = Utils.Companion.dispose_op.APNG_DISPOSE_OP_NONE
+            blendOp = Utils.Companion.BlendOp.APNG_BLEND_OP_SOURCE
+            disposeOp = Utils.Companion.DisposeOp.APNG_DISPOSE_OP_NONE
             var cursor = 8
             while (cursor < byteArray.size) {
                 val chunk = byteArray.copyOfRange(cursor, cursor + Utils.parseLength(byteArray.copyOfRange(cursor, cursor + 4)) + 12)
@@ -70,14 +70,14 @@ class Frame {
             }
 
             this.delay = delay
-            blend_op = Utils.Companion.blend_op.APNG_BLEND_OP_SOURCE
-            dispose_op = Utils.Companion.dispose_op.APNG_DISPOSE_OP_NONE
+            blendOp = Utils.Companion.BlendOp.APNG_BLEND_OP_SOURCE
+            disposeOp = Utils.Companion.DisposeOp.APNG_DISPOSE_OP_NONE
         } else {
             throw NotPngException()
         }
     }
 
-    constructor(byteArray: ByteArray, delay : Float, blend_op: Utils.Companion.blend_op, dispose_op: Utils.Companion.dispose_op) {
+    constructor(byteArray: ByteArray, delay : Float, blendOp: Utils.Companion.BlendOp, disposeOp: Utils.Companion.DisposeOp) {
         if (isPng(byteArray)) {
             this.byteArray = byteArray
             // Get width and height for image
@@ -93,14 +93,14 @@ class Frame {
 
             this.maxWidth = -1
             this.maxHeight = -1
-            this.blend_op = blend_op
-            this.dispose_op = dispose_op
+            this.blendOp = blendOp
+            this.disposeOp = disposeOp
         } else {
             throw NotPngException()
         }
     }
 
-    constructor(byteArray: ByteArray, delay : Float, xOffsets : Int, yOffsets : Int, blend_op: Utils.Companion.blend_op, dispose_op: Utils.Companion.dispose_op) {
+    constructor(byteArray: ByteArray, delay : Float, xOffsets : Int, yOffsets : Int, blendOp: Utils.Companion.BlendOp, disposeOp: Utils.Companion.DisposeOp) {
         if (isPng(byteArray)) {
             this.byteArray = byteArray
             // Get width and height for image
@@ -118,14 +118,14 @@ class Frame {
 
             this.maxWidth = -1
             this.maxHeight = -1
-            this.blend_op = blend_op
-            this.dispose_op = dispose_op
+            this.blendOp = blendOp
+            this.disposeOp = disposeOp
         } else {
             throw NotPngException()
         }
     }
 
-    constructor(byteArray: ByteArray, delay : Float, xOffsets : Int, yOffsets : Int, maxWidth : Int, maxHeight : Int, blend_op: Utils.Companion.blend_op, dispose_op: Utils.Companion.dispose_op) {
+    constructor(byteArray: ByteArray, delay : Float, xOffsets : Int, yOffsets : Int, maxWidth : Int, maxHeight : Int, blendOp: Utils.Companion.BlendOp, disposeOp: Utils.Companion.DisposeOp) {
         if (isPng(byteArray)) {
             this.byteArray = byteArray
             // Get width and height for image
@@ -143,8 +143,8 @@ class Frame {
 
             this.maxWidth = maxWidth
             this.maxHeight = maxHeight
-            this.blend_op = blend_op
-            this.dispose_op = dispose_op
+            this.blendOp = blendOp
+            this.disposeOp = disposeOp
         } else {
             throw NotPngException()
         }

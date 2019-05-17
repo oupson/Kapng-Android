@@ -1,10 +1,10 @@
-package oupson.apng.ImageUtils
+package oupson.apng.imageUtils
 
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.support.annotation.ColorInt
+import androidx.annotation.ColorInt
 import oupson.apng.utils.Utils
 import java.util.*
 
@@ -12,7 +12,7 @@ class BitmapDiffCalculator(firstBitmap: Bitmap, secondBitmap : Bitmap) {
     val res : Bitmap
     var xOffset : Int = 0
     var yOffset : Int = 0
-    var blend_op = Utils.Companion.blend_op.APNG_BLEND_OP_OVER
+    var blendOp = Utils.Companion.BlendOp.APNG_BLEND_OP_OVER
     init {
         val difBitmap = Bitmap.createBitmap(firstBitmap.width, firstBitmap.height, Bitmap.Config.ARGB_8888)
         val difCanvas = Canvas(difBitmap)

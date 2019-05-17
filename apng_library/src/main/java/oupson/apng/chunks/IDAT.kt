@@ -3,6 +3,7 @@ package oupson.apng.chunks
 import oupson.apng.utils.Utils.Companion.parseLength
 
 class IDAT : Chunk {
+    @Suppress("PropertyName")
     var IDATBody: ArrayList<ByteArray> = ArrayList()
     override var body = byteArrayOf()
 
