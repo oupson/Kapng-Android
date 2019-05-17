@@ -102,8 +102,8 @@ class Apng {
             fcTL.addAll(to4Bytes(frames[0].width).toList())
             fcTL.addAll(to4Bytes(frames[0].height).toList())
 
-            fcTL.addAll(to4Bytes(frames[0].x_offsets).toList())
-            fcTL.addAll(to4Bytes(frames[0].y_offsets).toList())
+            fcTL.addAll(to4Bytes(frames[0].xOffsets).toList())
+            fcTL.addAll(to4Bytes(frames[0].yOffsets).toList())
 
             // Set frame delay
             fcTL.addAll(to2Bytes(frames[0].delay.toInt()).toList())
@@ -171,8 +171,8 @@ class Apng {
             fcTL.addAll(to4Bytes(frames[0].height).toList())
 
 
-            fcTL.addAll(to4Bytes(frames[0].x_offsets).toList())
-            fcTL.addAll(to4Bytes(frames[0].y_offsets).toList())
+            fcTL.addAll(to4Bytes(frames[0].xOffsets).toList())
+            fcTL.addAll(to4Bytes(frames[0].yOffsets).toList())
 
             // Set frame delay
             fcTL.addAll(to2Bytes(frames[0].delay.toInt()).toList())
@@ -226,8 +226,8 @@ class Apng {
             fcTL.addAll(to4Bytes(frames[i].width).toList())
             fcTL.addAll(to4Bytes(frames[i].height).toList())
 
-            fcTL.addAll(to4Bytes(frames[i].x_offsets).toList())
-            fcTL.addAll(to4Bytes(frames[i].y_offsets).toList())
+            fcTL.addAll(to4Bytes(frames[i].xOffsets).toList())
+            fcTL.addAll(to4Bytes(frames[i].yOffsets).toList())
 
             // Set frame delay
             fcTL.addAll(to2Bytes(frames[i].delay.toInt()).toList())
@@ -391,9 +391,9 @@ class Apng {
             val pnn = PnnQuantizer(btm)
             val btmOptimised = pnn.convert(maxColor, false)
             if (sizePercent != null) {
-                apng.addFrames(btmOptimised, 0, it.delay, (it.x_offsets.toFloat() * sizePercent.toFloat() / 100f).toInt(), (it.y_offsets.toFloat() * sizePercent.toFloat() / 100f).toInt(), it.disposeOp, it.blendOp)
+                apng.addFrames(btmOptimised, 0, it.delay, (it.xOffsets.toFloat() * sizePercent.toFloat() / 100f).toInt(), (it.yOffsets.toFloat() * sizePercent.toFloat() / 100f).toInt(), it.disposeOp, it.blendOp)
             } else {
-                apng.addFrames(btmOptimised, 0, it.delay, it.x_offsets, it.y_offsets, it.disposeOp, it.blendOp)
+                apng.addFrames(btmOptimised, 0, it.delay, it.xOffsets, it.yOffsets, it.disposeOp, it.blendOp)
             }
         }
         frames = apng.frames
@@ -412,8 +412,8 @@ class Apng {
             val diffCalculator = BitmapDiffCalculator(drawedFrame[i - 1], drawedFrame[i])
             File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "frame$i.png").writeBytes(PngEncoder.encode(diffCalculator.res, true))
             frames[i].byteArray = PngEncoder.encode(diffCalculator.res, true)
-            frames[i].x_offsets = diffCalculator.xOffset
-            frames[i].y_offsets = diffCalculator.yOffset
+            frames[i].xOffsets = diffCalculator.xOffset
+            frames[i].yOffsets = diffCalculator.yOffset
             frames[i].blendOp = Utils.Companion.BlendOp.APNG_BLEND_OP_OVER
         }
     }

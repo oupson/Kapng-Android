@@ -1,6 +1,5 @@
 package oupson.apng
 
-import android.util.Log
 import oupson.apng.chunks.IDAT
 import oupson.apng.chunks.IHDR
 import oupson.apng.exceptions.NotPngException
@@ -18,7 +17,17 @@ import java.util.*
  * @throws NotPngException
  */
 
-class Frame {
+class Frame// Get width and height for image
+    (
+    byteArray: ByteArray,
+    delay: Float = 1000f,
+    xOffsets: Int = 0,
+    yOffsets: Int = 0,
+    blendOp: Utils.Companion.BlendOp = Utils.Companion.BlendOp.APNG_BLEND_OP_SOURCE,
+    disposeOp: Utils.Companion.DisposeOp = Utils.Companion.DisposeOp.APNG_DISPOSE_OP_NONE,
+    maxWidth: Int? = null,
+    maxHeight: Int? = null
+) {
 
     var byteArray : ByteArray
 
@@ -31,8 +40,8 @@ class Frame {
 
     val delay : Float
 
-    var x_offsets : Int = 0
-    var y_offsets : Int = 0
+    var xOffsets : Int = 0
+    var yOffsets : Int = 0
 
     var maxWidth : Int? = null
     var maxHeight : Int? = null
@@ -40,44 +49,7 @@ class Frame {
     var blendOp: Utils.Companion.BlendOp
     var disposeOp : Utils.Companion.DisposeOp
 
-    constructor(byteArray: ByteArray) {
-        if (isPng(byteArray)) {
-            this.byteArray = byteArray
-            Log.e("tag", byteArray.size.toString())
-            // Get width and height for image
-            delay = 1000f
-            blendOp = Utils.Companion.BlendOp.APNG_BLEND_OP_SOURCE
-            disposeOp = Utils.Companion.DisposeOp.APNG_DISPOSE_OP_NONE
-            var cursor = 8
-            while (cursor < byteArray.size) {
-                val chunk = byteArray.copyOfRange(cursor, cursor + Utils.parseLength(byteArray.copyOfRange(cursor, cursor + 4)) + 12)
-                parseChunk(chunk)
-                cursor += Utils.parseLength(byteArray.copyOfRange(cursor, cursor + 4)) + 12
-            }
-        } else {
-            throw NotPngException()
-        }
-    }
-    constructor(byteArray: ByteArray, delay : Float) {
-        if (isPng(byteArray)) {
-            this.byteArray = byteArray
-            // Get width and height for image
-            var cursor = 8
-            while (cursor < byteArray.size) {
-                val chunk = byteArray.copyOfRange(cursor, cursor + Utils.parseLength(byteArray.copyOfRange(cursor, cursor + 4)) + 12)
-                parseChunk(chunk)
-                cursor += Utils.parseLength(byteArray.copyOfRange(cursor, cursor + 4)) + 12
-            }
-
-            this.delay = delay
-            blendOp = Utils.Companion.BlendOp.APNG_BLEND_OP_SOURCE
-            disposeOp = Utils.Companion.DisposeOp.APNG_DISPOSE_OP_NONE
-        } else {
-            throw NotPngException()
-        }
-    }
-
-    constructor(byteArray: ByteArray, delay : Float, blendOp: Utils.Companion.BlendOp, disposeOp: Utils.Companion.DisposeOp) {
+    init {
         if (isPng(byteArray)) {
             this.byteArray = byteArray
             // Get width and height for image
@@ -90,56 +62,8 @@ class Frame {
 
             this.delay = delay
 
-
-            this.maxWidth = -1
-            this.maxHeight = -1
-            this.blendOp = blendOp
-            this.disposeOp = disposeOp
-        } else {
-            throw NotPngException()
-        }
-    }
-
-    constructor(byteArray: ByteArray, delay : Float, xOffsets : Int, yOffsets : Int, blendOp: Utils.Companion.BlendOp, disposeOp: Utils.Companion.DisposeOp) {
-        if (isPng(byteArray)) {
-            this.byteArray = byteArray
-            // Get width and height for image
-            var cursor = 8
-            while (cursor < byteArray.size) {
-                val chunk = byteArray.copyOfRange(cursor, cursor + Utils.parseLength(byteArray.copyOfRange(cursor, cursor + 4)) + 12)
-                parseChunk(chunk)
-                cursor += Utils.parseLength(byteArray.copyOfRange(cursor, cursor + 4)) + 12
-            }
-
-            this.delay = delay
-
-            x_offsets = xOffsets
-            y_offsets = yOffsets
-
-            this.maxWidth = -1
-            this.maxHeight = -1
-            this.blendOp = blendOp
-            this.disposeOp = disposeOp
-        } else {
-            throw NotPngException()
-        }
-    }
-
-    constructor(byteArray: ByteArray, delay : Float, xOffsets : Int, yOffsets : Int, maxWidth : Int, maxHeight : Int, blendOp: Utils.Companion.BlendOp, disposeOp: Utils.Companion.DisposeOp) {
-        if (isPng(byteArray)) {
-            this.byteArray = byteArray
-            // Get width and height for image
-            var cursor = 8
-            while (cursor < byteArray.size) {
-                val chunk = byteArray.copyOfRange(cursor, cursor + Utils.parseLength(byteArray.copyOfRange(cursor, cursor + 4)) + 12)
-                parseChunk(chunk)
-                cursor += Utils.parseLength(byteArray.copyOfRange(cursor, cursor + 4)) + 12
-            }
-
-            this.delay = delay
-
-            x_offsets = xOffsets
-            y_offsets = yOffsets
+            this.xOffsets = xOffsets
+            this.yOffsets = yOffsets
 
             this.maxWidth = maxWidth
             this.maxHeight = maxHeight
@@ -150,7 +74,7 @@ class Frame {
         }
     }
 
-    fun parseChunk(byteArray: ByteArray) {
+    private fun parseChunk(byteArray: ByteArray) {
         when(Arrays.toString(byteArray.copyOfRange(4, 8))) {
             IHDR -> {
                 ihdr = IHDR()

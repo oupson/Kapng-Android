@@ -6,7 +6,7 @@ import android.graphics.ColorFilter
 import android.graphics.PixelFormat
 import android.graphics.drawable.Drawable
 
-internal class BitmapDrawable(val bitmap: Bitmap) : Drawable() {
+internal class BitmapDrawable(private val bitmap: Bitmap) : Drawable() {
 
     override fun draw(canvas: Canvas) {
         canvas.drawBitmap(bitmap, 0.0f, 0.0f, null)

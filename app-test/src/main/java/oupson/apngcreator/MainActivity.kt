@@ -20,6 +20,7 @@ import org.jetbrains.anko.sdk27.coroutines.onClick
 import org.jetbrains.anko.sdk27.coroutines.onMenuItemClick
 import org.jetbrains.anko.sdk27.coroutines.onSeekBarChangeListener
 import oupson.apng.ApngAnimator
+import oupson.apng.loadApng
 
 
 class MainActivity : AppCompatActivity() {
@@ -122,8 +123,7 @@ class MainActivity : AppCompatActivity() {
                 )
                 val imageView = imageView {
                     id = View.generateViewId()
-                    animator = ApngAnimator(this@MainActivity).loadInto(this).apply {
-                        load(imageUrl)
+                    animator = this.loadApng(imageUrl).apply {
                         onLoaded {
                             setOnAnimationLoopListener {
                                 // Log.e("app-test", "onLoop")

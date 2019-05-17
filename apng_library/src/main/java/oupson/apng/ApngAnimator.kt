@@ -15,6 +15,26 @@ import oupson.apng.utils.Utils.Companion.isApng
 import java.io.File
 import java.net.URL
 
+@Suppress("unused")
+fun ImageView.loadApng(file: File, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) = ApngAnimator(this.context).loadInto(this).apply {
+    load(file, speed, apngAnimatorOptions)
+}
+
+fun ImageView.loadApng(uri : Uri, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) = ApngAnimator(this.context).loadInto(this).apply {
+    load(uri, speed, apngAnimatorOptions)
+}
+@Suppress("unused")
+fun ImageView.loadApng(url: URL, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) = ApngAnimator(this.context).loadInto(this).apply {
+    loadUrl(url, speed, apngAnimatorOptions)
+}
+@Suppress("unused")
+fun ImageView.loadApng(byteArray: ByteArray, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) = ApngAnimator(this.context).loadInto(this).apply {
+    load(byteArray, speed, apngAnimatorOptions)
+}
+fun ImageView.loadApng(string: String, speed : Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) = ApngAnimator(this.context).loadInto(this).apply {
+    load(string, speed, apngAnimatorOptions)
+}
+
 /**
  * Class to play APNG
  */
@@ -109,8 +129,6 @@ class ApngAnimator(private val context: Context?) {
         }
         return this
     }
-
-
 
     /**
      * Load an APNG file and starts playing the animation.
@@ -291,10 +309,10 @@ class ApngAnimator(private val context: Context?) {
             // Clear current frame rect
             // If `BlendOp` is APNG_BLEND_OP_SOURCE all color components of the frame, including alpha, overwrite the current contents of the frame's output buffer region.
             if (it.blendOp == Utils.Companion.BlendOp.APNG_BLEND_OP_SOURCE) {
-                canvas.drawRect(it.x_offsets.toFloat(), it.y_offsets.toFloat(), it.x_offsets + current.width.toFloat(), it.y_offsets + current.height.toFloat(), { val paint = Paint(); paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR); paint }())
+                canvas.drawRect(it.xOffsets.toFloat(), it.yOffsets.toFloat(), it.xOffsets + current.width.toFloat(), it.yOffsets + current.height.toFloat(), { val paint = Paint(); paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR); paint }())
             }
             // Draw the bitmap
-            canvas.drawBitmap(current, it.x_offsets.toFloat(), it.y_offsets.toFloat(), null)
+            canvas.drawBitmap(current, it.xOffsets.toFloat(), it.yOffsets.toFloat(), null)
             generatedFrame.add(btm)
             // Don't add current frame to bitmap buffer
             when {
@@ -307,7 +325,7 @@ class ApngAnimator(private val context: Context?) {
                     val res = Bitmap.createBitmap(extractedFrame[0].maxWidth!!, extractedFrame[0].maxHeight!!, Bitmap.Config.ARGB_8888)
                     val can = Canvas(res)
                     can.drawBitmap(btm, 0f, 0f, null)
-                    can.drawRect(it.x_offsets.toFloat(), it.y_offsets.toFloat(), it.x_offsets + it.width.toFloat(), it.y_offsets + it.height.toFloat(), { val paint = Paint(); paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR); paint }())
+                    can.drawRect(it.xOffsets.toFloat(), it.yOffsets.toFloat(), it.xOffsets + it.width.toFloat(), it.yOffsets + it.height.toFloat(), { val paint = Paint(); paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR); paint }())
                     bitmapBuffer = res
                 }
                 else -> bitmapBuffer = btm

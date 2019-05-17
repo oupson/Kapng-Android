@@ -14,8 +14,7 @@ import org.jetbrains.anko.imageView
 import org.jetbrains.anko.matchParent
 import org.jetbrains.anko.sdk27.coroutines.onClick
 import org.jetbrains.anko.verticalLayout
-import oupson.apng.ApngAnimator
-
+import oupson.apng.loadApng
 
 class Main2Activity : AppCompatActivity() {
     lateinit var imageView : ImageView
@@ -52,9 +51,8 @@ class Main2Activity : AppCompatActivity() {
     }
 
     fun load() {
-        val animator = ApngAnimator(applicationContext).loadInto(imageView)
         val uri = intent.data
-        animator.load(uri, null)
+        val animator = imageView.loadApng(uri, null)
         imageView.onClick {
             try {
                 if (animator.isPlaying) {
