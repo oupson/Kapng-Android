@@ -147,8 +147,8 @@ class Apng {
         res.addAll(generateACTL())
 
         // Get max height and max width
-        val maxHeight = frames.sortedByDescending { it.height }[0].height
-        val maxWitdh = frames.sortedByDescending { it.width }[0].width
+        maxHeight = frames.sortedByDescending { it.height }[0].height
+        maxWidth = frames.sortedByDescending { it.width }[0].width
 
         if (cover == null) {
             val framesByte = ArrayList<Byte>()
@@ -171,24 +171,8 @@ class Apng {
             fcTL.addAll(to4Bytes(frames[0].width).toList())
             fcTL.addAll(to4Bytes(frames[0].height).toList())
 
-            // Calculate offset
-            if (frames[0].x_offsets == null) {
-                if (frames[0].width < maxWitdh) {
-                    val xOffset = (maxWitdh / 2) - (frames[0].width / 2)
-                    fcTL.addAll(to4Bytes(xOffset).toList())
-                } else {
-                    fcTL.addAll(to4Bytes(0).toList())
-                }
-                if (frames[0].height < maxHeight) {
-                    val xOffset = (maxHeight / 2) - (frames[0].height / 2)
-                    fcTL.addAll(to4Bytes(xOffset).toList())
-                } else {
-                    fcTL.addAll(to4Bytes(0).toList())
-                }
-            } else {
-                fcTL.addAll(to4Bytes(frames[0].x_offsets).toList())
-                fcTL.addAll(to4Bytes(frames[0].y_offsets).toList())
-            }
+            fcTL.addAll(to4Bytes(frames[0].x_offsets).toList())
+            fcTL.addAll(to4Bytes(frames[0].y_offsets).toList())
 
             // Set frame delay
             fcTL.addAll(to2Bytes(frames[0].delay.toInt()).toList())
@@ -255,24 +239,9 @@ class Apng {
             fcTL.addAll(to4Bytes(frames[0].width).toList())
             fcTL.addAll(to4Bytes(frames[0].height).toList())
 
-            // Calculate offset
-            if (frames[0].x_offsets == null) {
-                if (frames[0].width < maxWitdh) {
-                    val xOffset = (maxWitdh / 2) - (frames[0].width / 2)
-                    fcTL.addAll(to4Bytes(xOffset).toList())
-                } else {
-                    fcTL.addAll(to4Bytes(0).toList())
-                }
-                if (frames[0].height < maxHeight) {
-                    val xOffset = (maxHeight / 2) - (frames[0].height / 2)
-                    fcTL.addAll(to4Bytes(xOffset).toList())
-                } else {
-                    fcTL.addAll(to4Bytes(0).toList())
-                }
-            } else {
-                fcTL.addAll(to4Bytes(frames[0].x_offsets!!).toList())
-                fcTL.addAll(to4Bytes(frames[0].y_offsets!!).toList())
-            }
+
+            fcTL.addAll(to4Bytes(frames[0].x_offsets).toList())
+            fcTL.addAll(to4Bytes(frames[0].y_offsets).toList())
 
             // Set frame delay
             fcTL.addAll(to2Bytes(frames[0].delay.toInt()).toList())
@@ -326,23 +295,8 @@ class Apng {
             fcTL.addAll(to4Bytes(frames[i].width).toList())
             fcTL.addAll(to4Bytes(frames[i].height).toList())
 
-            if (frames[i].x_offsets == null) {
-                if (frames[i].width < maxWitdh) {
-                    val xOffset = (maxWitdh / 2) - (frames[i].width / 2)
-                    fcTL.addAll(to4Bytes(xOffset).toList())
-                } else {
-                    fcTL.addAll(to4Bytes(0).toList())
-                }
-                if (frames[i].height < maxHeight) {
-                    val xOffset = (maxHeight / 2) - (frames[i].height / 2)
-                    fcTL.addAll(to4Bytes(xOffset).toList())
-                } else {
-                    fcTL.addAll(to4Bytes(0).toList())
-                }
-            } else {
-                fcTL.addAll(to4Bytes(frames[i].x_offsets!!).toList())
-                fcTL.addAll(to4Bytes(frames[i].y_offsets!!).toList())
-            }
+            fcTL.addAll(to4Bytes(frames[i].x_offsets).toList())
+            fcTL.addAll(to4Bytes(frames[i].y_offsets).toList())
 
             // Set frame delay
             fcTL.addAll(to2Bytes(frames[i].delay.toInt()).toList())
@@ -504,9 +458,9 @@ class Apng {
             val pnn = PnnQuantizer(btm)
             val btmOptimised = pnn.convert(maxColor, false)
             if (sizePercent != null) {
-                apng.addFrames(btmOptimised, it.delay, ((it.x_offsets ?: 0).toFloat() * sizePercent.toFloat() / 100f).toInt(), ((it.y_offsets ?: 0).toFloat() * sizePercent.toFloat() / 100f).toInt(), it.dispose_op, it.blend_op)
+                apng.addFrames(btmOptimised, it.delay, (it.x_offsets.toFloat() * sizePercent.toFloat() / 100f).toInt(), (it.y_offsets.toFloat() * sizePercent.toFloat() / 100f).toInt(), it.dispose_op, it.blend_op)
             } else {
-                apng.addFrames(btmOptimised, it.delay, it.x_offsets ?: 0, it.y_offsets ?: 0, it.dispose_op, it.blend_op)
+                apng.addFrames(btmOptimised, it.delay, it.x_offsets, it.y_offsets, it.dispose_op, it.blend_op)
             }
         }
         frames = apng.frames
@@ -520,6 +474,7 @@ class Apng {
             it.maxHeight = maxHeight
         }
         val drawedFrame = ApngAnimator(null).draw(frames)
+        File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "frame0.png").writeBytes(PngEncoder.encode(drawedFrame[0]))
         for (i in 1 until frames.size) {
             val diffCalculator = BitmapDiffCalculator(drawedFrame[i - 1], drawedFrame[i])
             File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "frame$i.png").writeBytes(PngEncoder.encode(diffCalculator.res, true))

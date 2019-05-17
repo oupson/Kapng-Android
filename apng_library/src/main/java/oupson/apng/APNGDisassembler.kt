@@ -111,8 +111,8 @@ class APNGDisassembler {
                                 throw BadApng("`y_offset` + `height` must be <= `IHDR` height")
                             }
 
-                            png!!.addAll(pngSignature.toList())
-                            png!!.addAll(generateIhdr(ihdr, width, height).toList())
+                            png?.addAll(pngSignature.toList())
+                            png?.addAll(generateIhdr(ihdr, width, height).toList())
                             plte?.let {
                                 png!!.addAll(it.toList())
                             }

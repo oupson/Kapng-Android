@@ -2,14 +2,19 @@ package oupson.apngcreator
 
 import android.app.Activity
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.os.Bundle
 import android.os.Environment
 import android.support.design.widget.FloatingActionButton
 import android.support.v7.app.AppCompatActivity
+import android.text.Html
+import android.view.View
 import android.widget.ListView
 import org.jetbrains.anko.*
+import org.jetbrains.anko.design.appBarLayout
 import org.jetbrains.anko.design.floatingActionButton
 import org.jetbrains.anko.sdk27.coroutines.onClick
 import oupson.apng.Apng
@@ -22,6 +27,7 @@ class CreatorActivity : AppCompatActivity() {
     var bitmapAdapter : AnkoAdapter<Bitmap>? = null
     val PICK_IMAGE = 999
     var view = CreatorActivityLayout()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         view.setContentView(this)
@@ -38,7 +44,7 @@ class CreatorActivity : AppCompatActivity() {
             startActivityForResult(chooserIntent, PICK_IMAGE)
         }
         view.createButton.onClick {
-            var apngCreated = Apng()
+            val apngCreated = Apng()
 
             items.forEach { bitmap ->
                 apngCreated.addFrames(bitmap)
@@ -54,23 +60,16 @@ class CreatorActivity : AppCompatActivity() {
             a.load(apngCreated.toByteArray())
             a.onLoaded { anim ->
                 alert {
-                        customView {
-                            imageView {
-                                /**anim.anim?.let {cu ->
-                                    for (i in 0 until cu.numberOfFrames) {
-                                        val vt = Bitmap.createBitmap(cu.getFrame(i).intrinsicWidth, cu.getFrame(i).intrinsicHeight, Bitmap.Config.ARGB_8888)
-                                        val canvas = Canvas(vt)
-                                        cu.getFrame(i).draw(canvas)
-                                        File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "frameCreated$i.png").writeBytes(PngEncoder.encode(vt))
-                                    }
-                                }
-                                */
-                                this.setImageDrawable(anim.anim)
-                            }
+                    customView {
+                        ctx.setTheme(R.style.AppTheme_DarkDialog)
+                        imageView {
+                            this.setImageDrawable(anim.anim)
                         }
-                    }.show()
-                }
+
+                    }
+                }.show()
             }
+        }
         bitmapAdapter = AnkoAdapter({items}) {index, items, view ->
             with(items[index]) {
                 verticalLayout {
@@ -112,13 +111,39 @@ class CreatorActivityLayout : AnkoComponent<CreatorActivity> {
 
     override fun createView(ui: AnkoContext<CreatorActivity>) = with(ui) {
         relativeLayout {
+            backgroundColor = Color.BLACK
+            var bar = verticalLayout {
+                id = View.generateViewId()
+                backgroundColor = Color.DKGRAY
+                appBarLayout {
+                    backgroundColor = Color.BLACK
+                    toolbar {
+                        id = View.generateViewId()
+                        title = Html.fromHtml("<font color='#ffffff'>Create APNG</font>")
+                    }.lparams {
+                        width = matchParent
+                        height = wrapContent
+                    }
+                }.lparams {
+                    width = matchParent
+                    height = wrapContent
+                    bottomMargin = 1
+                }
+            }.lparams {
+                width = matchParent
+                height = wrapContent
+            }
+
             listView = listView {
+                id = View.generateViewId()
             }.lparams {
                 width = matchParent
                 height = matchParent
+                below(bar)
             }
             addFrameButton = floatingActionButton {
-                imageResource = R.drawable.ic_add_white_24dp
+                imageResource = R.drawable.ic_add_black_24dp
+                backgroundTintList = ColorStateList.valueOf(Color.WHITE)
                 isClickable = true
             }.lparams {
                 width = wrapContent
@@ -128,7 +153,8 @@ class CreatorActivityLayout : AnkoComponent<CreatorActivity> {
                 alignParentEnd()
             }
             createButton = floatingActionButton {
-                imageResource = R.drawable.ic_play_arrow_white_24dp
+                imageResource = R.drawable.ic_play_arrow_black_24dp
+                backgroundTintList = ColorStateList.valueOf(Color.WHITE)
                 isClickable = true
             }.lparams {
                 width = wrapContent

@@ -3,9 +3,31 @@
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <!-- Customize your theme here. -->
-        <item name="colorPrimary">#ff00</item>
-        <item name="colorPrimaryDark">#0000ff</item>
-        <item name="colorAccent">#ff00</item>
+        <item name="colorPrimary">#000</item>
+        <item name="colorPrimaryDark">#000</item>
+        <item name="colorAccent">#fff</item>
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:textColorPrimary">#ffffff</item>
+        <item name="actionMenuTextColor">#fff</item>
+        <item name="android:itemBackground">#000</item>
+        <item name="android:textColorSecondary">#fff</item>
+        <item name="android:colorEdgeEffect">#fff</item>
+    </style>
+
+    <style name="AppTheme.SeekBar" parent="Widget.AppCompat.SeekBar">
+        <item name="android:progressBackgroundTint">#999999</item>
+        <item name="android:progressTint">#fff</item>
+        <item name="android:colorControlActivated">#fff</item>
+    </style>
+
+    <style name="AppTheme.DarkDialog" parent="Theme.AppCompat.Dialog.Alert">
+        <!-- Used for the buttons -->
+        <item name="colorAccent">#fff</item>
+        <!-- Used for the title and text -->
+        <item name="android:textColorPrimary">#FFFFFF</item>
+        <!-- Used for the background -->
+        <item name="android:background">#000</item>
     </style>
 
 </resources>
