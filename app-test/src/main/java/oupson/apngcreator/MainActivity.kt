@@ -4,7 +4,6 @@ import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.text.Html
-import android.util.Log
 import android.view.View
 import android.widget.Toolbar
 import androidx.appcompat.app.AppCompatActivity
@@ -22,16 +21,12 @@ import org.jetbrains.anko.sdk27.coroutines.onSeekBarChangeListener
 import oupson.apng.ApngAnimator
 import oupson.apng.loadApng
 
-
 class MainActivity : AppCompatActivity() {
-
-
-
-    lateinit var animator: ApngAnimator
-    lateinit var tool : Toolbar
+    private lateinit var animator: ApngAnimator
+    private lateinit var tool : Toolbar
     // val imageUrl = "http://oupson.oupsman.fr/apng/bigApng.png"
-    // val imageUrl = "https://metagif.files.wordpress.com/2015/01/bugbuckbunny.png"
-    val imageUrl = "http://orig06.deviantart.net/7812/f/2012/233/7/5/twilight_rapidash_shaded_and_animated_by_tamalesyatole-d5bz7hd.png"
+    private val imageUrl = "https://metagif.files.wordpress.com/2015/01/bugbuckbunny.png"
+    // val imageUrl = "http://orig06.deviantart.net/7812/f/2012/233/7/5/twilight_rapidash_shaded_and_animated_by_tamalesyatole-d5bz7hd.png"
     // val imageUrl = "https://raw.githubusercontent.com/tinify/iMessage-Panda-sticker/master/StickerPackExtension/Stickers.xcstickers/Sticker%20Pack.stickerpack/panda.sticker/panda.png"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,18 +43,14 @@ class MainActivity : AppCompatActivity() {
                     backgroundColor = Color.BLACK
                     tool = toolbar {
                         id = View.generateViewId()
-                        title = Html.fromHtml("<font color='#ffffff'>MainActivity</font>")
+                        title = Html.fromHtml("<font color='#ffffff'>MainActivity</font>", Html.FROM_HTML_MODE_LEGACY)
                         inflateMenu(R.menu.main_menu)
                         onMenuItemClick { item ->
-                            Log.e("lll", "Click")
                             when (item!!.itemId) {
                                 R.id.action_open_create_activity -> {
-                                    Log.e("lll", "Click")
                                     startActivity<CreatorActivity>()
                                     finish()
-                                    true
                                 }
-                                else -> false
                             }
                         }
                     }.lparams {
@@ -75,7 +66,6 @@ class MainActivity : AppCompatActivity() {
                 width = matchParent
                 height = wrapContent
             }
-
 
             constraintLayout {
                 val pauseButton = button("pause") {
@@ -103,11 +93,10 @@ class MainActivity : AppCompatActivity() {
                     max = 200
                     progress = 10
                     onSeekBarChangeListener {
-                        onProgressChanged { seekBar, progressValue, fromUser -> }
-                        onStartTrackingTouch { seekBar -> }
+                        onProgressChanged { _, _, _ -> }
+                        onStartTrackingTouch { }
                         onStopTrackingTouch { seekBar ->
-                            Log.e("TAG", (seekBar!!.progress.toFloat() / 100f).toString())
-                            animator.speed = (seekBar!!.progress.toFloat() / 100f)
+                            animator.speed = (seekBar?.progress?.toFloat() ?: 100f / 100f)
                         }
                     }
                 }.lparams(
@@ -123,7 +112,7 @@ class MainActivity : AppCompatActivity() {
                 )
                 val imageView = imageView {
                     id = View.generateViewId()
-                    animator = this.loadApng(R.raw.bugbuckbunny).apply {
+                    animator = this.loadApng(imageUrl).apply {
                         onLoaded {
                             setOnAnimationLoopListener {
                                 // Log.e("app-test", "onLoop")

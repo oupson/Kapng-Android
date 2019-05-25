@@ -34,7 +34,8 @@
                 <data android:mimeType="image/png" />
             </intent-filter>
         </activity>
-        <activity android:name=".CreatorActivity"></activity>
+        <activity android:name=".CreatorActivity"
+            android:exported="true"/>
     </application>
 
 </manifest>

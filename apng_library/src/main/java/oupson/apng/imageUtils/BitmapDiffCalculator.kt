@@ -4,9 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import androidx.annotation.ColorInt
 import oupson.apng.utils.Utils
-import java.util.*
 
 // TODO Work on this class
 class BitmapDiffCalculator(firstBitmap: Bitmap, secondBitmap : Bitmap) {
@@ -66,53 +64,5 @@ class BitmapDiffCalculator(firstBitmap: Bitmap, secondBitmap : Bitmap) {
         }
         val btm = Bitmap.createBitmap(difBitmap, xOffset, yOffset, width - xOffset, height - yOffset)
         res = btm
-    }
-
-    fun Bitmap.trim(@ColorInt color: Int = Color.TRANSPARENT): Bitmap {
-
-        var top = height
-        var bottom = 0
-        var right = width
-        var left = 0
-
-        var colored = IntArray(width, { color })
-        var buffer = IntArray(width)
-
-        for (y in bottom until top) {
-            getPixels(buffer, 0, width, 0, y, width, 1)
-            if (!Arrays.equals(colored, buffer)) {
-                bottom = y
-                break
-            }
-        }
-
-        for (y in top - 1 downTo bottom) {
-            getPixels(buffer, 0, width, 0, y, width, 1)
-            if (!Arrays.equals(colored, buffer)) {
-                top = y
-                break
-            }
-        }
-
-        val heightRemaining = top - bottom
-        colored = IntArray(heightRemaining, { color })
-        buffer = IntArray(heightRemaining)
-
-        for (x in left until right) {
-            getPixels(buffer, 0, 1, x, bottom, 1, heightRemaining)
-            if (!Arrays.equals(colored, buffer)) {
-                left = x
-                break
-            }
-        }
-
-        for (x in right - 1 downTo left) {
-            getPixels(buffer, 0, 1, x, bottom, 1, heightRemaining)
-            if (!Arrays.equals(colored, buffer)) {
-                right = x
-                break
-            }
-        }
-        return Bitmap.createBitmap(this, left, bottom, right - left, top - bottom)
     }
 }

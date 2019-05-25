@@ -20,7 +20,7 @@ class Utils {
             try {
                 val acTL = byteArrayOf(0x61, 0x63, 0x54, 0x4c)
                 @Suppress("LocalVariableName") val IDAT = byteArrayOf(0x49, 0x44, 0x41, 0x54)
-                for (i in 0 until byteArray.size) {
+                for (i in 8 until byteArray.size) {
                     val it = byteArray.copyOfRange(i, i + 4)
                     // if byteArray contain acTL
                     if (it.contentEquals(acTL)) {
