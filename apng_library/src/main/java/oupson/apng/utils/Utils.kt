@@ -120,12 +120,7 @@ class Utils {
          * @return 2 Bytes
          */
         fun to4Bytes(i: Int): ByteArray {
-            val result = ByteArray(4)
-            result[0] = (i shr 24).toByte()
-            result[1] = (i shr 16).toByte()
-            result[2] = (i shr 8).toByte()
-            result[3] = i /*>> 0*/.toByte()
-            return result
+            return byteArrayOf((i shr 24).toByte(), (i shr 16).toByte(), (i shr 8).toByte(), i.toByte())
         }
 
         /**

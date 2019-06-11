@@ -22,9 +22,7 @@ class Main2Activity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         verticalLayout {
-            imageView = imageView {
-
-            }.lparams {
+            imageView = imageView().lparams {
                 width = matchParent
                 height = matchParent
             }

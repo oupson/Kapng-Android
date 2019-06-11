@@ -69,9 +69,9 @@ class Apng {
         var seq = 0
         val res = ArrayList<Byte>()
         // Add PNG signature
-        res.addAll(pngSignature.toList())
+        res.addAll(pngSignature.asList())
         // Add Image Header
-        res.addAll(generateIhdr().toList())
+        res.addAll(generateIhdr().asList())
 
         // Add Animation Controller
         res.addAll(generateACTL())
@@ -87,28 +87,28 @@ class Apng {
             val fcTL = ArrayList<Byte>()
 
             // Add the length of the chunk body
-            framesByte.addAll(byteArrayOf(0x00, 0x00, 0x00, 0x1A).toList())
+            framesByte.addAll(byteArrayOf(0x00, 0x00, 0x00, 0x1A).asList())
 
             // Add fcTL
-            fcTL.addAll(byteArrayOf(0x66, 0x63, 0x54, 0x4c).toList())
+            fcTL.addAll(byteArrayOf(0x66, 0x63, 0x54, 0x4c).asList())
 
             // Add the frame number
-            fcTL.addAll(to4Bytes(seq).toList())
+            fcTL.addAll(to4Bytes(seq).asList())
 
             // foreach fcTL or fdAT we must increment seq
             seq++
 
             // Add width and height
-            fcTL.addAll(to4Bytes(frames[0].width).toList())
-            fcTL.addAll(to4Bytes(frames[0].height).toList())
+            fcTL.addAll(to4Bytes(frames[0].width).asList())
+            fcTL.addAll(to4Bytes(frames[0].height).asList())
 
             // Add offsets
-            fcTL.addAll(to4Bytes(frames[0].xOffsets).toList())
-            fcTL.addAll(to4Bytes(frames[0].yOffsets).toList())
+            fcTL.addAll(to4Bytes(frames[0].xOffsets).asList())
+            fcTL.addAll(to4Bytes(frames[0].yOffsets).asList())
 
             // Set frame delay
-            fcTL.addAll(to2Bytes(frames[0].delay.toInt()).toList())
-            fcTL.addAll(to2Bytes(1000).toList())
+            fcTL.addAll(to2Bytes(frames[0].delay.toInt()).asList())
+            fcTL.addAll(to2Bytes(1000).asList())
 
             // Add DisposeOp and BlendOp
             fcTL.add(getDisposeOp(frames[0].disposeOp).toByte())
@@ -118,23 +118,23 @@ class Apng {
             val crc = CRC32()
             crc.update(fcTL.toByteArray(), 0, fcTL.size)
             framesByte.addAll(fcTL)
-            framesByte.addAll(to4Bytes(crc.value.toInt()).toList())
+            framesByte.addAll(to4Bytes(crc.value.toInt()).asList())
             // endregion
 
             // region idat
             frames[0].idat.IDATBody.forEach {
                 val idat = ArrayList<Byte>()
                 // Add the chunk body length
-                framesByte.addAll(to4Bytes(it.size).toList())
+                framesByte.addAll(to4Bytes(it.size).asList())
                 // Add IDAT
-                idat.addAll(byteArrayOf(0x49, 0x44, 0x41, 0x54).toList())
+                idat.addAll(byteArrayOf(0x49, 0x44, 0x41, 0x54).asList())
                 // Add chunk body
-                idat.addAll(it.toList())
+                idat.addAll(it.asList())
                 // Generate CRC
                 val crc1 = CRC32()
                 crc1.update(idat.toByteArray(), 0, idat.size)
                 framesByte.addAll(idat)
-                framesByte.addAll(to4Bytes(crc1.value.toInt()).toList())
+                framesByte.addAll(to4Bytes(crc1.value.toInt()).asList())
             }
             // endregion
             res.addAll(framesByte)
@@ -146,38 +146,38 @@ class Apng {
             idat.parse(PngEncoder.encode(cover!!, true, 1))
             idat.IDATBody.forEach {
                 val idatByteArray = ArrayList<Byte>()
-                framesByte.addAll(to4Bytes(it.size).toList())
-                idatByteArray.addAll(byteArrayOf(0x49, 0x44, 0x41, 0x54).toList())
-                idatByteArray.addAll(it.toList())
+                framesByte.addAll(to4Bytes(it.size).asList())
+                idatByteArray.addAll(byteArrayOf(0x49, 0x44, 0x41, 0x54).asList())
+                idatByteArray.addAll(it.asList())
                 val crc1 = CRC32()
                 crc1.update(idatByteArray.toByteArray(), 0, idatByteArray.size)
                 framesByte.addAll(idatByteArray)
-                framesByte.addAll(to4Bytes(crc1.value.toInt()).toList())
+                framesByte.addAll(to4Bytes(crc1.value.toInt()).asList())
             }
             // endregion
 
             //region fcTL
             val fcTL = ArrayList<Byte>()
             // Add the length of the chunk body
-            framesByte.addAll(byteArrayOf(0x00, 0x00, 0x00, 0x1A).toList())
+            framesByte.addAll(byteArrayOf(0x00, 0x00, 0x00, 0x1A).asList())
             // Add fcTL
-            fcTL.addAll(byteArrayOf(0x66, 0x63, 0x54, 0x4c).toList())
+            fcTL.addAll(byteArrayOf(0x66, 0x63, 0x54, 0x4c).asList())
 
             // Add the frame number
-            fcTL.addAll(to4Bytes(seq).toList())
+            fcTL.addAll(to4Bytes(seq).asList())
             seq++
 
             // Add width and height
-            fcTL.addAll(to4Bytes(frames[0].width).toList())
-            fcTL.addAll(to4Bytes(frames[0].height).toList())
+            fcTL.addAll(to4Bytes(frames[0].width).asList())
+            fcTL.addAll(to4Bytes(frames[0].height).asList())
 
 
-            fcTL.addAll(to4Bytes(frames[0].xOffsets).toList())
-            fcTL.addAll(to4Bytes(frames[0].yOffsets).toList())
+            fcTL.addAll(to4Bytes(frames[0].xOffsets).asList())
+            fcTL.addAll(to4Bytes(frames[0].yOffsets).asList())
 
             // Set frame delay
-            fcTL.addAll(to2Bytes(frames[0].delay.toInt()).toList())
-            fcTL.addAll(to2Bytes(1000).toList())
+            fcTL.addAll(to2Bytes(frames[0].delay.toInt()).asList())
+            fcTL.addAll(to2Bytes(1000).asList())
 
             // Add DisposeOp and BlendOp
             fcTL.add(getDisposeOp(frames[0].disposeOp).toByte())
@@ -187,25 +187,25 @@ class Apng {
             val crc = CRC32()
             crc.update(fcTL.toByteArray(), 0, fcTL.size)
             framesByte.addAll(fcTL)
-            framesByte.addAll(to4Bytes(crc.value.toInt()).toList())
+            framesByte.addAll(to4Bytes(crc.value.toInt()).asList())
             // endregion
 
             // region fdat
             frames[0].idat.IDATBody.forEach {
                 val fdat = ArrayList<Byte>()
                 // Add the chunk body length
-                framesByte.addAll(to4Bytes(it.size + 4).toList())
+                framesByte.addAll(to4Bytes(it.size + 4).asList())
                 // Add fdat
-                fdat.addAll(byteArrayOf(0x66, 0x64, 0x41, 0x54).toList())
-                fdat.addAll(to4Bytes(seq).toList())
+                fdat.addAll(byteArrayOf(0x66, 0x64, 0x41, 0x54).asList())
+                fdat.addAll(to4Bytes(seq).asList())
                 seq++
                 // Add chunk body
-                fdat.addAll(it.toList())
+                fdat.addAll(it.asList())
                 // Generate CRC
                 val crc1 = CRC32()
                 crc1.update(fdat.toByteArray(), 0, fdat.size)
                 framesByte.addAll(fdat)
-                framesByte.addAll(to4Bytes(crc1.value.toInt()).toList())
+                framesByte.addAll(to4Bytes(crc1.value.toInt()).asList())
             }
             // endregion
             res.addAll(framesByte)
@@ -216,23 +216,23 @@ class Apng {
             val framesByte = ArrayList<Byte>()
             val fcTL = ArrayList<Byte>()
             // region fcTL
-            framesByte.addAll(byteArrayOf(0x00, 0x00, 0x00, 0x1A).toList())
+            framesByte.addAll(byteArrayOf(0x00, 0x00, 0x00, 0x1A).asList())
 
-            fcTL.addAll(byteArrayOf(0x66, 0x63, 0x54, 0x4c).toList())
+            fcTL.addAll(byteArrayOf(0x66, 0x63, 0x54, 0x4c).asList())
 
             // Frame number
-            fcTL.addAll(to4Bytes(seq).toList())
+            fcTL.addAll(to4Bytes(seq).asList())
             seq++
             // width and height
-            fcTL.addAll(to4Bytes(frames[i].width).toList())
-            fcTL.addAll(to4Bytes(frames[i].height).toList())
+            fcTL.addAll(to4Bytes(frames[i].width).asList())
+            fcTL.addAll(to4Bytes(frames[i].height).asList())
 
-            fcTL.addAll(to4Bytes(frames[i].xOffsets).toList())
-            fcTL.addAll(to4Bytes(frames[i].yOffsets).toList())
+            fcTL.addAll(to4Bytes(frames[i].xOffsets).asList())
+            fcTL.addAll(to4Bytes(frames[i].yOffsets).asList())
 
             // Set frame delay
-            fcTL.addAll(to2Bytes(frames[i].delay.toInt()).toList())
-            fcTL.addAll(to2Bytes(1000).toList())
+            fcTL.addAll(to2Bytes(frames[i].delay.toInt()).asList())
+            fcTL.addAll(to2Bytes(1000).asList())
 
             fcTL.add(getDisposeOp(frames[i].disposeOp).toByte())
             fcTL.add(getBlendOp(frames[i].blendOp).toByte())
@@ -240,7 +240,7 @@ class Apng {
             val crc = CRC32()
             crc.update(fcTL.toByteArray(), 0, fcTL.size)
             framesByte.addAll(fcTL)
-            framesByte.addAll(to4Bytes(crc.value.toInt()).toList())
+            framesByte.addAll(to4Bytes(crc.value.toInt()).asList())
             // endregion
 
             // region fdAT
@@ -248,20 +248,20 @@ class Apng {
             frames[i].idat.IDATBody.forEach {
                 val fdat = ArrayList<Byte>()
                 // Add IDAT size of frame + 4 byte of the seq
-                framesByte.addAll(to4Bytes(it.size + 4).toList())
+                framesByte.addAll(to4Bytes(it.size + 4).asList())
                 // Add fdAT
-                fdat.addAll(byteArrayOf(0x66, 0x64, 0x41, 0x54).toList())
+                fdat.addAll(byteArrayOf(0x66, 0x64, 0x41, 0x54).asList())
                 // Add Sequence number
                 // ! THIS IS NOT FRAME NUMBER
-                fdat.addAll(to4Bytes(seq).toList())
+                fdat.addAll(to4Bytes(seq).asList())
                 // Increase seq
                 seq++
-                fdat.addAll(it.toList())
+                fdat.addAll(it.asList())
                 // Generate CRC
                 val crc1 = CRC32()
                 crc1.update(fdat.toByteArray(), 0, fdat.size)
                 framesByte.addAll(fdat)
-                framesByte.addAll(to4Bytes(crc1.value.toInt()).toList())
+                framesByte.addAll(to4Bytes(crc1.value.toInt()).asList())
             }
             // endregion
             res.addAll(framesByte)
@@ -269,14 +269,14 @@ class Apng {
         if (frames.isNotEmpty()) {
 
             // Add IEND body length : 0
-            res.addAll(to4Bytes(0).toList())
+            res.addAll(to4Bytes(0).asList())
             // Add IEND
             val iend = byteArrayOf(0x49, 0x45, 0x4E, 0x44)
             // Generate crc for IEND
             val crC32 = CRC32()
             crC32.update(iend, 0, iend.size)
-            res.addAll(iend.toList())
-            res.addAll(to4Bytes(crC32.value.toInt()).toList())
+            res.addAll(iend.asList())
+            res.addAll(to4Bytes(crC32.value.toInt()).asList())
             return res.toByteArray()
         } else {
             throw NoFrameException()
@@ -315,23 +315,23 @@ class Apng {
         }
 
         // Add chunk body length
-        ihdr.addAll(to4Bytes(frames[0].ihdr.body.size).toList())
+        ihdr.addAll(to4Bytes(frames[0].ihdr.body.size).asList())
         // Add IHDR
-        ihdrBody.addAll(byteArrayOf(0x49.toByte(), 0x48.toByte(), 0x44.toByte(), 0x52.toByte()).toList())
+        ihdrBody.addAll(byteArrayOf(0x49.toByte(), 0x48.toByte(), 0x44.toByte(), 0x52.toByte()).asList())
 
         // Add the max width and height
-        ihdrBody.addAll(to4Bytes(maxWidth!!).toList())
-        ihdrBody.addAll(to4Bytes(maxHeight!!).toList())
+        ihdrBody.addAll(to4Bytes(maxWidth!!).asList())
+        ihdrBody.addAll(to4Bytes(maxHeight!!).asList())
 
         // Add complicated stuff like depth color ...
         // If you want correct png you need same parameters. Good solution is to create new png.
-        ihdrBody.addAll(frames[0].ihdr.body.copyOfRange(8, 13).toList())
+        ihdrBody.addAll(frames[0].ihdr.body.copyOfRange(8, 13).asList())
 
         // Generate CRC
         val crC32 = CRC32()
         crC32.update(ihdrBody.toByteArray(), 0, ihdrBody.size)
         ihdr.addAll(ihdrBody)
-        ihdr.addAll(to4Bytes(crC32.value.toInt()).toList())
+        ihdr.addAll(to4Bytes(crC32.value.toInt()).asList())
         return ihdr.toByteArray()
     }
 
@@ -344,22 +344,22 @@ class Apng {
         val actl = ArrayList<Byte>()
 
         // Add length bytes
-        res.addAll(to4Bytes(8).toList())
+        res.addAll(to4Bytes(8).asList())
 
         // Add acTL
-        actl.addAll(byteArrayOf(0x61, 0x63, 0x54, 0x4c).toList())
+        actl.addAll(byteArrayOf(0x61, 0x63, 0x54, 0x4c).asList())
 
         // Add number of frames
-        actl.addAll(to4Bytes(frames.size).toList())
+        actl.addAll(to4Bytes(frames.size).asList())
 
         // Number of repeat, 0 to infinite
-        actl.addAll(to4Bytes(0).toList())
+        actl.addAll(to4Bytes(0).asList())
         res.addAll(actl)
 
         // generate crc
         val crc = CRC32()
         crc.update(actl.toByteArray(), 0, actl.size)
-        res.addAll(to4Bytes(crc.value.toInt()).toList())
+        res.addAll(to4Bytes(crc.value.toInt()).asList())
         return res
     }
 

@@ -56,20 +56,20 @@ class APNGDisassembler {
             // We need a body var to know body length and generate crc
             val ihdrBody = ArrayList<Byte>()
             // Add chunk body length
-            ihdr.addAll(to4Bytes(ihdrOfApng.body.size).toList())
+            ihdr.addAll(to4Bytes(ihdrOfApng.body.size).asList())
             // Add IHDR
-            ihdrBody.addAll(byteArrayOf(0x49.toByte(), 0x48.toByte(), 0x44.toByte(), 0x52.toByte()).toList())
+            ihdrBody.addAll(byteArrayOf(0x49.toByte(), 0x48.toByte(), 0x44.toByte(), 0x52.toByte()).asList())
             // Add the max width and height
-            ihdrBody.addAll(to4Bytes(width).toList())
-            ihdrBody.addAll(to4Bytes(height).toList())
+            ihdrBody.addAll(to4Bytes(width).asList())
+            ihdrBody.addAll(to4Bytes(height).asList())
             // Add complicated stuff like depth color ...
             // If you want correct png you need same parameters. Good solution is to create new png.
-            ihdrBody.addAll(ihdrOfApng.body.copyOfRange(8, 13).toList())
+            ihdrBody.addAll(ihdrOfApng.body.copyOfRange(8, 13).asList())
             // Generate CRC
             val crC32 = CRC32()
             crC32.update(ihdrBody.toByteArray(), 0, ihdrBody.size)
             ihdr.addAll(ihdrBody)
-            ihdr.addAll(to4Bytes(crC32.value.toInt()).toList())
+            ihdr.addAll(to4Bytes(crC32.value.toInt()).asList())
             return ihdr.toByteArray()
         }
 
@@ -83,14 +83,14 @@ class APNGDisassembler {
                     Utils.fcTL -> {
                         if (png == null) {
                             cover?.let {
-                                it.addAll(to4Bytes(0).toList())
+                                it.addAll(to4Bytes(0).asList())
                                 // Add IEND
                                 val iend = byteArrayOf(0x49, 0x45, 0x4E, 0x44)
                                 // Generate crc for IEND
                                 val crC32 = CRC32()
                                 crC32.update(iend, 0, iend.size)
-                                it.addAll(iend.toList())
-                                it.addAll(to4Bytes(crC32.value.toInt()).toList())
+                                it.addAll(iend.asList())
+                                it.addAll(to4Bytes(crC32.value.toInt()).asList())
                                 apng.cover = BitmapFactory.decodeByteArray(it.toByteArray(), 0, it.size)
                             }
                             png = ArrayList()
@@ -110,24 +110,24 @@ class APNGDisassembler {
                                 throw BadApng("`yOffset` + `height` must be <= `IHDR` height")
                             }
 
-                            png?.addAll(pngSignature.toList())
-                            png?.addAll(generateIhdr(ihdr, width, height).toList())
+                            png?.addAll(pngSignature.asList())
+                            png?.addAll(generateIhdr(ihdr, width, height).asList())
                             plte?.let {
-                                png?.addAll(it.toList())
+                                png?.addAll(it.asList())
                             }
                             tnrs?.let {
-                                png?.addAll(it.toList())
+                                png?.addAll(it.asList())
                             }
                         } else {
                             // Add IEND body length : 0
-                            png?.addAll(to4Bytes(0).toList())
+                            png?.addAll(to4Bytes(0).asList())
                             // Add IEND
                             val iend = byteArrayOf(0x49, 0x45, 0x4E, 0x44)
                             // Generate crc for IEND
                             val crC32 = CRC32()
                             crC32.update(iend, 0, iend.size)
-                            png?.addAll(iend.toList())
-                            png?.addAll(to4Bytes(crC32.value.toInt()).toList())
+                            png?.addAll(iend.asList())
+                            png?.addAll(to4Bytes(crC32.value.toInt()).asList())
                             apng.frames.add(Frame(png!!.toByteArray(), delay, xOffset, yOffset, blendOp, disposeOp, maxWidth, maxHeight))
                             png = ArrayList()
                             val fcTL = fcTL()
@@ -139,71 +139,71 @@ class APNGDisassembler {
                             disposeOp = fcTL.disposeOp
                             val width = fcTL.pngWidth
                             val height = fcTL.pngHeight
-                            png?.addAll(pngSignature.toList())
-                            png?.addAll(generateIhdr(ihdr, width, height).toList())
+                            png?.addAll(pngSignature.asList())
+                            png?.addAll(generateIhdr(ihdr, width, height).asList())
                             plte?.let {
-                                png?.addAll(it.toList())
+                                png?.addAll(it.asList())
                             }
                             tnrs?.let {
-                                png?.addAll(it.toList())
+                                png?.addAll(it.asList())
                             }
                         }
                     }
                     Utils.IEND -> {
-                        png?.addAll(to4Bytes(0).toList())
+                        png?.addAll(to4Bytes(0).asList())
                         // Add IEND
                         val iend = byteArrayOf(0x49, 0x45, 0x4E, 0x44)
                         // Generate crc for IEND
                         val crC32 = CRC32()
                         crC32.update(iend, 0, iend.size)
-                        png?.addAll(iend.toList())
-                        png?.addAll(to4Bytes(crC32.value.toInt()).toList())
+                        png?.addAll(iend.asList())
+                        png?.addAll(to4Bytes(crC32.value.toInt()).asList())
                         apng.frames.add(Frame(png!!.toByteArray(), delay, xOffset, yOffset, blendOp, disposeOp, maxWidth, maxHeight))
                     }
                     Utils.IDAT -> {
                         if (png == null) {
                             if (cover == null) {
                                 cover = ArrayList()
-                                cover?.addAll(pngSignature.toList())
-                                cover?.addAll(generateIhdr(ihdr, maxWidth, maxHeight).toList())
+                                cover?.addAll(pngSignature.asList())
+                                cover?.addAll(generateIhdr(ihdr, maxWidth, maxHeight).asList())
                             }
                             // Find the chunk length
                             val bodySize = parseLength(byteArray.copyOfRange(i - 4, i))
-                            cover?.addAll(byteArray.copyOfRange(i - 4, i).toList())
+                            cover?.addAll(byteArray.copyOfRange(i - 4, i).asList())
                             val body = ArrayList<Byte>()
-                            body.addAll(byteArrayOf(0x49, 0x44, 0x41, 0x54).toList())
+                            body.addAll(byteArrayOf(0x49, 0x44, 0x41, 0x54).asList())
                             // Get image bytes
-                            body.addAll(byteArray.copyOfRange(i + 4, i + 4 + bodySize).toList())
+                            body.addAll(byteArray.copyOfRange(i + 4, i + 4 + bodySize).asList())
                             val crC32 = CRC32()
                             crC32.update(body.toByteArray(), 0, body.size)
                             cover?.addAll(body)
-                            cover?.addAll(to4Bytes(crC32.value.toInt()).toList())
+                            cover?.addAll(to4Bytes(crC32.value.toInt()).asList())
                         } else {
                             // Find the chunk length
                             val bodySize = parseLength(byteArray.copyOfRange(i - 4, i))
-                            png?.addAll(byteArray.copyOfRange(i - 4, i).toList())
+                            png?.addAll(byteArray.copyOfRange(i - 4, i).asList())
                             val body = ArrayList<Byte>()
-                            body.addAll(byteArrayOf(0x49, 0x44, 0x41, 0x54).toList())
+                            body.addAll(byteArrayOf(0x49, 0x44, 0x41, 0x54).asList())
                             // Get image bytes
-                            body.addAll(byteArray.copyOfRange(i + 4, i + 4 + bodySize).toList())
+                            body.addAll(byteArray.copyOfRange(i + 4, i + 4 + bodySize).asList())
                             val crC32 = CRC32()
                             crC32.update(body.toByteArray(), 0, body.size)
                             png?.addAll(body)
-                            png?.addAll(to4Bytes(crC32.value.toInt()).toList())
+                            png?.addAll(to4Bytes(crC32.value.toInt()).asList())
                         }
                     }
                     Utils.fdAT -> {
                         // Find the chunk length
                         val bodySize = parseLength(byteArray.copyOfRange(i - 4, i))
-                        png?.addAll(to4Bytes(bodySize - 4).toList())
+                        png?.addAll(to4Bytes(bodySize - 4).asList())
                         val body = ArrayList<Byte>()
-                        body.addAll(byteArrayOf(0x49, 0x44, 0x41, 0x54).toList())
+                        body.addAll(byteArrayOf(0x49, 0x44, 0x41, 0x54).asList())
                         // Get image bytes
-                        body.addAll(byteArray.copyOfRange(i + 8, i + 4 + bodySize).toList())
+                        body.addAll(byteArray.copyOfRange(i + 8, i + 4 + bodySize).asList())
                         val crC32 = CRC32()
                         crC32.update(body.toByteArray(), 0, body.size)
                         png?.addAll(body)
-                        png?.addAll(to4Bytes(crC32.value.toInt()).toList())
+                        png?.addAll(to4Bytes(crC32.value.toInt()).asList())
                     }
                     Utils.plte -> {
                         plte = byteArray
