@@ -14,8 +14,9 @@ class Loader {
          * @param url Url of the file to download
          * @return [ByteArray] of the file
          */
+        @Suppress("RedundantSuspendModifier")
         @Throws(IOException::class)
-        fun load(context: Context, url: URL): ByteArray {
+        suspend fun load(context: Context, url: URL): ByteArray {
             val currentDir = context.filesDir
             val fileTXT = File(currentDir, "apngLoader.txt")
             val filePNG = File(currentDir, "apngLoader.png")

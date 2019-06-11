@@ -17,7 +17,7 @@ import org.jetbrains.anko.verticalLayout
 import oupson.apng.loadApng
 
 class Main2Activity : AppCompatActivity() {
-    lateinit var imageView : ImageView
+    private lateinit var imageView : ImageView
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -50,8 +50,8 @@ class Main2Activity : AppCompatActivity() {
         }
     }
 
-    fun load() {
-        val uri = intent.data
+    private fun load() {
+        val uri = intent.data ?: return
         val animator = imageView.loadApng(uri, null)
         imageView.onClick {
             try {
