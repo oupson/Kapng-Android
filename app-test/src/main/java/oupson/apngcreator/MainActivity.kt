@@ -112,7 +112,7 @@ class MainActivity : AppCompatActivity() {
                 )
                 val imageView = imageView {
                     id = View.generateViewId()
-                    animator = this.loadApng(imageUrl).apply {
+                    animator = this.loadApng("file:///android_asset/image.png").apply {
                         onLoaded {
                             setOnAnimationLoopListener {
                                 // Log.e("app-test", "onLoop")

@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.*
 import android.net.Uri
+import android.util.Log
 import android.widget.ImageView
 import androidx.annotation.RawRes
 import org.jetbrains.anko.doAsync
@@ -256,7 +257,7 @@ class ApngAnimator(private val context: Context?) {
      * @throws NotApngException
      */
     fun load(string: String, speed : Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) : ApngAnimator {
-        doAsync {
+        doAsync ({throwable ->  Log.e("APNG", "Error", throwable)}) {
             this@ApngAnimator.speed = speed
             if (string.contains("http") || string.contains("https")) {
                 val url = URL(string)
@@ -265,6 +266,20 @@ class ApngAnimator(private val context: Context?) {
                 var pathToLoad = if (string.startsWith("content://")) string else "file://$string"
                 pathToLoad = pathToLoad.replace("%", "%25").replace("#", "%23")
                 val bytes = context?.contentResolver?.openInputStream(Uri.parse(pathToLoad))?.readBytes()
+                bytes ?: throw Exception("File are empty")
+                if (isApng(bytes)) {
+                    load(bytes, speed, apngAnimatorOptions)
+                } else {
+                    if (loadNotApng) {
+                        context?.runOnUiThread {
+                            imageView?.setImageBitmap(BitmapFactory.decodeByteArray(bytes, 0, bytes.size))
+                        }
+                    } else {
+                        throw NotApngException()
+                    }
+                }
+            } else if (string.startsWith("file:///android_asset/")) {
+                val bytes = this@ApngAnimator.context?.assets?.open(string.replace("file:///android_asset/", ""))?.readBytes()
                 bytes ?: throw Exception("File are empty")
                 if (isApng(bytes)) {
                     load(bytes, speed, apngAnimatorOptions)
