@@ -53,7 +53,7 @@ class CreatorActivity : AppCompatActivity() {
             File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "apn0.png").writeBytes(apngCreated.toByteArray())
 
             apngCreated.apply {
-                optimiseFrame()
+                //optimiseFrame()
             }
             val a = ApngAnimator(applicationContext)
             File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "apn.png").writeBytes(apngCreated.toByteArray())

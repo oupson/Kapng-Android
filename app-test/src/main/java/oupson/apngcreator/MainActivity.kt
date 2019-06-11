@@ -28,6 +28,7 @@ class MainActivity : AppCompatActivity() {
     private val imageUrl = "https://metagif.files.wordpress.com/2015/01/bugbuckbunny.png"
     // val imageUrl = "http://orig06.deviantart.net/7812/f/2012/233/7/5/twilight_rapidash_shaded_and_animated_by_tamalesyatole-d5bz7hd.png"
     // val imageUrl = "https://raw.githubusercontent.com/tinify/iMessage-Panda-sticker/master/StickerPackExtension/Stickers.xcstickers/Sticker%20Pack.stickerpack/panda.sticker/panda.png"
+    // val imageUrl = "file:///android_asset/image.png"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val buttonDrawable = GradientDrawable().apply {
@@ -112,7 +113,7 @@ class MainActivity : AppCompatActivity() {
                 )
                 val imageView = imageView {
                     id = View.generateViewId()
-                    animator = this.loadApng("file:///android_asset/image.png").apply {
+                    animator = this.loadApng(imageUrl).apply {
                         onLoaded {
                             setOnAnimationLoopListener {
                                 // Log.e("app-test", "onLoop")
