@@ -17,26 +17,67 @@ import oupson.apng.utils.Utils.Companion.isApng
 import java.io.File
 import java.net.URL
 
+/**
+ * @param file The APNG to load
+ * @param speed The speed of the APNG
+ * @param apngAnimatorOptions Options of the animator
+ * @return [ApngAnimator] The animator
+ */
 @Suppress("unused")
 fun ImageView.loadApng(file: File, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) = ApngAnimator(this.context).loadInto(this).apply {
     load(file, speed, apngAnimatorOptions)
 }
+
+/**
+ * @param uri The APNG to load
+ * @param speed The speed of the APNG
+ * @param apngAnimatorOptions Options of the animator
+ * @return [ApngAnimator] The animator
+ */
 @Suppress("unused")
 fun ImageView.loadApng(uri : Uri, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) = ApngAnimator(this.context).loadInto(this).apply {
     load(uri, speed, apngAnimatorOptions)
 }
+
+/**
+ * @param url The url of the APNG to load
+ * @param speed The speed of the APNG
+ * @param apngAnimatorOptions Options of the animator
+ * @return [ApngAnimator] The animator
+ */
 @Suppress("unused")
 fun ImageView.loadApng(url: URL, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) = ApngAnimator(this.context).loadInto(this).apply {
     loadUrl(url, speed, apngAnimatorOptions)
 }
+
+/**
+ * @param byteArray The APNG to load
+ * @param speed The speed of the APNG
+ * @param apngAnimatorOptions Options of the animator
+ * @return [ApngAnimator] The animator
+ */
 @Suppress("unused")
 fun ImageView.loadApng(byteArray: ByteArray, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) = ApngAnimator(this.context).loadInto(this).apply {
     load(byteArray, speed, apngAnimatorOptions)
 }
+
+/**
+ * @param string The path APNG to load
+ * @param speed The speed of the APNG
+ * @param apngAnimatorOptions Options of the animator
+ * @return [ApngAnimator] The animator
+ */
 @Suppress("unused")
 fun ImageView.loadApng(string: String, speed : Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) = ApngAnimator(this.context).loadInto(this).apply {
     load(string, speed, apngAnimatorOptions)
 }
+
+/**
+ * @param res The Resource Int of the APNG to load, must be in the raw folder
+ * @param speed The speed of the APNG
+ * @param apngAnimatorOptions Options of the animator
+ * @return [ApngAnimator] The animator
+ */
 @Suppress("unused")
 fun ImageView.loadApng(@RawRes res : Int, speed : Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) = ApngAnimator(this.context).loadInto(this).apply {
     load(res, speed, apngAnimatorOptions)
@@ -90,6 +131,7 @@ class ApngAnimator(private val context: Context?) {
 
     /**
      * Specify if the library could load non apng file
+     * @param boolean If true the file will be loaded even if it is not an APNG
      */
     @Suppress("unused")
     @SuppressWarnings("WeakerAccess")
@@ -102,6 +144,7 @@ class ApngAnimator(private val context: Context?) {
     /**
      * Load into an ImageView
      * @param imageView Image view selected.
+     * @return [ApngAnimator] The Animator
      */
     fun loadInto(imageView: ImageView): ApngAnimator {
         this.imageView = imageView
@@ -112,6 +155,7 @@ class ApngAnimator(private val context: Context?) {
      * Load an APNG file and starts playing the animation.
      * @param file The file to load
      * @param speed The speed
+     * @return [ApngAnimator] The Animator
      * @throws NotApngException
      */
     @Suppress("unused")
@@ -147,6 +191,7 @@ class ApngAnimator(private val context: Context?) {
      * Load an APNG file and starts playing the animation.
      * @param uri The uri to load
      * @param speed The speed
+     * @return [ApngAnimator] The Animator
      * @throws NotApngException
      */
     fun load(uri : Uri, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) : ApngAnimator {
@@ -181,6 +226,7 @@ class ApngAnimator(private val context: Context?) {
      * Load an APNG file and starts playing the animation.
      * @param url URL to load.
      * @param speed The speed
+     * @return [ApngAnimator] The Animator
      * @throws NotApngException
      */
     @SuppressWarnings("WeakerAccess")
@@ -220,6 +266,7 @@ class ApngAnimator(private val context: Context?) {
      * Load an APNG file and starts playing the animation.
      * @param byteArray ByteArray of the file
      * @param speed The speed
+     * @return [ApngAnimator] The Animator
      * @throws NotApngException
      */
     @SuppressWarnings("WeakerAccess")
@@ -254,6 +301,7 @@ class ApngAnimator(private val context: Context?) {
      * Load an APNG file
      * @param string Path of the file.
      * @param speed The speed
+     * @return [ApngAnimator] The Animator
      * @throws NotApngException
      */
     fun load(string: String, speed : Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) : ApngAnimator {
@@ -296,7 +344,13 @@ class ApngAnimator(private val context: Context?) {
         }
         return this
     }
-
+    /**
+     * Load an APNG file
+     * @param res The res of the file
+     * @param speed The speed
+     * @return [ApngAnimator] The Animator
+     * @throws NotApngException
+     */
     fun load(@RawRes res : Int, speed : Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) : ApngAnimator {
         GlobalScope.launch {
             val byteArray = context?.resources?.openRawResource(res)?.readBytes() ?: byteArrayOf()
@@ -327,6 +381,7 @@ class ApngAnimator(private val context: Context?) {
 
     /**
      * Sets up the animation drawable and any required listeners. The animation will automatically start.
+     * @param generatedFrame The frames generated by draw function
      */
     private fun setupAnimationDrawableAndStart(generatedFrame: ArrayList<Bitmap>) {
         GlobalScope.launch {
@@ -346,6 +401,8 @@ class ApngAnimator(private val context: Context?) {
 
     /**
      * Draw frames
+     * @param extractedFrame The frames extracted by the disassembler
+     * @return [ArrayList] The drawed frames
      */
     fun draw(extractedFrame: ArrayList<Frame>) : ArrayList<Bitmap> {
         val generatedFrame = ArrayList<Bitmap>()
@@ -455,6 +512,8 @@ class ApngAnimator(private val context: Context?) {
     /**
      * Converts the generated frames into an animation drawable ([CustomAnimationDrawable])
      * in the APNG will be used instead.
+     * @param generatedFrame The frames
+     * @return [CustomAnimationDrawable] The animation drawable
      */
     private fun toAnimationDrawable( generatedFrame : ArrayList<Bitmap> ): CustomAnimationDrawable {
         if (isApng) {

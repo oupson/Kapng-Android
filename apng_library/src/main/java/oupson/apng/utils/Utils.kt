@@ -5,7 +5,8 @@ import java.util.*
 class Utils {
     companion object {
         /**
-         * @return True if is a png
+         * @param byteArray The PNG
+         * @return [Boolean] True if is a png
          */
         fun isPng(byteArray: ByteArray): Boolean {
             return byteArray.copyOfRange(0, 8).contentToString() == pngSignature.contentToString()
@@ -13,6 +14,7 @@ class Utils {
 
         /**
          * Know if file is an APNG
+         * @param byteArray APNG
          * @return True if is an APNG
          */
         fun isApng(byteArray: ByteArray) : Boolean {
@@ -60,7 +62,7 @@ class Utils {
         /**
          * Get the int equivalent to the DisposeOp
          * @param disposeOp The DisposeOp
-         * @return An int equivalent to the DisposeOp
+         * @return [Int] An int equivalent to the DisposeOp
          */
         fun getDisposeOp(disposeOp: DisposeOp) : Int {
             return when(disposeOp) {
@@ -73,7 +75,7 @@ class Utils {
         /**
          * Get the DisposeOp enum equivalent to the int
          * @param int Int of the DisposeOp
-         * @return A DisposeOp
+         * @return [DisposeOp] A DisposeOp
          */
         fun getDisposeOp(int: Int) : DisposeOp {
             return when(int) {
@@ -92,7 +94,7 @@ class Utils {
         /**
          * Get the int equivalent to the BlendOp
          * @param blendOp The BlendOp
-         * @return An int equivalent to the BlendOp
+         * @return [Int] An int equivalent to the BlendOp
          */
         fun getBlendOp(blendOp: BlendOp) : Int {
             return when(blendOp) {
@@ -104,7 +106,7 @@ class Utils {
         /**
          * Get the BlendOp enum equivalent to the int
          * @param int Int of the BlendOp
-         * @return A BlendOp
+         * @return [BlendOp] A BlendOp
          */
         fun getBlendOp(int : Int) : BlendOp {
             return when(int) {
@@ -117,7 +119,7 @@ class Utils {
         /**
          * Generate a 4 bytes array from an Int
          * @param i The int
-         * @return 2 Bytes
+         * @return [ByteArray] 2 Bytes
          */
         fun to4Bytes(i: Int): ByteArray {
             return byteArrayOf((i shr 24).toByte(), (i shr 16).toByte(), (i shr 8).toByte(), i.toByte())
@@ -126,15 +128,17 @@ class Utils {
         /**
          * Generate a 2 bytes array from an Int
          * @param i The int
-         * @return 2 Bytes
+         * @return [ByteArray] 2 Bytes
          */
         fun to2Bytes(i: Int): ByteArray {
-            val result = ByteArray(2)
-            result[0] = (i shr 8).toByte()
-            result[1] = i /*>> 0*/.toByte()
-            return result
+            return byteArrayOf((i shr 8).toByte(), i /*>> 0*/.toByte())
         }
 
+        /**
+         * Parse the length of chunks
+         * [byteArray] The beginning of the chunk, containing the length
+         * [Int] The length of the chunk
+         */
         fun parseLength(byteArray: ByteArray) : Int {
             var lengthString = ""
             byteArray.forEach {

@@ -7,6 +7,10 @@ class IDAT : Chunk {
     var IDATBody: ArrayList<ByteArray> = ArrayList()
     override var body = byteArrayOf()
 
+    /**
+     * Parse the chunk
+     * @param byteArray The chunk with the length and the crc
+     */
     override fun parse(byteArray: ByteArray) {
         val i = 4
         // Find IDAT chunk

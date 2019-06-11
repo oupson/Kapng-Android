@@ -6,6 +6,11 @@ class IHDR : Chunk {
     override var body = byteArrayOf()
     var pngWidth = -1
     var pngHeight = -1
+
+    /**
+     * Parse the chunk
+     * @param byteArray The chunk with the length and the crc
+     */
     override fun parse(byteArray: ByteArray) {
         for (i in 0 until byteArray.size) {
             // Find IHDR chunk

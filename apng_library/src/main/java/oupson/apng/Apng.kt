@@ -40,6 +40,7 @@ class Apng {
     /**
      * Add a frame to the APNG
      * @param bitmap The bitmap to add
+     * @param index Index of the frame in the animation
      * @param delay Delay of the frame
      * @param xOffset The X offset where the frame should be rendered
      * @param yOffset The Y offset where the frame should be rendered
@@ -53,6 +54,11 @@ class Apng {
             frames.add(index, Frame(PngEncoder.encode(bitmap, true), delay, xOffset, yOffset, blendOp, disposeOp))
     }
 
+    /**
+     * Add a frame to the APNG
+     * @param frame The frame to add
+     * @param index Index of the frame in the animation
+     */
     fun addFrames(frame : Frame, index: Int? = null) {
         if (index == null)
             frames.add(frame)
@@ -63,7 +69,7 @@ class Apng {
 
     /**
      * Generate a Bytes Array of the APNG
-     * @return The Bytes Array of the APNG
+     * @return [ByteArray] The Bytes Array of the APNG
      */
     fun toByteArray() : ByteArray {
         var seq = 0
@@ -289,7 +295,7 @@ class Apng {
      * @param bitmap The bitmap of the cover
      * @param maxWidth Max width of APNG
      * @param maxHeight Max height of the APNG
-     * @return An image cover
+     * @return [Bitmap] An image cover
      */
     @Suppress("MemberVisibilityCanBePrivate")
     fun generateCover(bitmap: Bitmap, maxWidth : Int, maxHeight : Int) : Bitmap {
@@ -298,7 +304,7 @@ class Apng {
 
     /**
      * Generate the IHDR chunks.
-     * @return The byteArray generated
+     * @return [ByteArray] The byteArray generated
      */
     private fun generateIhdr(): ByteArray {
         val ihdr = ArrayList<Byte>()
@@ -337,7 +343,7 @@ class Apng {
 
     /**
      * Generate the animation control chunk
-     * @return The byteArray generated
+     * @return [ArrayList] The byteArray generated
      */
     private fun generateACTL(): ArrayList<Byte> {
         val res = ArrayList<Byte>()
@@ -399,6 +405,10 @@ class Apng {
         frames = apng.frames
     }
 
+    /**
+     * A function to optimise Frame
+     * WIP !
+     */
     fun optimiseFrame() {
         maxHeight = frames.sortedByDescending { it.height }[0].height
         maxWidth = frames.sortedByDescending { it.width }[0].width

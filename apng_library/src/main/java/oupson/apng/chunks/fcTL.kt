@@ -23,6 +23,10 @@ class fcTL : Chunk {
     var blendOp : Utils.Companion.BlendOp = Utils.Companion.BlendOp.APNG_BLEND_OP_SOURCE
     var disposeOp : Utils.Companion.DisposeOp = Utils.Companion.DisposeOp.APNG_DISPOSE_OP_NONE
 
+    /**
+     * Parse the chunk
+     * @param byteArray The chunk with the length and the crc
+     */
     override fun parse(byteArray: ByteArray) {
         val i = 4
         // Find fcTL chunk

@@ -34,7 +34,7 @@ class APNGDisassembler {
         /**
          * Disassemble an Apng file
          * @param byteArray The Byte Array of the file
-         * @return The apng decoded
+         * @return [Apng] The apng decoded
          */
         fun disassemble(byteArray: ByteArray) : Apng {
             reset()
@@ -51,6 +51,13 @@ class APNGDisassembler {
             }
         }
 
+        /**
+         * Generate a correct IHDR from the IHDR chunk of the APNG
+         * @param ihdrOfApng The IHDR of the APNG
+         * @param width The width of the frame
+         * @param height The height of the frame
+         * @return [ByteArray] The generated IHDR
+         */
         private fun generateIhdr(ihdrOfApng: IHDR, width : Int, height : Int) : ByteArray {
             val ihdr = ArrayList<Byte>()
             // We need a body var to know body length and generate crc
@@ -73,6 +80,10 @@ class APNGDisassembler {
             return ihdr.toByteArray()
         }
 
+        /**
+         * Parse the chunk
+         * @param byteArray The chunk with length and crc
+         */
         private fun parseChunk(byteArray: ByteArray) {
             val i = 4
             val chunkCRC = parseLength(byteArray.copyOfRange(byteArray.size - 4, byteArray.size))
@@ -220,6 +231,9 @@ class APNGDisassembler {
             } else throw BadCRC()
         }
 
+        /**
+         * Reset all var before parsing APNG
+         */
         private fun reset() {
             png = null
             cover = null

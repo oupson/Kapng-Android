@@ -10,13 +10,16 @@ import oupson.apng.utils.Utils.Companion.isPng
 import java.util.*
 
 /**
- * A frame for an animated png
- * @author oupson
- * @param byteArray The byte Array of the png
- * @param delay The delay in ms, default is 1000
- * @throws NotPngException
+ * A frame of the APNG
+ * @param byteArray The bitmap to add
+ * @param delay Delay of the frame
+ * @param xOffsets The X offset where the frame should be rendered
+ * @param yOffsets The Y offset where the frame should be rendered
+ * @param disposeOp `DisposeOp` specifies how the output buffer should be changed at the end of the delay (before rendering the next frame).
+ * @param blendOp `BlendOp` specifies whether the frame is to be alpha blended into the current output buffer content, or whether it should completely replace its region in the output buffer.
+ * @param maxWidth The max width of the APNG
+ * @param maxHeight The max height of the APNG
  */
-
 class Frame// Get width and height for image
     (
     byteArray: ByteArray,
@@ -74,6 +77,10 @@ class Frame// Get width and height for image
         }
     }
 
+    /**
+     * Parse the Frame
+     * @param byteArray The frame 
+     */
     private fun parseChunk(byteArray: ByteArray) {
         when(Arrays.toString(byteArray.copyOfRange(4, 8))) {
             IHDR -> {
