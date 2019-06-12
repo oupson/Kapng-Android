@@ -3,5 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item android:id="@+id/action_open_create_activity"
         android:title="Create apng"
-        app:showAsAction="never"/>
+        app:showAsAction="never" />
+    <item android:id="@+id/action_open_java_activity"
+          android:title="Java Activity"
+          app:showAsAction="never" />
 </menu>

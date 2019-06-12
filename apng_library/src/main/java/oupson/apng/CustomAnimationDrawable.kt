@@ -7,19 +7,15 @@ import android.graphics.drawable.AnimationDrawable
  * for the caller to listen for specific animation related events.
  */
 class CustomAnimationDrawable : AnimationDrawable() {
-    private var onAnimationLoop : () -> Unit = {}
+    private var onFrameChangeListener : (index : Int) -> Unit? = {}
 
-    fun setOnAnimationLoopListener( f : () -> Unit) {
-        onAnimationLoop = f
+    fun setOnFrameChangeListener( f : (index : Int) -> Unit?) {
+        onFrameChangeListener = f
     }
 
     override fun selectDrawable(index: Int): Boolean {
         val drawableChanged = super.selectDrawable(index)
-
-        if (index != 0 && index == numberOfFrames - 1) {
-            onAnimationLoop()
-        }
-
+        onFrameChangeListener(index)
         return drawableChanged
     }
 }

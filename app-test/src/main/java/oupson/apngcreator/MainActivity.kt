@@ -52,6 +52,9 @@ class MainActivity : AppCompatActivity() {
                                     startActivity<CreatorActivity>()
                                     finish()
                                 }
+                                R.id.action_open_java_activity -> {
+                                    startActivity<JavaActivity>()
+                                }
                             }
                         }
                     }.lparams {
@@ -115,7 +118,7 @@ class MainActivity : AppCompatActivity() {
                     id = View.generateViewId()
                     animator = this.loadApng(imageUrl).apply {
                         onLoaded {
-                            setOnAnimationLoopListener {
+                            setOnFrameChangeLister {
                                 // Log.e("app-test", "onLoop")
                             }
                         }

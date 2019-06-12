@@ -24,6 +24,7 @@ import java.net.URL
  * @return [ApngAnimator] The animator
  */
 @Suppress("unused")
+@JvmOverloads
 fun ImageView.loadApng(file: File, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) = ApngAnimator(this.context).loadInto(this).apply {
     load(file, speed, apngAnimatorOptions)
 }
@@ -35,6 +36,7 @@ fun ImageView.loadApng(file: File, speed: Float? = null, apngAnimatorOptions: Ap
  * @return [ApngAnimator] The animator
  */
 @Suppress("unused")
+@JvmOverloads
 fun ImageView.loadApng(uri : Uri, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) = ApngAnimator(this.context).loadInto(this).apply {
     load(uri, speed, apngAnimatorOptions)
 }
@@ -46,6 +48,7 @@ fun ImageView.loadApng(uri : Uri, speed: Float? = null, apngAnimatorOptions: Apn
  * @return [ApngAnimator] The animator
  */
 @Suppress("unused")
+@JvmOverloads
 fun ImageView.loadApng(url: URL, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) = ApngAnimator(this.context).loadInto(this).apply {
     loadUrl(url, speed, apngAnimatorOptions)
 }
@@ -57,6 +60,7 @@ fun ImageView.loadApng(url: URL, speed: Float? = null, apngAnimatorOptions: Apng
  * @return [ApngAnimator] The animator
  */
 @Suppress("unused")
+@JvmOverloads
 fun ImageView.loadApng(byteArray: ByteArray, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) = ApngAnimator(this.context).loadInto(this).apply {
     load(byteArray, speed, apngAnimatorOptions)
 }
@@ -68,6 +72,7 @@ fun ImageView.loadApng(byteArray: ByteArray, speed: Float? = null, apngAnimatorO
  * @return [ApngAnimator] The animator
  */
 @Suppress("unused")
+@JvmOverloads
 fun ImageView.loadApng(string: String, speed : Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) = ApngAnimator(this.context).loadInto(this).apply {
     load(string, speed, apngAnimatorOptions)
 }
@@ -79,6 +84,7 @@ fun ImageView.loadApng(string: String, speed : Float? = null, apngAnimatorOption
  * @return [ApngAnimator] The animator
  */
 @Suppress("unused")
+@JvmOverloads
 fun ImageView.loadApng(@RawRes res : Int, speed : Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) = ApngAnimator(this.context).loadInto(this).apply {
     load(res, speed, apngAnimatorOptions)
 }
@@ -109,7 +115,7 @@ class ApngAnimator(private val context: Context?) {
     private var activeAnimation: CustomAnimationDrawable? = null
 
     private var doOnLoaded : (ApngAnimator) -> Unit = {}
-    private var animationLoopListener : () -> Unit = {}
+    private var frameChangeLister: (index : Int) -> Unit? = {}
 
     private var duration : ArrayList<Float>? = null
 
@@ -472,7 +478,7 @@ class ApngAnimator(private val context: Context?) {
                     }
                     activeAnimation = animResume
                     imageView?.setImageDrawable(activeAnimation)
-                    activeAnimation?.setOnAnimationLoopListener(animationLoopListener)
+                    activeAnimation?.setOnFrameChangeListener(frameChangeLister)
                     imageView?.invalidate()
                     duration = dura
                     break@frameLoop
@@ -493,12 +499,12 @@ class ApngAnimator(private val context: Context?) {
 
     /**
      * Set animation loop listener
-     * @param animationLoopListener The animation loop listener.
+     * @param frameChangeListener The listener.
      */
-    fun setOnAnimationLoopListener(animationLoopListener : () -> Unit) {
+    fun setOnFrameChangeLister(frameChangeListener : (index : Int) -> Unit?) {
         if (isApng) {
-            this.animationLoopListener = animationLoopListener
-            anim?.setOnAnimationLoopListener(animationLoopListener)
+            this.frameChangeLister = frameChangeListener
+            anim?.setOnFrameChangeListener(frameChangeListener)
         }
     }
 
