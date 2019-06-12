@@ -31,7 +31,6 @@ android {
     }
 }
 dependencies {
-
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
     //noinspection GradleCompatible
@@ -45,7 +44,7 @@ dependencies {
     implementation project(":apng_library")
     // implementation fileTree(include: ['*.aar'], dir: 'libs')
     //implementation 'com.github.oupson:Kapng-Android:1.0.0'
-    implementation 'com.google.android.material:material:1.0.0' // where X.X.X version
+    implementation 'com.google.android.material:material:1.0.0'
     implementation "org.jetbrains.anko:anko-appcompat-v7:$anko_version"
     implementation "org.jetbrains.anko:anko-design:$anko_version"
     implementation "org.jetbrains.anko:anko-constraint-layout:$anko_version"

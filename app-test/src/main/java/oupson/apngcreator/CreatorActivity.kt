@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.os.Environment
 import android.text.Html
 import android.view.View
+import android.widget.CheckBox
 import android.widget.ListView
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -23,9 +24,12 @@ import oupson.apngcreator.adapter.AnkoAdapter
 import java.io.File
 
 class CreatorActivity : AppCompatActivity() {
+    companion object {
+        private const val PICK_IMAGE = 999
+    }
     var items : ArrayList<Bitmap> = ArrayList()
     var bitmapAdapter : AnkoAdapter<Bitmap>? = null
-    val PICK_IMAGE = 999
+
     var view = CreatorActivityLayout()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,7 +57,8 @@ class CreatorActivity : AppCompatActivity() {
             File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "apn0.png").writeBytes(apngCreated.toByteArray())
 
             apngCreated.apply {
-                //optimiseFrame()
+                if (view.optimiseCheckBox.isChecked)
+                    apngCreated.optimiseFrame()
             }
             val a = ApngAnimator(applicationContext)
             File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "apn.png").writeBytes(apngCreated.toByteArray())
@@ -108,11 +113,12 @@ class CreatorActivityLayout : AnkoComponent<CreatorActivity> {
     lateinit var listView : ListView
     lateinit var addFrameButton : FloatingActionButton
     lateinit var createButton : FloatingActionButton
-
+    lateinit var optimiseCheckBox : CheckBox
     override fun createView(ui: AnkoContext<CreatorActivity>) = with(ui) {
         relativeLayout {
+
             backgroundColor = Color.BLACK
-            var bar = verticalLayout {
+            val bar = verticalLayout {
                 id = View.generateViewId()
                 backgroundColor = Color.DKGRAY
                 appBarLayout {
@@ -133,13 +139,19 @@ class CreatorActivityLayout : AnkoComponent<CreatorActivity> {
                 width = matchParent
                 height = wrapContent
             }
-
+            optimiseCheckBox = checkBox("Optimise APNG, WIP !") {
+                id = View.generateViewId()
+                this.textColor = Color.WHITE
+            }.lparams {
+                width = matchParent
+                below(bar)
+            }
             listView = listView {
                 id = View.generateViewId()
             }.lparams {
                 width = matchParent
                 height = matchParent
-                below(bar)
+                below(optimiseCheckBox)
             }
             addFrameButton = floatingActionButton {
                 imageResource = R.drawable.ic_add_black_24dp
