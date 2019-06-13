@@ -9,13 +9,9 @@ How to use this library :
 
 To load animated png to an imageView : 
 ```kotlin
-
 val imageUrl = "https://upload.wikimedia.org/wikipedia/commons/1/14/Animated_PNG_example_bouncing_beach_ball.png" // image url could be an url, or a file path. You could also load byteArray and file
 
-val animator = ApngAnimator(this).loadInto(imageView)
-animator.load(imageUrl)
-
-animator.play()
+val animator = imageView.load(imageUrl)
 ```
 
 To create animated png :
@@ -42,7 +38,7 @@ repositories {
  }
  
  dependencies {
-  implementation 'com.github.oupson:Kapng-Android:1.0.8'
+  implementation 'com.github.oupson:Kapng-Android:1.0.9'
  }
  ```
  
