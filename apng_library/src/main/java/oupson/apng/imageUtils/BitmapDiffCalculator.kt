@@ -11,6 +11,7 @@ class BitmapDiffCalculator(firstBitmap: Bitmap, secondBitmap : Bitmap) {
     val res : Bitmap
     var xOffset : Int = 0
     var yOffset : Int = 0
+    @Suppress("unused")
     var blendOp = Utils.Companion.BlendOp.APNG_BLEND_OP_OVER
     init {
         val difBitmap = Bitmap.createBitmap(firstBitmap.width, firstBitmap.height, Bitmap.Config.ARGB_8888)

@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package oupson.apng.exceptions
 
 class NoFrameException : Exception()

@@ -41,9 +41,10 @@ class APNGDisassembler {
             if (isApng(byteArray)) {
                 var cursor = 8
                 while (cursor < byteArray.size) {
-                    val chunk = byteArray.copyOfRange(cursor, cursor + parseLength(byteArray.copyOfRange(cursor, cursor + 4)) + 12)
+                    val length = parseLength(byteArray.copyOfRange(cursor, cursor + 4))
+                    val chunk = byteArray.copyOfRange(cursor, cursor + length + 12)
                     parseChunk(chunk)
-                    cursor += parseLength(byteArray.copyOfRange(cursor, cursor + 4)) + 12
+                    cursor += length + 12
                 }
                 return apng
             } else {

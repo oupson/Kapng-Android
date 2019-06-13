@@ -9,41 +9,45 @@ Copyright (c) 2018 Miller Cy Chan
     https://github.com/mcychan/nQuant.android/blob/master/nQuant.master/src/main/java/com/android/nQuant/PnnQuantizer.java
  */
 
+import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
+@SuppressWarnings("WeakerAccess")
 public class PnnQuantizer {
     private final short SHORT_MAX = Short.MAX_VALUE;
     private final char BYTE_MAX = -Byte.MIN_VALUE + Byte.MAX_VALUE;
     private boolean hasTransparency = false, hasSemiTransparency = false;
     protected int width, height;
-    protected int pixels[] = null;
+    protected int[] pixels = null;
     private Integer m_transparentColor;
-    private HashMap<Integer, short[]> closestMap = new HashMap();
+    @SuppressWarnings("unchecked")
+    @SuppressLint("UseSparseArrays")
+    private final HashMap<Integer, short[]> closestMap = new HashMap();
 
-    public PnnQuantizer(String fname) throws IOException {
+    @SuppressWarnings("unused")
+    public PnnQuantizer(String fname) {
         fromBitmap(fname);
     }
 
-    public PnnQuantizer(Bitmap bitmap) throws IOException{
+    public PnnQuantizer(Bitmap bitmap) {
         fromBitmap(bitmap);
     }
 
-    private void fromBitmap(Bitmap bitmap) throws IOException {
+    private void fromBitmap(Bitmap bitmap) {
         width = bitmap.getWidth();
         height = bitmap.getHeight();
         pixels = new int [width * height];
         bitmap.getPixels(pixels, 0, width, 0, 0, width, height);
     }
 
-    private void fromBitmap(String fname) throws IOException {
+    private void fromBitmap(String fname) {
         Bitmap bitmap = BitmapFactory.decodeFile(fname);
         fromBitmap(bitmap);
     }
@@ -204,6 +208,7 @@ public class PnnQuantizer {
         List<Integer> palette = new ArrayList<>();
         short k = 0;
         for (int i = 0;; ++k) {
+            assert bins[i] != null;
             int alpha = (int) Math.rint(bins[i].ac);
             palette.add(Color.argb(alpha, (int) Math.rint(bins[i].rc), (int) Math.rint(bins[i].gc), (int) Math.rint(bins[i].bc)));
             if (hasTransparency && palette.get(k).equals(m_transparentColor)) {
@@ -292,6 +297,7 @@ public class PnnQuantizer {
         return k;
     }
 
+    @SuppressWarnings({"WeakerAccess", "UnusedReturnValue", "UnusedAssignment", "SameReturnValue"})
     boolean quantize_image(final int[] pixels, final Integer[] palette, int[] qPixels, final boolean dither)
     {
         int nMaxColors = palette.length;
@@ -301,6 +307,7 @@ public class PnnQuantizer {
             sqr_tbl[i + BYTE_MAX] = i * i;
 
         int[] squares3 = new int[sqr_tbl.length - BYTE_MAX];
+        //noinspection ManualArrayCopy
         for (int i = 0; i < squares3.length; i++)
             squares3[i] = sqr_tbl[i + BYTE_MAX];
 
@@ -412,6 +419,7 @@ public class PnnQuantizer {
         return true;
     }
 
+    @SuppressWarnings("UnusedAssignment")
     private Bitmap quantize_image(final int[] pixels, int[] qPixels)
     {
         int pixelIndex = 0;
@@ -519,6 +527,7 @@ public class PnnQuantizer {
         return Bitmap.createBitmap(qPixels, width, height, Bitmap.Config.RGB_565);
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public Bitmap convert(int nMaxColors, boolean dither) {
         final int[] cPixels = new int[pixels.length];
         for (int i =0; i<cPixels.length; ++i) {

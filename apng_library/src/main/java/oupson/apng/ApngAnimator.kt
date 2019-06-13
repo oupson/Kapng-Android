@@ -164,8 +164,7 @@ class ApngAnimator(private val context: Context?) {
      * @return [ApngAnimator] The Animator
      * @throws NotApngException
      */
-    @Suppress("unused")
-    @SuppressWarnings("WeakerAccess")
+    @JvmOverloads
     fun load(file: File, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) : ApngAnimator {
         GlobalScope.launch {
             val bytes = file.readBytes()
@@ -200,6 +199,7 @@ class ApngAnimator(private val context: Context?) {
      * @return [ApngAnimator] The Animator
      * @throws NotApngException
      */
+    @JvmOverloads
     fun load(uri : Uri, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) : ApngAnimator {
         GlobalScope.launch {
             context?.contentResolver?.openInputStream(uri)?.readBytes()?.also {
@@ -235,7 +235,7 @@ class ApngAnimator(private val context: Context?) {
      * @return [ApngAnimator] The Animator
      * @throws NotApngException
      */
-    @SuppressWarnings("WeakerAccess")
+    @JvmOverloads
     fun loadUrl(url: URL, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) : ApngAnimator {
         GlobalScope.launch {
             this@ApngAnimator.speed = speed
@@ -275,7 +275,7 @@ class ApngAnimator(private val context: Context?) {
      * @return [ApngAnimator] The Animator
      * @throws NotApngException
      */
-    @SuppressWarnings("WeakerAccess")
+    @JvmOverloads
     fun load(byteArray: ByteArray, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) : ApngAnimator {
         GlobalScope.launch {
             this@ApngAnimator.speed = speed
@@ -310,6 +310,7 @@ class ApngAnimator(private val context: Context?) {
      * @return [ApngAnimator] The Animator
      * @throws NotApngException
      */
+    @JvmOverloads
     fun load(string: String, speed : Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) : ApngAnimator {
         GlobalScope.launch {
             this@ApngAnimator.speed = speed
@@ -357,6 +358,7 @@ class ApngAnimator(private val context: Context?) {
      * @return [ApngAnimator] The Animator
      * @throws NotApngException
      */
+    @JvmOverloads
     fun load(@RawRes res : Int, speed : Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) : ApngAnimator {
         GlobalScope.launch {
             val byteArray = context?.resources?.openRawResource(res)?.readBytes() ?: byteArrayOf()
@@ -462,25 +464,25 @@ class ApngAnimator(private val context: Context?) {
             val animResume = CustomAnimationDrawable()
             activeAnimation?.stop()
             val currentFrame = activeAnimation!!.current
-            val dura = ArrayList<Float>()
+            val durations = ArrayList<Float>()
             frameLoop@ for (i in 0 until anim?.numberOfFrames!!) {
                 val checkFrame = activeAnimation!!.getFrame(i)
                 if (checkFrame === currentFrame) {
                     for (k in i until activeAnimation!!.numberOfFrames) {
                         val frame = activeAnimation!!.getFrame(k)
                         animResume.addFrame(frame, (duration!![k] / (speed ?: 1f)).toInt())
-                        dura.add(duration!![k])
+                        durations.add(duration!![k])
                     }
                     for (k in 0 until i) {
                         val frame = activeAnimation!!.getFrame(k)
                         animResume.addFrame(frame, (duration!![k] / (speed ?: 1f)).toInt())
-                        dura.add(duration!![k])
+                        durations.add(duration!![k])
                     }
                     activeAnimation = animResume
                     imageView?.setImageDrawable(activeAnimation)
                     activeAnimation?.setOnFrameChangeListener(frameChangeLister)
                     imageView?.invalidate()
-                    duration = dura
+                    duration = durations
                     break@frameLoop
                 }
             }

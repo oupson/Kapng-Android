@@ -1,11 +1,11 @@
 package oupson.apngcreator
 
 import android.graphics.Color
-import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
-import android.text.Html
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
-import android.widget.Toolbar
+import android.view.ViewManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.squareup.picasso.Picasso
@@ -14,16 +14,17 @@ import org.jetbrains.anko.constraint.layout.ConstraintSetBuilder
 import org.jetbrains.anko.constraint.layout.applyConstraintSet
 import org.jetbrains.anko.constraint.layout.constraintLayout
 import org.jetbrains.anko.constraint.layout.matchConstraint
+import org.jetbrains.anko.custom.ankoView
 import org.jetbrains.anko.design.appBarLayout
 import org.jetbrains.anko.sdk27.coroutines.onClick
-import org.jetbrains.anko.sdk27.coroutines.onMenuItemClick
 import org.jetbrains.anko.sdk27.coroutines.onSeekBarChangeListener
 import oupson.apng.ApngAnimator
 import oupson.apng.loadApng
 
+fun ViewManager.xToolbar(init : androidx.appcompat.widget.Toolbar.() -> Unit) = ankoView({androidx.appcompat.widget.Toolbar(it)}, 0, init)
 class MainActivity : AppCompatActivity() {
     private lateinit var animator: ApngAnimator
-    private lateinit var tool : Toolbar
+    private lateinit var tool : androidx.appcompat.widget.Toolbar
     // val imageUrl = "http://oupson.oupsman.fr/apng/bigApng.png"
     private val imageUrl = "https://metagif.files.wordpress.com/2015/01/bugbuckbunny.png"
     // val imageUrl = "http://orig06.deviantart.net/7812/f/2012/233/7/5/twilight_rapidash_shaded_and_animated_by_tamalesyatole-d5bz7hd.png"
@@ -31,32 +32,11 @@ class MainActivity : AppCompatActivity() {
     // val imageUrl = "file:///android_asset/image.png"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val buttonDrawable = GradientDrawable().apply {
-            shape = GradientDrawable.RECTANGLE
-            cornerRadius = dip(5).toFloat()
-            setStroke(2, Color.WHITE)
-        }
         verticalLayout {
-            backgroundColor = Color.BLACK
             verticalLayout {
-                backgroundColor = Color.DKGRAY
                 appBarLayout {
-                    backgroundColor = Color.BLACK
-                    tool = toolbar {
+                    tool = xToolbar {
                         id = View.generateViewId()
-                        title = Html.fromHtml("<font color='#ffffff'>MainActivity</font>", Html.FROM_HTML_MODE_LEGACY)
-                        inflateMenu(R.menu.main_menu)
-                        onMenuItemClick { item ->
-                            when (item!!.itemId) {
-                                R.id.action_open_create_activity -> {
-                                    startActivity<CreatorActivity>()
-                                    finish()
-                                }
-                                R.id.action_open_java_activity -> {
-                                    startActivity<JavaActivity>()
-                                }
-                            }
-                        }
                     }.lparams {
                         width = matchParent
                         height = wrapContent
@@ -72,9 +52,10 @@ class MainActivity : AppCompatActivity() {
             }
 
             constraintLayout {
+                backgroundColor = Color.WHITE
                 val pauseButton = button("pause") {
+                    backgroundColor = Color.WHITE
                     id = View.generateViewId()
-                    background = buttonDrawable
                     onClick {
                         animator.pause()
                     }
@@ -83,7 +64,7 @@ class MainActivity : AppCompatActivity() {
                         height = wrapContent
                 )
                 val playButton = button("play") {
-                    background = buttonDrawable
+                    backgroundColor = Color.WHITE
                     id = View.generateViewId()
                     onClick {
                         animator.play()
@@ -92,15 +73,15 @@ class MainActivity : AppCompatActivity() {
                         width = wrapContent,
                         height = wrapContent
                 )
-                val seekBar = themedSeekBar(R.style.AppTheme_SeekBar){
+                val seekBar = seekBar {
                     id = View.generateViewId()
                     max = 200
-                    progress = 10
+                    progress = 100
                     onSeekBarChangeListener {
                         onProgressChanged { _, _, _ -> }
                         onStartTrackingTouch { }
                         onStopTrackingTouch { seekBar ->
-                            animator.speed = (seekBar?.progress?.toFloat() ?: 100f / 100f)
+                            animator.speed = (seekBar?.progress?.toFloat() ?: 100f) / 100f
                         }
                     }
                 }.lparams(
@@ -168,7 +149,21 @@ class MainActivity : AppCompatActivity() {
                 width = matchParent
                 height = matchParent
             }
-
         }
+        setSupportActionBar(tool)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        val inflater = menuInflater
+        inflater.inflate(R.menu.main_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        when (item!!.itemId) {
+            R.id.action_open_create_activity -> startActivity<CreatorActivity>()
+            R.id.action_open_java_activity -> startActivity<JavaActivity>()
+        }
+        return super.onOptionsItemSelected(item)
     }
 }

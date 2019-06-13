@@ -8,7 +8,7 @@ import kotlin.Unit;
 import oupson.apng.ApngAnimator;
 import oupson.apng.ApngAnimatorKt;
 public class JavaActivity extends AppCompatActivity {
-    static String TAG = "JavaActivity";
+    private static final String TAG = "JavaActivity";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

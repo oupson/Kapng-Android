@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">APNGCreator</string>
+
+    <string name="create_apng">Create APNG</string>
+    <string name="java_activity">Java Activity</string>
+    <string name="apng_imageView">An ImageView with an APNG</string>
 </resources>

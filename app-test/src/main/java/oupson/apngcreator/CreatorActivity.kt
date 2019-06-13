@@ -8,11 +8,11 @@ import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.os.Bundle
 import android.os.Environment
-import android.text.Html
 import android.view.View
 import android.widget.CheckBox
 import android.widget.ListView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import org.jetbrains.anko.*
 import org.jetbrains.anko.design.appBarLayout
@@ -27,10 +27,10 @@ class CreatorActivity : AppCompatActivity() {
     companion object {
         private const val PICK_IMAGE = 999
     }
-    var items : ArrayList<Bitmap> = ArrayList()
-    var bitmapAdapter : AnkoAdapter<Bitmap>? = null
+    private var items : ArrayList<Bitmap> = ArrayList()
+    private var bitmapAdapter : AnkoAdapter<Bitmap>? = null
 
-    var view = CreatorActivityLayout()
+    private var view = CreatorActivityLayout()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,16 +66,14 @@ class CreatorActivity : AppCompatActivity() {
             a.onLoaded { anim ->
                 alert {
                     customView {
-                        ctx.setTheme(R.style.AppTheme_DarkDialog)
                         imageView {
                             this.setImageDrawable(anim.anim)
                         }
-
                     }
                 }.show()
             }
         }
-        bitmapAdapter = AnkoAdapter({items}) {index, items, view ->
+        bitmapAdapter = AnkoAdapter({items}) { index, items, _ ->
             with(items[index]) {
                 verticalLayout {
                     lparams {
@@ -93,15 +91,18 @@ class CreatorActivity : AppCompatActivity() {
         }
         /*        frameListViewAdapter(this, items) */
         view.listView.adapter = bitmapAdapter
+        setSupportActionBar(view.toolbar)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         when(requestCode) {
             PICK_IMAGE -> {
                 if (resultCode == Activity.RESULT_OK) {
-                    contentResolver.openInputStream(data?.data).readBytes().apply {
-                        items.add(BitmapFactory.decodeByteArray(this, 0, this.size))
-                        bitmapAdapter?.notifyDataSetChanged()
+                    if (data?.data != null) {
+                        contentResolver.openInputStream(data.data!!)?.readBytes()?.apply {
+                            items.add(BitmapFactory.decodeByteArray(this, 0, this.size))
+                            bitmapAdapter?.notifyDataSetChanged()
+                        }
                     }
                 }
             }
@@ -114,18 +115,16 @@ class CreatorActivityLayout : AnkoComponent<CreatorActivity> {
     lateinit var addFrameButton : FloatingActionButton
     lateinit var createButton : FloatingActionButton
     lateinit var optimiseCheckBox : CheckBox
+    lateinit var toolbar : Toolbar
     override fun createView(ui: AnkoContext<CreatorActivity>) = with(ui) {
         relativeLayout {
-
-            backgroundColor = Color.BLACK
+            backgroundColor = Color.WHITE
             val bar = verticalLayout {
                 id = View.generateViewId()
-                backgroundColor = Color.DKGRAY
+                backgroundColor = Color.WHITE
                 appBarLayout {
-                    backgroundColor = Color.BLACK
-                    toolbar {
+                    toolbar = xToolbar {
                         id = View.generateViewId()
-                        title = Html.fromHtml("<font color='#ffffff'>Create APNG</font>")
                     }.lparams {
                         width = matchParent
                         height = wrapContent
@@ -141,7 +140,6 @@ class CreatorActivityLayout : AnkoComponent<CreatorActivity> {
             }
             optimiseCheckBox = checkBox("Optimise APNG, WIP !") {
                 id = View.generateViewId()
-                this.textColor = Color.WHITE
             }.lparams {
                 width = matchParent
                 below(bar)
@@ -155,7 +153,8 @@ class CreatorActivityLayout : AnkoComponent<CreatorActivity> {
             }
             addFrameButton = floatingActionButton {
                 imageResource = R.drawable.ic_add_black_24dp
-                backgroundTintList = ColorStateList.valueOf(Color.WHITE)
+                imageTintList = ColorStateList.valueOf(Color.WHITE)
+                backgroundTintList = ColorStateList.valueOf(Color.BLACK)
                 isClickable = true
             }.lparams {
                 width = wrapContent
@@ -166,7 +165,8 @@ class CreatorActivityLayout : AnkoComponent<CreatorActivity> {
             }
             createButton = floatingActionButton {
                 imageResource = R.drawable.ic_play_arrow_black_24dp
-                backgroundTintList = ColorStateList.valueOf(Color.WHITE)
+                imageTintList = ColorStateList.valueOf(Color.WHITE)
+                backgroundTintList = ColorStateList.valueOf(Color.BLACK)
                 isClickable = true
             }.lparams {
                 width = wrapContent
