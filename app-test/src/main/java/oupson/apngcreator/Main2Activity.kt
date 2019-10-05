@@ -53,10 +53,12 @@ class Main2Activity : AppCompatActivity() {
         val animator = imageView.loadApng(uri, null)
         imageView.onClick {
             try {
-                if (animator.isPlaying) {
-                    animator.pause()
-                } else {
-                    animator.play()
+                if (animator.isApng) {
+                    if (animator.isPlaying) {
+                        animator.pause()
+                    } else {
+                        animator.play()
+                    }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()

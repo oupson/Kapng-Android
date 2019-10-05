@@ -95,9 +95,7 @@ fun ImageView.loadApng(@RawRes res : Int, speed : Float? = null, apngAnimatorOpt
  */
 class ApngAnimator(private val context: Context?) {
     var isPlaying = true
-        private set(value) {
-            field = value
-        }
+        private set
 
     var speed: Float? = null
         set(value)  {
@@ -222,7 +220,6 @@ class ApngAnimator(private val context: Context?) {
             input.read(bytes)
             input.close()
             if (isPng(bytes)) {
-                isApng = true
                 this@ApngAnimator.speed = speed
                 scaleType = apngAnimatorOptions?.scaleType
                 // Download PNG
@@ -231,12 +228,14 @@ class ApngAnimator(private val context: Context?) {
                 APNGDisassembler.disassemble(inputStream).also {
                     inputStream.close()
                     if (it.isApng) {
+                        isApng = true
                         it.frames.also {frames ->
                             draw(frames).apply {
                                 setupAnimationDrawableAndStart(this)
                             }
                         }
                     } else {
+                        isApng = false
                         GlobalScope.launch(Dispatchers.Main) {
                             imageView?.setImageBitmap(it.cover)
                         }
