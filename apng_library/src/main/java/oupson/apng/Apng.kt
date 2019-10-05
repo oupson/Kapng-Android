@@ -36,6 +36,8 @@ class Apng {
 
     var frames : ArrayList<Frame> = ArrayList()
 
+    var isApng = true
+
     // region addFrames
     /**
      * Add a frame to the APNG

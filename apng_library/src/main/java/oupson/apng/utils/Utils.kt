@@ -144,6 +144,7 @@ class Utils {
             byteArray.forEach {
                 lengthString += String.format("%02x", it)
             }
+
             return lengthString.toLong(16).toInt()
         }
 
@@ -154,5 +155,6 @@ class Utils {
         val plte : String by lazy { Arrays.toString(byteArrayOf(0x50, 0x4c, 0x54, 0x45)) }
         val tnrs : String by lazy { Arrays.toString(byteArrayOf(0x74, 0x52, 0x4e, 0x53)) }
         val IHDR : String by lazy { Arrays.toString(byteArrayOf(0x49, 0x48, 0x44, 0x52)) }
+        val acTL : String by lazy { Arrays.toString(byteArrayOf(0x61, 0x63, 0x54, 0x4c)) }
     }
 }

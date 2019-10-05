@@ -6,11 +6,14 @@ import oupson.apng.chunks.fcTL
 import oupson.apng.exceptions.BadApng
 import oupson.apng.exceptions.BadCRC
 import oupson.apng.exceptions.NotApngException
+import oupson.apng.exceptions.NotPngException
 import oupson.apng.utils.Utils
 import oupson.apng.utils.Utils.Companion.isApng
+import oupson.apng.utils.Utils.Companion.isPng
 import oupson.apng.utils.Utils.Companion.parseLength
 import oupson.apng.utils.Utils.Companion.pngSignature
 import oupson.apng.utils.Utils.Companion.to4Bytes
+import java.io.InputStream
 import java.util.*
 import java.util.zip.CRC32
 
@@ -28,6 +31,7 @@ class APNGDisassembler {
         private var blendOp: Utils.Companion.BlendOp = Utils.Companion.BlendOp.APNG_BLEND_OP_SOURCE
         private var disposeOp: Utils.Companion.DisposeOp = Utils.Companion.DisposeOp.APNG_DISPOSE_OP_NONE
         private var ihdr = IHDR()
+        private var isApng = false
 
         var apng: Apng = Apng()
 
@@ -50,6 +54,39 @@ class APNGDisassembler {
             } else {
                 throw NotApngException()
             }
+        }
+
+        /**
+         * Disassemble an Apng file
+         * @param input Input Stream
+         * @return [Apng] The apng decoded
+         */
+        fun disassemble(input : InputStream) : Apng {
+            reset()
+            val buffer = ByteArray(8)
+
+            input.read(buffer)
+
+            if (!isPng(buffer))
+                throw NotPngException()
+
+            var byteRead: Int
+
+            val lengthChunk = ByteArray(4)
+            do {
+                byteRead = input.read(lengthChunk)
+
+                if (byteRead == -1)
+                    break
+                val length = parseLength(lengthChunk)
+
+                val chunk = ByteArray(length + 8)
+                byteRead = input.read(chunk)
+
+                parseChunk(lengthChunk.plus(chunk))
+            } while (byteRead != -1)
+
+            return apng
         }
 
         /**
@@ -162,15 +199,41 @@ class APNGDisassembler {
                         }
                     }
                     Utils.IEND -> {
-                        png?.addAll(to4Bytes(0).asList())
-                        // Add IEND
-                        val iend = byteArrayOf(0x49, 0x45, 0x4E, 0x44)
-                        // Generate crc for IEND
-                        val crC32 = CRC32()
-                        crC32.update(iend, 0, iend.size)
-                        png?.addAll(iend.asList())
-                        png?.addAll(to4Bytes(crC32.value.toInt()).asList())
-                        apng.frames.add(Frame(png!!.toByteArray(), delay, xOffset, yOffset, blendOp, disposeOp, maxWidth, maxHeight))
+                        if (isApng) {
+                            png?.addAll(to4Bytes(0).asList())
+                            // Add IEND
+                            val iend = byteArrayOf(0x49, 0x45, 0x4E, 0x44)
+                            // Generate crc for IEND
+                            val crC32 = CRC32()
+                            crC32.update(iend, 0, iend.size)
+                            png?.addAll(iend.asList())
+                            png?.addAll(to4Bytes(crC32.value.toInt()).asList())
+                            apng.frames.add(
+                                Frame(
+                                    png!!.toByteArray(),
+                                    delay,
+                                    xOffset,
+                                    yOffset,
+                                    blendOp,
+                                    disposeOp,
+                                    maxWidth,
+                                    maxHeight
+                                )
+                            )
+                        } else {
+                            cover?.let {
+                                it.addAll(to4Bytes(0).asList())
+                                // Add IEND
+                                val iend = byteArrayOf(0x49, 0x45, 0x4E, 0x44)
+                                // Generate crc for IEND
+                                val crC32 = CRC32()
+                                crC32.update(iend, 0, iend.size)
+                                it.addAll(iend.asList())
+                                it.addAll(to4Bytes(crC32.value.toInt()).asList())
+                                apng.cover = BitmapFactory.decodeByteArray(it.toByteArray(), 0, it.size)
+                            }
+                            apng.isApng = false
+                        }
                     }
                     Utils.IDAT -> {
                         if (png == null) {
@@ -228,6 +291,9 @@ class APNGDisassembler {
                         maxWidth = ihdr.pngWidth
                         maxHeight = ihdr.pngHeight
                     }
+                    Utils.acTL -> {
+                        isApng = true
+                    }
                 }
             } else throw BadCRC()
         }
@@ -247,6 +313,7 @@ class APNGDisassembler {
             maxHeight = 0
             ihdr = IHDR()
             apng = Apng()
+            isApng = false
         }
     }
 }

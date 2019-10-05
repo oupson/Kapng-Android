@@ -16,12 +16,12 @@ class Loader {
          */
         @Suppress("RedundantSuspendModifier")
         @Throws(IOException::class)
-        suspend fun load(context: Context, url: URL): ByteArray {
+        suspend fun load(context: Context, url: URL): File {
             val currentDir = context.filesDir
             val fileTXT = File(currentDir, "apngLoader.txt")
             val filePNG = File(currentDir, "apngLoader.png")
             return if (fileTXT.exists() && url.toString() == fileTXT.readText()) {
-                filePNG.readBytes()
+                filePNG
             } else {
                 val connection = url.openConnection()
                 connection.connect()
@@ -29,8 +29,7 @@ class Loader {
                 val bytes = input.readBytes()
                 input.close()
                 fileTXT.writeText(url.toString())
-                filePNG.writeBytes(bytes)
-                bytes
+                filePNG.apply { writeBytes(bytes) }
             }
         }
     }

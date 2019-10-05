@@ -9,11 +9,12 @@ import androidx.annotation.RawRes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-
 import oupson.apng.exceptions.NotApngException
+import oupson.apng.exceptions.NotPngException
 import oupson.apng.utils.ApngAnimatorOptions
 import oupson.apng.utils.Utils
 import oupson.apng.utils.Utils.Companion.isApng
+import oupson.apng.utils.Utils.Companion.isPng
 import java.io.File
 import java.net.URL
 
@@ -167,15 +168,29 @@ class ApngAnimator(private val context: Context?) {
     @JvmOverloads
     fun load(file: File, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) : ApngAnimator {
         GlobalScope.launch {
-            val bytes = file.readBytes()
-            if (isApng(bytes)) {
+            val input = file.inputStream()
+            val bytes = ByteArray(8)
+            input.read(bytes)
+            input.close()
+            if (isPng(bytes)) {
                 isApng = true
                 this@ApngAnimator.speed = speed
                 scaleType = apngAnimatorOptions?.scaleType
                 // Download PNG
-                APNGDisassembler.disassemble(bytes).frames.also {frames ->
-                    draw(frames).apply {
-                        setupAnimationDrawableAndStart(this)
+
+                val inputStream = file.inputStream()
+                APNGDisassembler.disassemble(inputStream).also {
+                    inputStream.close()
+                    if (it.isApng) {
+                        it.frames.also {frames ->
+                            draw(frames).apply {
+                                setupAnimationDrawableAndStart(this)
+                            }
+                        }
+                    } else {
+                        GlobalScope.launch {
+                            imageView?.setImageBitmap(it.cover)
+                        }
                     }
                 }
             } else {
@@ -185,7 +200,7 @@ class ApngAnimator(private val context: Context?) {
                         imageView?.setImageBitmap(BitmapFactory.decodeByteArray(bytes, 0, bytes.size))
                     }
                 } else {
-                    throw NotApngException()
+                    throw NotPngException()
                 }
             }
         }
@@ -202,26 +217,39 @@ class ApngAnimator(private val context: Context?) {
     @JvmOverloads
     fun load(uri : Uri, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) : ApngAnimator {
         GlobalScope.launch {
-            context?.contentResolver?.openInputStream(uri)?.readBytes()?.also {
-                if (isApng(it)) {
-                    isApng = true
-                    this@ApngAnimator.speed = speed
-                    scaleType = apngAnimatorOptions?.scaleType
-                    // Download PNG
-                    APNGDisassembler.disassemble(it).frames.also {frames ->
-                        draw(frames).apply {
-                            setupAnimationDrawableAndStart(this)
-                        }
-                    }
-                } else {
-                    if (loadNotApng) {
-                        GlobalScope.launch(Dispatchers.Main) {
-                            imageView?.scaleType = this@ApngAnimator.scaleType ?: ImageView.ScaleType.FIT_CENTER
-                            imageView?.setImageBitmap(BitmapFactory.decodeByteArray(it, 0, it.size))
+            val input = context!!.contentResolver.openInputStream(uri)!!
+            val bytes = ByteArray(8)
+            input.read(bytes)
+            input.close()
+            if (isPng(bytes)) {
+                isApng = true
+                this@ApngAnimator.speed = speed
+                scaleType = apngAnimatorOptions?.scaleType
+                // Download PNG
+
+                val inputStream = context.contentResolver.openInputStream(uri)!!
+                APNGDisassembler.disassemble(inputStream).also {
+                    inputStream.close()
+                    if (it.isApng) {
+                        it.frames.also {frames ->
+                            draw(frames).apply {
+                                setupAnimationDrawableAndStart(this)
+                            }
                         }
                     } else {
-                        throw NotApngException()
+                        GlobalScope.launch(Dispatchers.Main) {
+                            imageView?.setImageBitmap(it.cover)
+                        }
                     }
+                }
+            } else {
+                if (loadNotApng) {
+                    GlobalScope.launch(Dispatchers.Main) {
+                        imageView?.scaleType = this@ApngAnimator.scaleType ?: ImageView.ScaleType.FIT_CENTER
+                        imageView?.setImageBitmap(BitmapFactory.decodeByteArray(bytes, 0, bytes.size))
+                    }
+                } else {
+                    throw NotPngException()
                 }
             }
         }
@@ -241,29 +269,20 @@ class ApngAnimator(private val context: Context?) {
             this@ApngAnimator.speed = speed
             // Download PNG
             Loader.load(context!!, url).apply {
-                if (isApng(this)) {
-                    isApng = true
-                    this@ApngAnimator.speed = speed
-                    scaleType = apngAnimatorOptions?.scaleType
-                    // Download PNG
-                    APNGDisassembler.disassemble(this).frames.also { frames ->
-                        draw(frames).apply {
-                            setupAnimationDrawableAndStart(this)
-                        }
-                    }
-                } else {
+                try {
+                    this@ApngAnimator.load(this, speed, apngAnimatorOptions)
+                } catch (e : NotPngException) {
                     if (loadNotApng) {
+                        val bytes = this.readBytes()
                         GlobalScope.launch(Dispatchers.Main) {
                             imageView?.scaleType = this@ApngAnimator.scaleType ?: ImageView.ScaleType.FIT_CENTER
-                            imageView?.setImageBitmap(BitmapFactory.decodeByteArray(this@apply, 0, this@apply.size))
+                            imageView?.setImageBitmap(BitmapFactory.decodeByteArray(bytes, 0, bytes.size))
                         }
                     } else {
                         throw NotApngException()
                     }
                 }
             }
-
-
         }
         return this
     }
@@ -320,19 +339,7 @@ class ApngAnimator(private val context: Context?) {
             } else if (File(string).exists()) {
                 var pathToLoad = if (string.startsWith("content://")) string else "file://$string"
                 pathToLoad = pathToLoad.replace("%", "%25").replace("#", "%23")
-                val bytes = context?.contentResolver?.openInputStream(Uri.parse(pathToLoad))?.readBytes()
-                bytes ?: throw Exception("File are empty")
-                if (isApng(bytes)) {
-                    load(bytes, speed, apngAnimatorOptions)
-                } else {
-                    if (loadNotApng) {
-                        GlobalScope.launch(Dispatchers.Main) {
-                            imageView?.setImageBitmap(BitmapFactory.decodeByteArray(bytes, 0, bytes.size))
-                        }
-                    } else {
-                        throw NotApngException()
-                    }
-                }
+                this@ApngAnimator.load(Uri.parse(pathToLoad), speed, apngAnimatorOptions)
             } else if (string.startsWith("file:///android_asset/")) {
                 val bytes = this@ApngAnimator.context?.assets?.open(string.replace("file:///android_asset/", ""))?.readBytes()
                 bytes ?: throw Exception("File are empty")
