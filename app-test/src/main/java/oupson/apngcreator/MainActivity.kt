@@ -9,6 +9,9 @@ import android.view.ViewManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.squareup.picasso.Picasso
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.jetbrains.anko.*
 import org.jetbrains.anko.constraint.layout.ConstraintSetBuilder
 import org.jetbrains.anko.constraint.layout.applyConstraintSet
@@ -19,7 +22,11 @@ import org.jetbrains.anko.design.appBarLayout
 import org.jetbrains.anko.sdk27.coroutines.onClick
 import org.jetbrains.anko.sdk27.coroutines.onSeekBarChangeListener
 import oupson.apng.ApngAnimator
-import oupson.apng.loadApng
+import oupson.apng.CustomAnimationDrawable
+import oupson.apng.ExperimentalApngDecoder
+import oupson.apng.Loader
+import java.io.FileInputStream
+import java.net.URL
 
 fun ViewManager.xToolbar(init : androidx.appcompat.widget.Toolbar.() -> Unit) = ankoView({androidx.appcompat.widget.Toolbar(it)}, 0, init)
 class MainActivity : AppCompatActivity() {
@@ -97,13 +104,31 @@ class MainActivity : AppCompatActivity() {
                 )
                 val imageView = imageView {
                     id = View.generateViewId()
+                    GlobalScope.launch {
+                        Loader.load(this@MainActivity, URL(imageUrl)).apply {
+                            val drawable = ExperimentalApngDecoder.decodeApng(FileInputStream(this))
+                            if (drawable is CustomAnimationDrawable) {
+                                println("YEP")
+                                val a = drawable as CustomAnimationDrawable
+                                GlobalScope.launch(Dispatchers.Main) {
+                                    (this@imageView).setImageDrawable(a)
+                                    a.start()
+                                }
+
+                            } else
+                                GlobalScope.launch(Dispatchers.Main) {
+                                    (this@imageView).setImageDrawable(drawable)
+                                }
+                        }
+                    }
+                    /**
                     animator = this.loadApng(imageUrl).apply {
                         onLoaded {
                             setOnFrameChangeLister {
                                 // Log.e("app-test", "onLoop")
                             }
                         }
-                    }
+                    }*/
                 }.lparams(
                         width = matchConstraint,
                         height = matchConstraint
