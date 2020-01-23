@@ -128,7 +128,7 @@ class APNGDisassembler {
             val crc = CRC32()
             crc.update(byteArray.copyOfRange(i, byteArray.size - 4))
             if (chunkCRC == crc.value.toInt()) {
-                when (Arrays.toString(byteArray.copyOfRange(i, i + 4))) {
+                when (byteArray.copyOfRange(i, i + 4).contentToString()) {
                     Utils.fcTL -> {
                         if (png == null) {
                             cover?.let {

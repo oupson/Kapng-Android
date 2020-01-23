@@ -12,7 +12,7 @@ class IHDR : Chunk {
      * @param byteArray The chunk with the length and the crc
      */
     override fun parse(byteArray: ByteArray) {
-        for (i in 0 until byteArray.size) {
+        for (i in byteArray.indices) {
             // Find IHDR chunk
             if (byteArray[i] == 0x49.toByte() && byteArray[i + 1] == 0x48.toByte() && byteArray[ i + 2 ] == 0x44.toByte() && byteArray[ i + 3 ] == 0x52.toByte()) {
                 // Get length of the body of the chunk

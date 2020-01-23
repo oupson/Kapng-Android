@@ -24,16 +24,16 @@ import org.jetbrains.anko.sdk27.coroutines.onSeekBarChangeListener
 import oupson.apng.ApngAnimator
 import oupson.apng.CustomAnimationDrawable
 import oupson.apng.ExperimentalApngDecoder
-import oupson.apng.Loader
-import java.io.FileInputStream
 import java.net.URL
 
+// TODO REMOVE ANKO
 fun ViewManager.xToolbar(init : androidx.appcompat.widget.Toolbar.() -> Unit) = ankoView({androidx.appcompat.widget.Toolbar(it)}, 0, init)
 class MainActivity : AppCompatActivity() {
     private lateinit var animator: ApngAnimator
     private lateinit var tool : androidx.appcompat.widget.Toolbar
     // val imageUrl = "http://oupson.oupsman.fr/apng/bigApng.png"
     private val imageUrl = "https://metagif.files.wordpress.com/2015/01/bugbuckbunny.png"
+    //private val imageUrl = "https://upload.wikimedia.org/wikipedia/commons/3/3f/JPEG_example_flower.jpg"
     // val imageUrl = "http://orig06.deviantart.net/7812/f/2012/233/7/5/twilight_rapidash_shaded_and_animated_by_tamalesyatole-d5bz7hd.png"
     // val imageUrl = "https://raw.githubusercontent.com/tinify/iMessage-Panda-sticker/master/StickerPackExtension/Stickers.xcstickers/Sticker%20Pack.stickerpack/panda.sticker/panda.png"
     // val imageUrl = "file:///android_asset/image.png"
@@ -104,23 +104,16 @@ class MainActivity : AppCompatActivity() {
                 )
                 val imageView = imageView {
                     id = View.generateViewId()
-                    GlobalScope.launch {
-                        Loader.load(this@MainActivity, URL(imageUrl)).apply {
-                            val drawable = ExperimentalApngDecoder.decodeApng(FileInputStream(this))
-                            if (drawable is CustomAnimationDrawable) {
-                                println("YEP")
-                                val a = drawable as CustomAnimationDrawable
-                                GlobalScope.launch(Dispatchers.Main) {
-                                    (this@imageView).setImageDrawable(a)
-                                    a.start()
-                                }
-
-                            } else
-                                GlobalScope.launch(Dispatchers.Main) {
-                                    (this@imageView).setImageDrawable(drawable)
-                                }
+                    GlobalScope.launch(Dispatchers.IO) {
+                        val drawable = ExperimentalApngDecoder.decodeApng(this@MainActivity, URL(imageUrl))
+                        GlobalScope.launch(Dispatchers.Main) {
+                            this@imageView.setImageDrawable(drawable)
+                            if (drawable is CustomAnimationDrawable)
+                                drawable.start()
                         }
                     }
+
+
                     /**
                     animator = this.loadApng(imageUrl).apply {
                         onLoaded {
@@ -128,7 +121,8 @@ class MainActivity : AppCompatActivity() {
                                 // Log.e("app-test", "onLoop")
                             }
                         }
-                    }*/
+                    }
+                     */
                 }.lparams(
                         width = matchConstraint,
                         height = matchConstraint

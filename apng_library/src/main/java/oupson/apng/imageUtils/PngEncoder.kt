@@ -6,6 +6,8 @@ import java.io.IOException
 import java.util.zip.CRC32
 import java.util.zip.Deflater
 import java.util.zip.DeflaterOutputStream
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * Taken from http://catcode.com/pngencoder/com/keypoint/PngEncoder.java
@@ -130,7 +132,7 @@ class PngEncoder {
         private fun resizeByteArray(array: ByteArray, newLength: Int): ByteArray {
             val newArray = ByteArray(newLength)
             val oldLength = array.size
-            System.arraycopy(array, 0, newArray, 0, Math.min(oldLength, newLength))
+            System.arraycopy(array, 0, newArray, 0, min(oldLength, newLength))
             return newArray
         }
 
@@ -146,9 +148,9 @@ class PngEncoder {
          * @return The next place to be written to in the pngBytes array.
          */
         private fun writeBytes(data: ByteArray, offset: Int): Int {
-            maxPos = Math.max(maxPos, offset + data.size)
+            maxPos = max(maxPos, offset + data.size)
             if (data.size + offset > pngBytes!!.size) {
-                pngBytes = resizeByteArray(pngBytes!!, pngBytes!!.size + Math.max(1000, data.size))
+                pngBytes = resizeByteArray(pngBytes!!, pngBytes!!.size + max(1000, data.size))
             }
             System.arraycopy(data, 0, pngBytes!!, offset, data.size)
             return offset + data.size
@@ -167,9 +169,9 @@ class PngEncoder {
          * @return The next place to be written to in the pngBytes array.
          */
         private fun writeBytes(data: ByteArray, nBytes: Int, offset: Int): Int {
-            maxPos = Math.max(maxPos, offset + nBytes)
+            maxPos = max(maxPos, offset + nBytes)
             if (nBytes + offset > pngBytes!!.size) {
-                pngBytes = resizeByteArray(pngBytes!!, pngBytes!!.size + Math.max(1000, nBytes))
+                pngBytes = resizeByteArray(pngBytes!!, pngBytes!!.size + max(1000, nBytes))
             }
             System.arraycopy(data, 0, pngBytes!!, offset, nBytes)
             return offset + nBytes
@@ -317,8 +319,8 @@ class PngEncoder {
             val compBytes = DeflaterOutputStream(outBytes, scrunch)
             try {
                 while (rowsLeft > 0) {
-                    nRows = Math.min(32767 / (width * (bytesPerPixel + 1)), rowsLeft)
-                    nRows = Math.max(nRows, 1)
+                    nRows = min(32767 / (width * (bytesPerPixel + 1)), rowsLeft)
+                    nRows = max(nRows, 1)
 
                     val pixels = IntArray(width * nRows)
 

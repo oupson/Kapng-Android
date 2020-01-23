@@ -7,7 +7,6 @@ import oupson.apng.utils.Utils
 import oupson.apng.utils.Utils.Companion.IDAT
 import oupson.apng.utils.Utils.Companion.IHDR
 import oupson.apng.utils.Utils.Companion.isPng
-import java.util.*
 
 /**
  * A frame of the APNG
@@ -82,7 +81,7 @@ class Frame// Get width and height for image
      * @param byteArray The frame 
      */
     private fun parseChunk(byteArray: ByteArray) {
-        when(Arrays.toString(byteArray.copyOfRange(4, 8))) {
+        when(byteArray.copyOfRange(4, 8).contentToString()) {
             IHDR -> {
                 ihdr = IHDR()
                 ihdr.parse(byteArray)

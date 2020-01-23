@@ -12,9 +12,9 @@ import androidx.core.content.ContextCompat
 import org.jetbrains.anko.backgroundColor
 import org.jetbrains.anko.imageView
 import org.jetbrains.anko.matchParent
-import org.jetbrains.anko.sdk27.coroutines.onClick
 import org.jetbrains.anko.verticalLayout
-import oupson.apng.loadApng
+import oupson.apng.CustomAnimationDrawable
+import oupson.apng.ExperimentalApngDecoder
 
 class Main2Activity : AppCompatActivity() {
     private lateinit var imageView : ImageView
@@ -50,7 +50,12 @@ class Main2Activity : AppCompatActivity() {
 
     private fun load() {
         val uri = intent.data ?: return
-        val animator = imageView.loadApng(uri, null)
+        //val animator = imageView.loadApng(uri, null)
+        val drawable = ExperimentalApngDecoder.decodeApng(this, uri)
+        imageView.setImageDrawable(drawable)
+        if (drawable is CustomAnimationDrawable)
+            drawable.start()
+        /**
         imageView.onClick {
             try {
                 if (animator.isApng) {
@@ -64,6 +69,7 @@ class Main2Activity : AppCompatActivity() {
                 e.printStackTrace()
             }
         }
+        */
     }
 
     override fun onRequestPermissionsResult(requestCode: Int,

@@ -1,6 +1,8 @@
 package oupson.apng
 
 import android.content.Context
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.IOException
@@ -16,11 +18,11 @@ class Loader {
          */
         @Suppress("RedundantSuspendModifier")
         @Throws(IOException::class)
-        suspend fun load(context: Context, url: URL): File {
+        suspend fun load(context: Context, url: URL): File = withContext(Dispatchers.IO) {
             val currentDir = context.filesDir
             val fileTXT = File(currentDir, "apngLoader.txt")
             val filePNG = File(currentDir, "apngLoader.png")
-            return if (fileTXT.exists() && url.toString() == fileTXT.readText()) {
+            if (fileTXT.exists() && url.toString() == fileTXT.readText()) {
                 filePNG
             } else {
                 val connection = url.openConnection()

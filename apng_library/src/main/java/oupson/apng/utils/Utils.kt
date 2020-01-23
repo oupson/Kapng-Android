@@ -1,7 +1,5 @@
 package oupson.apng.utils
 
-import java.util.*
-
 class Utils {
     companion object {
         /**
@@ -148,13 +146,13 @@ class Utils {
             return lengthString.toLong(16).toInt()
         }
 
-        val fcTL : String by lazy { Arrays.toString(byteArrayOf(0x66, 0x63, 0x54, 0x4c)) }
-        val IEND : String by lazy { Arrays.toString(byteArrayOf(0x49, 0x45, 0x4e, 0x44)) }
-        val IDAT : String by lazy { Arrays.toString(byteArrayOf(0x49, 0x44, 0x41, 0x54)) }
-        val fdAT : String by lazy { Arrays.toString(byteArrayOf(0x66, 0x64, 0x41, 0x54)) }
-        val plte : String by lazy { Arrays.toString(byteArrayOf(0x50, 0x4c, 0x54, 0x45)) }
-        val tnrs : String by lazy { Arrays.toString(byteArrayOf(0x74, 0x52, 0x4e, 0x53)) }
-        val IHDR : String by lazy { Arrays.toString(byteArrayOf(0x49, 0x48, 0x44, 0x52)) }
-        val acTL : String by lazy { Arrays.toString(byteArrayOf(0x61, 0x63, 0x54, 0x4c)) }
+        val fcTL : String by lazy { byteArrayOf(0x66, 0x63, 0x54, 0x4c).contentToString() }
+        val IEND : String by lazy { byteArrayOf(0x49, 0x45, 0x4e, 0x44).contentToString() }
+        val IDAT : String by lazy { byteArrayOf(0x49, 0x44, 0x41, 0x54).contentToString() }
+        val fdAT : String by lazy { byteArrayOf(0x66, 0x64, 0x41, 0x54).contentToString() }
+        val plte : String by lazy { byteArrayOf(0x50, 0x4c, 0x54, 0x45).contentToString() }
+        val tnrs : String by lazy { byteArrayOf(0x74, 0x52, 0x4e, 0x53).contentToString() }
+        val IHDR : String by lazy { byteArrayOf(0x49, 0x48, 0x44, 0x52).contentToString() }
+        val acTL : String by lazy { byteArrayOf(0x61, 0x63, 0x54, 0x4c).contentToString() }
     }
 }

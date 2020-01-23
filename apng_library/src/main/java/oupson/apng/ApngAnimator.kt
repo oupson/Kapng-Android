@@ -92,8 +92,10 @@ fun ImageView.loadApng(@RawRes res : Int, speed : Float? = null, apngAnimatorOpt
 
 /**
  * Class to play APNG
+ * For better performance but lesser features use [ExperimentalApngDecoder] instead
  */
 class ApngAnimator(private val context: Context?) {
+    @Suppress("MemberVisibilityCanBePrivate")
     var isPlaying = true
         private set
 
@@ -165,7 +167,7 @@ class ApngAnimator(private val context: Context?) {
      */
     @JvmOverloads
     fun load(file: File, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) : ApngAnimator {
-        GlobalScope.launch {
+        GlobalScope.launch(Dispatchers.IO) {
             val input = file.inputStream()
             val bytes = ByteArray(8)
             input.read(bytes)
@@ -214,7 +216,7 @@ class ApngAnimator(private val context: Context?) {
      */
     @JvmOverloads
     fun load(uri : Uri, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) : ApngAnimator {
-        GlobalScope.launch {
+        GlobalScope.launch(Dispatchers.IO) {
             val input = context!!.contentResolver.openInputStream(uri)!!
             val bytes = ByteArray(8)
             input.read(bytes)
@@ -264,7 +266,7 @@ class ApngAnimator(private val context: Context?) {
      */
     @JvmOverloads
     fun loadUrl(url: URL, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) : ApngAnimator {
-        GlobalScope.launch {
+        GlobalScope.launch(Dispatchers.IO) {
             this@ApngAnimator.speed = speed
             // Download PNG
             Loader.load(context!!, url).apply {
@@ -330,7 +332,7 @@ class ApngAnimator(private val context: Context?) {
      */
     @JvmOverloads
     fun load(string: String, speed : Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) : ApngAnimator {
-        GlobalScope.launch {
+        GlobalScope.launch(Dispatchers.IO) {
             this@ApngAnimator.speed = speed
             if (string.contains("http") || string.contains("https")) {
                 val url = URL(string)
