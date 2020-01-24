@@ -128,8 +128,9 @@ class APNGDisassembler {
             val crc = CRC32()
             crc.update(byteArray.copyOfRange(i, byteArray.size - 4))
             if (chunkCRC == crc.value.toInt()) {
-                when (byteArray.copyOfRange(i, i + 4).contentToString()) {
-                    Utils.fcTL -> {
+                val name= byteArray.copyOfRange(i, i + 4)
+                when {
+                    name.contentEquals(Utils.fcTL) -> {
                         if (png == null) {
                             cover?.let {
                                 it.addAll(to4Bytes(0).asList())
@@ -198,7 +199,7 @@ class APNGDisassembler {
                             }
                         }
                     }
-                    Utils.IEND -> {
+                    name.contentEquals(Utils.IEND) -> {
                         if (isApng) {
                             png?.addAll(to4Bytes(0).asList())
                             // Add IEND
@@ -235,7 +236,7 @@ class APNGDisassembler {
                             apng.isApng = false
                         }
                     }
-                    Utils.IDAT -> {
+                    name.contentEquals(Utils.IDAT) -> {
                         if (png == null) {
                             if (cover == null) {
                                 cover = ArrayList()
@@ -267,7 +268,7 @@ class APNGDisassembler {
                             png?.addAll(to4Bytes(crC32.value.toInt()).asList())
                         }
                     }
-                    Utils.fdAT -> {
+                    name.contentEquals(Utils.fdAT) -> {
                         // Find the chunk length
                         val bodySize = parseLength(byteArray.copyOfRange(i - 4, i))
                         png?.addAll(to4Bytes(bodySize - 4).asList())
@@ -280,18 +281,18 @@ class APNGDisassembler {
                         png?.addAll(body)
                         png?.addAll(to4Bytes(crC32.value.toInt()).asList())
                     }
-                    Utils.plte -> {
+                    name.contentEquals(Utils.plte) -> {
                         plte = byteArray
                     }
-                    Utils.tnrs -> {
+                    name.contentEquals(Utils.tnrs) -> {
                         tnrs = byteArray
                     }
-                    Utils.IHDR -> {
+                    name.contentEquals(Utils.IHDR) -> {
                         ihdr.parse(byteArray)
                         maxWidth = ihdr.pngWidth
                         maxHeight = ihdr.pngHeight
                     }
-                    Utils.acTL -> {
+                    name.contentEquals(Utils.acTL) -> {
                         isApng = true
                     }
                 }

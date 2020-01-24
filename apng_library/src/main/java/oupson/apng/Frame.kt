@@ -81,18 +81,16 @@ class Frame// Get width and height for image
      * @param byteArray The frame 
      */
     private fun parseChunk(byteArray: ByteArray) {
-        when(byteArray.copyOfRange(4, 8).contentToString()) {
-            IHDR -> {
-                ihdr = IHDR()
-                ihdr.parse(byteArray)
-                width = ihdr.pngWidth
-                height = ihdr.pngHeight
-            }
-            IDAT -> {
-                // Get IDAT Bytes
-                idat = IDAT()
-                idat.parse(byteArray)
-            }
+        val name = byteArray.copyOfRange(4, 8)
+        if (name.contentEquals(IHDR)) {
+            ihdr = IHDR()
+            ihdr.parse(byteArray)
+            width = ihdr.pngWidth
+            height = ihdr.pngHeight
+        } else if (name.contentEquals(IDAT)){
+            // Get IDAT Bytes
+            idat = IDAT()
+            idat.parse(byteArray)
         }
     }
 }

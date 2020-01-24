@@ -2,32 +2,23 @@ package oupson.apngcreator
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.graphics.Color
 import android.os.Bundle
 import android.view.View
-import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import org.jetbrains.anko.backgroundColor
-import org.jetbrains.anko.imageView
-import org.jetbrains.anko.matchParent
-import org.jetbrains.anko.verticalLayout
+import kotlinx.android.synthetic.main.activity_viewer.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import oupson.apng.CustomAnimationDrawable
 import oupson.apng.ExperimentalApngDecoder
 
-class Main2Activity : AppCompatActivity() {
-    private lateinit var imageView : ImageView
+class ViewerActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_viewer)
 
-        verticalLayout {
-            imageView = imageView().lparams {
-                width = matchParent
-                height = matchParent
-            }
-            backgroundColor = Color.parseColor("#323232")
-        }
         window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                 or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                 or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
@@ -50,26 +41,15 @@ class Main2Activity : AppCompatActivity() {
 
     private fun load() {
         val uri = intent.data ?: return
-        //val animator = imageView.loadApng(uri, null)
-        val drawable = ExperimentalApngDecoder.decodeApng(this, uri)
-        imageView.setImageDrawable(drawable)
-        if (drawable is CustomAnimationDrawable)
-            drawable.start()
-        /**
-        imageView.onClick {
-            try {
-                if (animator.isApng) {
-                    if (animator.isPlaying) {
-                        animator.pause()
-                    } else {
-                        animator.play()
-                    }
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
+        GlobalScope.launch(Dispatchers.IO) {
+            //val animator = imageView.loadApng(uri, null)
+            val drawable = ExperimentalApngDecoder.decodeApng(this@ViewerActivity, uri)
+            GlobalScope.launch(Dispatchers.Main) {
+                viewerImageView.setImageDrawable(drawable)
+                if (drawable is CustomAnimationDrawable)
+                    drawable.start()
             }
         }
-        */
     }
 
     override fun onRequestPermissionsResult(requestCode: Int,

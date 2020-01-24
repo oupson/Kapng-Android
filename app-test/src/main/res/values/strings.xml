@@ -4,4 +4,20 @@
     <string name="create_apng">Create APNG</string>
     <string name="java_activity">Java Activity</string>
     <string name="apng_imageView">An ImageView with an APNG</string>
+
+    <string name="description_viewer_imageView">Loaded Image</string>
+
+    <string name="title_playButton">Play</string>
+    <string name="title_pauseButton">Pause</string>
+
+    <string name="menu_title_kotlin_activity">Kotlin Activity</string>
+    <string name="menu_title_java_activity">Java Activity</string>
+
+    <string name="create">Create</string>
+
+    <string name="open">open</string>
+    <string name="close">close</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

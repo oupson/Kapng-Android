@@ -7,7 +7,11 @@ class Utils {
          * @return [Boolean] True if is a png
          */
         fun isPng(byteArray: ByteArray): Boolean {
-            return byteArray.copyOfRange(0, 8).contentToString() == pngSignature.contentToString()
+            // return byteArray.copyOfRange(0, 8).contentToString() == pngSignature.contentToString()
+            return if (byteArray.size == 8)
+                byteArray.contentEquals(pngSignature)
+            else
+                byteArray.copyOfRange(0, 8).contentEquals(pngSignature)
         }
 
         /**
@@ -146,13 +150,13 @@ class Utils {
             return lengthString.toLong(16).toInt()
         }
 
-        val fcTL : String by lazy { byteArrayOf(0x66, 0x63, 0x54, 0x4c).contentToString() }
-        val IEND : String by lazy { byteArrayOf(0x49, 0x45, 0x4e, 0x44).contentToString() }
-        val IDAT : String by lazy { byteArrayOf(0x49, 0x44, 0x41, 0x54).contentToString() }
-        val fdAT : String by lazy { byteArrayOf(0x66, 0x64, 0x41, 0x54).contentToString() }
-        val plte : String by lazy { byteArrayOf(0x50, 0x4c, 0x54, 0x45).contentToString() }
-        val tnrs : String by lazy { byteArrayOf(0x74, 0x52, 0x4e, 0x53).contentToString() }
-        val IHDR : String by lazy { byteArrayOf(0x49, 0x48, 0x44, 0x52).contentToString() }
-        val acTL : String by lazy { byteArrayOf(0x61, 0x63, 0x54, 0x4c).contentToString() }
+        val fcTL : ByteArray by lazy { byteArrayOf(0x66, 0x63, 0x54, 0x4c) }
+        val IEND : ByteArray by lazy { byteArrayOf(0x49, 0x45, 0x4e, 0x44) }
+        val IDAT : ByteArray by lazy { byteArrayOf(0x49, 0x44, 0x41, 0x54) }
+        val fdAT : ByteArray by lazy { byteArrayOf(0x66, 0x64, 0x41, 0x54) }
+        val plte : ByteArray by lazy { byteArrayOf(0x50, 0x4c, 0x54, 0x45) }
+        val tnrs : ByteArray by lazy { byteArrayOf(0x74, 0x52, 0x4e, 0x53) }
+        val IHDR : ByteArray by lazy { byteArrayOf(0x49, 0x48, 0x44, 0x52) }
+        val acTL : ByteArray by lazy { byteArrayOf(0x61, 0x63, 0x54, 0x4c) }
     }
 }

@@ -41,6 +41,7 @@ class ExperimentalApngDecoder {
          * @param speed Optional parameter.
          */
         @Suppress("MemberVisibilityCanBePrivate")
+        @JvmStatic
         fun decodeApng(inStream: InputStream, speed : Float = 1f) : Drawable {
             val inputStream = BufferedInputStream(inStream)
             val bytes = ByteArray(8)
@@ -85,8 +86,9 @@ class ExperimentalApngDecoder {
                     val crc = CRC32()
                     crc.update(byteArray.copyOfRange(i, byteArray.size - 4))
                     if (chunkCRC == crc.value.toInt()) {
-                        when (byteArray.copyOfRange(i, i + 4).contentToString()) {
-                            Utils.fcTL -> {
+                        val name = byteArray.copyOfRange(i, i + 4)
+                        when {
+                            name.contentEquals(Utils.fcTL) -> {
                                 if (png == null) {
                                     cover?.let {
                                         it.addAll(Utils.to4Bytes(0).asList())
@@ -184,7 +186,7 @@ class ExperimentalApngDecoder {
                                     }
                                 }
                             }
-                            Utils.IEND -> {
+                            name.contentEquals(Utils.IEND) -> {
                                 if (isApng && png != null) {
                                     png.addAll(Utils.to4Bytes(0).asList())
                                     // Add IEND
@@ -239,7 +241,7 @@ class ExperimentalApngDecoder {
                                     }
                                 }
                             }
-                            Utils.IDAT -> {
+                            name.contentEquals(Utils.IDAT) -> {
                                 if (png == null) {
                                     if (cover == null) {
                                         cover = ArrayList()
@@ -275,7 +277,7 @@ class ExperimentalApngDecoder {
                                     png.addAll(Utils.to4Bytes(crC32.value.toInt()).asList())
                                 }
                             }
-                            Utils.fdAT -> {
+                            name.contentEquals(Utils.fdAT) -> {
                                 // Find the chunk length
                                 val bodySize = Utils.parseLength(byteArray.copyOfRange(i - 4, i))
                                 png?.addAll(Utils.to4Bytes(bodySize - 4).asList())
@@ -288,19 +290,19 @@ class ExperimentalApngDecoder {
                                 png?.addAll(body)
                                 png?.addAll(Utils.to4Bytes(crC32.value.toInt()).asList())
                             }
-                            Utils.plte -> {
+                            name.contentEquals(Utils.plte) -> {
                                 plte = byteArray
                             }
-                            Utils.tnrs -> {
+                            name.contentEquals(Utils.tnrs) -> {
                                 tnrs = byteArray
                             }
-                            Utils.IHDR -> {
+                            name.contentEquals(Utils.IHDR) -> {
                                 ihdr.parse(byteArray)
                                 maxWidth = ihdr.pngWidth
                                 maxHeight =ihdr.pngHeight
                                 buffer = Bitmap.createBitmap(maxWidth, maxHeight, Bitmap.Config.ARGB_8888)
                             }
-                            Utils.acTL -> {
+                            name.contentEquals(Utils.acTL) -> {
                                 isApng = true
                             }
                         }
@@ -325,6 +327,7 @@ class ExperimentalApngDecoder {
          * @param speed Optional parameter.
          */
         @Suppress("unused")
+        @JvmStatic
         fun decodeApng(file : File, speed: Float = 1f) : Drawable = decodeApng(FileInputStream(file), speed)
 
         /**
@@ -333,6 +336,7 @@ class ExperimentalApngDecoder {
          * @param uri Uri to open.
          * @param speed Optional parameter.
          */
+        @JvmStatic
         fun decodeApng(context : Context, uri : Uri, speed: Float = 1f) : Drawable {
             val inputStream = context.contentResolver.openInputStream(uri)
                 ?: throw Exception("Failed to open InputStream, InputStream is null")
@@ -346,6 +350,7 @@ class ExperimentalApngDecoder {
          * @param speed Optional parameter.
          */
         @Suppress("unused")
+        @JvmStatic
         fun decodeApng(context : Context, @RawRes res : Int, speed: Float = 1f) : Drawable = decodeApng(context.resources.openRawResource(res), speed)
 
         /**
@@ -354,6 +359,8 @@ class ExperimentalApngDecoder {
          * @param url URL to decode.
          * @param speed Optional parameter.
          */
+        @Suppress("unused")
+        @JvmStatic
         suspend fun decodeApng(context : Context, url : URL, speed: Float = 1f) = withContext(Dispatchers.IO) {
             decodeApng(FileInputStream(Loader.load(context, url)), speed)
         }

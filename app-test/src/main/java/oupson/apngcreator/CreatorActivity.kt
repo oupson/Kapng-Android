@@ -23,6 +23,7 @@ import oupson.apng.ApngAnimator
 import oupson.apngcreator.adapter.AnkoAdapter
 import java.io.File
 
+// TODO
 class CreatorActivity : AppCompatActivity() {
     companion object {
         private const val PICK_IMAGE = 999
@@ -112,11 +113,11 @@ class CreatorActivity : AppCompatActivity() {
 }
 
 class CreatorActivityLayout : AnkoComponent<CreatorActivity> {
-    lateinit var listView : ListView
-    lateinit var addFrameButton : FloatingActionButton
-    lateinit var createButton : FloatingActionButton
-    lateinit var optimiseCheckBox : CheckBox
-    lateinit var toolbar : Toolbar
+    lateinit var listView: ListView
+    lateinit var addFrameButton: FloatingActionButton
+    lateinit var createButton: FloatingActionButton
+    lateinit var optimiseCheckBox: CheckBox
+    lateinit var toolbar: Toolbar
     override fun createView(ui: AnkoContext<CreatorActivity>) = with(ui) {
         relativeLayout {
             backgroundColor = Color.WHITE
@@ -124,57 +125,58 @@ class CreatorActivityLayout : AnkoComponent<CreatorActivity> {
                 id = View.generateViewId()
                 backgroundColor = Color.WHITE
                 appBarLayout {
-                    toolbar = xToolbar {
-                        id = View.generateViewId()
+                    /**toolbar = xToolbar {
+                    id = View.generateViewId()
                     }.lparams {
-                        width = matchParent
-                        height = wrapContent
+                    width = matchParent
+                    height = wrapContent
                     }
-                }.lparams {
+                    }.lparams {
                     width = matchParent
                     height = wrapContent
                     bottomMargin = 1
+                    }*/
+                }.lparams {
+                    width = matchParent
+                    height = wrapContent
                 }
-            }.lparams {
-                width = matchParent
-                height = wrapContent
-            }
-            optimiseCheckBox = checkBox("Optimise APNG, WIP !") {
-                id = View.generateViewId()
-            }.lparams {
-                width = matchParent
-                below(bar)
-            }
-            listView = listView {
-                id = View.generateViewId()
-            }.lparams {
-                width = matchParent
-                height = matchParent
-                below(optimiseCheckBox)
-            }
-            addFrameButton = floatingActionButton {
-                imageResource = R.drawable.ic_add_black_24dp
-                imageTintList = ColorStateList.valueOf(Color.WHITE)
-                backgroundTintList = ColorStateList.valueOf(Color.BLACK)
-                isClickable = true
-            }.lparams {
-                width = wrapContent
-                height = wrapContent
-                margin = dip(5)
-                alignParentBottom()
-                alignParentEnd()
-            }
-            createButton = floatingActionButton {
-                imageResource = R.drawable.ic_play_arrow_black_24dp
-                imageTintList = ColorStateList.valueOf(Color.WHITE)
-                backgroundTintList = ColorStateList.valueOf(Color.BLACK)
-                isClickable = true
-            }.lparams {
-                width = wrapContent
-                height = wrapContent
-                margin = dip(5)
-                alignParentBottom()
-                alignParentStart()
+                optimiseCheckBox = checkBox("Optimise APNG, WIP !") {
+                    id = View.generateViewId()
+                }.lparams {
+                    width = matchParent
+                    //below(bar)
+                }
+                listView = listView {
+                    id = View.generateViewId()
+                }.lparams {
+                    width = matchParent
+                    height = matchParent
+                    //below(optimiseCheckBox)
+                }
+                addFrameButton = floatingActionButton {
+                    imageResource = R.drawable.ic_add_black_24dp
+                    imageTintList = ColorStateList.valueOf(Color.WHITE)
+                    backgroundTintList = ColorStateList.valueOf(Color.BLACK)
+                    isClickable = true
+                }.lparams {
+                    width = wrapContent
+                    height = wrapContent
+                    margin = dip(5)
+                    //alignParentBottom()
+                    //alignParentEnd()
+                }
+                createButton = floatingActionButton {
+                    imageResource = R.drawable.ic_play_arrow_black_24dp
+                    imageTintList = ColorStateList.valueOf(Color.WHITE)
+                    backgroundTintList = ColorStateList.valueOf(Color.BLACK)
+                    isClickable = true
+                }.lparams {
+                    width = wrapContent
+                    height = wrapContent
+                    margin = dip(5)
+                    //alignParentBottom()
+                    //alignParentStart()
+                }
             }
         }
     }

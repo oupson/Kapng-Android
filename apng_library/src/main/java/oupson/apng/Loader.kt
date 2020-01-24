@@ -16,7 +16,6 @@ class Loader {
          * @param url Url of the file to download
          * @return [ByteArray] of the file
          */
-        @Suppress("RedundantSuspendModifier")
         @Throws(IOException::class)
         suspend fun load(context: Context, url: URL): File = withContext(Dispatchers.IO) {
             val currentDir = context.filesDir
