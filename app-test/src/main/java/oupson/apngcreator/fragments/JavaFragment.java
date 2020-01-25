@@ -14,7 +14,7 @@ import androidx.fragment.app.Fragment;
 
 import org.jetbrains.annotations.NotNull;
 
-import oupson.apng.ApngDecoder;
+import oupson.apng.decoder.ApngDecoder;
 import oupson.apngcreator.R;
 
 

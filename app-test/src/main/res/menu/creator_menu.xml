@@ -8,4 +8,11 @@
             android:title="@string/create"
             app:showAsAction="ifRoom"
             app:iconTint="@color/control"/>
+
+    <item
+            android:id="@+id/menu_share_apng"
+            android:icon="@drawable/ic_share_share_24dp"
+            android:title="@string/share"
+            app:showAsAction="ifRoom"
+            app:iconTint="@color/control"/>
 </menu>

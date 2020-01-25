@@ -9,7 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.fragment.app.Fragment
-import oupson.apng.ApngDecoder
+import oupson.apng.decoder.ApngDecoder
 import oupson.apngcreator.BuildConfig
 import oupson.apngcreator.R
 import java.net.URL

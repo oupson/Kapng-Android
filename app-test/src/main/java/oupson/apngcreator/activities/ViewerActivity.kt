@@ -2,17 +2,16 @@ package oupson.apngcreator.activities
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import kotlinx.android.synthetic.main.activity_viewer.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import oupson.apng.ApngDecoder
-import oupson.apng.CustomAnimationDrawable
+import oupson.apng.decoder.ApngDecoder
+import oupson.apngcreator.BuildConfig
 import oupson.apngcreator.R
 
 class ViewerActivity : AppCompatActivity() {
@@ -42,15 +41,13 @@ class ViewerActivity : AppCompatActivity() {
 
     private fun load() {
         val uri = intent.data ?: return
-        GlobalScope.launch(Dispatchers.IO) {
-            //val animator = imageView.loadApng(uri, null)
-            val drawable = ApngDecoder.decodeApng(this@ViewerActivity, uri)
-            GlobalScope.launch(Dispatchers.Main) {
-                viewerImageView.setImageDrawable(drawable)
-                if (drawable is CustomAnimationDrawable)
-                    drawable.start()
+        ApngDecoder.decodeApngAsyncInto(this, uri, viewerImageView, callback = object : ApngDecoder.Callback {
+            override fun onSuccess(drawable: Drawable) {}
+            override fun onError(error: Exception) {
+                if (BuildConfig.DEBUG)
+                    Log.e("ViewerActivity", "Error when loading file", error)
             }
-        }
+        })
     }
 
     override fun onRequestPermissionsResult(requestCode: Int,

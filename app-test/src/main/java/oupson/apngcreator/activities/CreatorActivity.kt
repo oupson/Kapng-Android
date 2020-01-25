@@ -13,11 +13,12 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.activity_creator.*
-import oupson.apng.Apng
+import oupson.apng.encoder.ApngEncoder
 import oupson.apngcreator.BuildConfig
 import oupson.apngcreator.R
 import oupson.apngcreator.adapter.ImageAdapter
 import java.io.File
+import java.io.FileOutputStream
 
 class CreatorActivity : AppCompatActivity() {
     companion object {
@@ -35,13 +36,7 @@ class CreatorActivity : AppCompatActivity() {
             val getIntent = Intent(Intent.ACTION_GET_CONTENT)
             getIntent.type = "image/*"
 
-            val pickIntent = Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-            pickIntent.type = "image/*"
-
-            val chooserIntent = Intent.createChooser(getIntent, "Select Image")
-            chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, arrayOf(pickIntent))
-
-            startActivityForResult(chooserIntent,
+            startActivityForResult(getIntent,
                 PICK_IMAGE
             )
         }
@@ -68,38 +63,94 @@ class CreatorActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         return when (item?.itemId) {
             R.id.menu_create_apng -> {
-                // TODO
-                val apngCreated = Apng()
-
-                items.forEachIndexed { i, uri ->
-                    println("delay : ${adapter?.delay?.get(i)?.toFloat() ?: 1000f}ms")
-                    val str = contentResolver.openInputStream(uri)
-                    apngCreated.addFrames(BitmapFactory.decodeStream(str), delay = adapter?.delay?.get(i)?.toFloat() ?: 1000f)
-                    str?.close()
-                }
-
-                File(cacheDir, "apn0.png").writeBytes(apngCreated.toByteArray())
-
-                apngCreated.apply {
-                    // TODO
-                    //if (view.optimiseCheckBox.isChecked)
-                    //    apngCreated.optimiseFrame()
-                }
-
-                // TODO Open
-                val f = File(filesDir, "images/apng.png").apply {
-                    if (!exists()) {
-                        parentFile.mkdirs()
-                        println(createNewFile())
+                if (items.size > 0) {
+                    val f = File(filesDir, "images/apng.png").apply {
+                        if (!exists()) {
+                            parentFile.mkdirs()
+                            println(createNewFile())
+                        }
                     }
-                    writeBytes(apngCreated.toByteArray())
+                    val out = FileOutputStream(f)
+                    var maxWidth = 0
+                    var maxHeight = 0
+                    items.forEach {
+                        val str = contentResolver.openInputStream(it)
+                        val btm = BitmapFactory.decodeStream(str)
+                        if (btm.width > maxWidth)
+                            maxWidth = btm.width
+                        else if(btm.height > maxHeight)
+                            maxHeight = btm.height
+                        str?.close()
+                    }
+
+                    val encoder = ApngEncoder(out, maxWidth, maxHeight, items.size)
+                    items.forEachIndexed { i, uri ->
+                        println("delay : ${adapter?.delay?.get(i)?.toFloat() ?: 1000f}ms")
+                        val str = contentResolver.openInputStream(uri) ?: return@forEachIndexed
+                        encoder.writeFrame(
+                            str,
+                            delay = adapter?.delay?.get(i)?.toFloat() ?: 1000f
+                        )
+                    }
+
+                    encoder.writeEnd()
+                    out.close()
+
+                    val intent = Intent(Intent.ACTION_VIEW)
+                    intent.data = FileProvider.getUriForFile(
+                        this,
+                        "${BuildConfig.APPLICATION_ID}.provider",
+                        f
+                    )
+                    startActivity(intent)
                 }
+                true
+            }
+            R.id.menu_share_apng -> {
+                if (items.size > 0) {
+                    val f = File(filesDir, "images/apng.png").apply {
+                        if (!exists()) {
+                            parentFile.mkdirs()
+                            println(createNewFile())
+                        }
+                    }
+                    val out = FileOutputStream(f)
+                    var maxWidth = 0
+                    var maxHeight = 0
+                    items.forEach {
+                        val str = contentResolver.openInputStream(it)
+                        val btm = BitmapFactory.decodeStream(str)
+                        if (btm.width > maxWidth)
+                            maxWidth = btm.width
+                        else if(btm.height > maxHeight)
+                            maxHeight = btm.height
+                        str?.close()
+                    }
 
+                    val encoder = ApngEncoder(out, maxWidth, maxHeight, items.size)
+                    items.forEachIndexed { i, uri ->
+                        println("delay : ${adapter?.delay?.get(i)?.toFloat() ?: 1000f}ms")
+                        val str = contentResolver.openInputStream(uri) ?: return@forEachIndexed
+                        encoder.writeFrame(
+                            str,
+                            delay = adapter?.delay?.get(i)?.toFloat() ?: 1000f
+                        )
+                    }
 
-                val intent = Intent(Intent.ACTION_VIEW)
-                intent.data = FileProvider.getUriForFile(this, "${BuildConfig.APPLICATION_ID}.provider", f)
-                startActivity(intent)
+                    encoder.writeEnd()
+                    out.close()
 
+                    val intent = Intent().apply {
+                        action = Intent.ACTION_SEND
+                        putExtra(Intent.EXTRA_STREAM, FileProvider.getUriForFile(
+                            this@CreatorActivity,
+                            "${BuildConfig.APPLICATION_ID}.provider",
+                            f
+                        ))
+                        type = "image/png"
+                    }
+                    startActivity(Intent.createChooser(intent, resources.getText(R.string.share)))
+                }
                 true
             }
             else -> super.onOptionsItemSelected(item)

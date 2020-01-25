@@ -1,4 +1,4 @@
-package oupson.apng
+package oupson.apng.decoder
 
 import android.content.Context
 import android.graphics.*
@@ -11,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import oupson.apng.*
 import oupson.apng.chunks.IHDR
 import oupson.apng.chunks.fcTL
 import oupson.apng.exceptions.BadApng
@@ -125,7 +126,12 @@ class ApngDecoder {
                                     }
 
                                     png.addAll(Utils.pngSignature.asList())
-                                    png.addAll(generateIhdr(ihdr, width, height).asList())
+                                    png.addAll(
+                                        generateIhdr(
+                                            ihdr,
+                                            width,
+                                            height
+                                        ).asList())
                                     plte?.let {
                                         png?.addAll(it.asList())
                                     }
@@ -149,11 +155,16 @@ class ApngDecoder {
                                     canvas.drawBitmap(buffer!!, 0f, 0f, null)
 
                                     if (blendOp == Utils.Companion.BlendOp.APNG_BLEND_OP_SOURCE) {
-                                        canvas.drawRect(xOffset.toFloat(), yOffset.toFloat(), xOffset+ decoded.width.toFloat(), yOffset + decoded.height.toFloat(), clearPaint)
+                                        canvas.drawRect(xOffset.toFloat(), yOffset.toFloat(), xOffset+ decoded.width.toFloat(), yOffset + decoded.height.toFloat(),
+                                            clearPaint
+                                        )
                                     }
 
                                     canvas.drawBitmap(decoded, xOffset.toFloat(), yOffset.toFloat(), null)
-                                    drawable.addFrame(BitmapDrawable(btm), (delay / speed).toInt())
+                                    drawable.addFrame(
+                                        BitmapDrawable(
+                                            btm
+                                        ), (delay / speed).toInt())
 
                                     when(disposeOp) {
                                         Utils.Companion.DisposeOp.APNG_DISPOSE_OP_PREVIOUS -> {
@@ -165,7 +176,9 @@ class ApngDecoder {
                                             val res = Bitmap.createBitmap(maxWidth, maxHeight, Bitmap.Config.ARGB_8888)
                                             val can = Canvas(res)
                                             can.drawBitmap(btm, 0f, 0f, null)
-                                            can.drawRect(xOffset.toFloat(), yOffset.toFloat(), xOffset + decoded.width.toFloat(), yOffset + decoded.height.toFloat(), clearPaint)
+                                            can.drawRect(xOffset.toFloat(), yOffset.toFloat(), xOffset + decoded.width.toFloat(), yOffset + decoded.height.toFloat(),
+                                                clearPaint
+                                            )
                                             buffer = res
                                         }
                                         else -> buffer = btm
@@ -183,7 +196,12 @@ class ApngDecoder {
                                     val width = fcTL.pngWidth
                                     val height = fcTL.pngHeight
                                     png.addAll(Utils.pngSignature.asList())
-                                    png.addAll(generateIhdr(ihdr, width, height).asList())
+                                    png.addAll(
+                                        generateIhdr(
+                                            ihdr,
+                                            width,
+                                            height
+                                        ).asList())
                                     plte?.let {
                                         png.addAll(it.asList())
                                     }
@@ -210,11 +228,16 @@ class ApngDecoder {
                                     canvas.drawBitmap(buffer!!, 0f, 0f, null)
 
                                     if (blendOp == Utils.Companion.BlendOp.APNG_BLEND_OP_SOURCE) {
-                                        canvas.drawRect(xOffset.toFloat(), yOffset.toFloat(), xOffset+ decoded.width.toFloat(), yOffset + decoded.height.toFloat(), clearPaint)
+                                        canvas.drawRect(xOffset.toFloat(), yOffset.toFloat(), xOffset+ decoded.width.toFloat(), yOffset + decoded.height.toFloat(),
+                                            clearPaint
+                                        )
                                     }
 
                                     canvas.drawBitmap(decoded, xOffset.toFloat(), yOffset.toFloat(), null)
-                                    drawable.addFrame(BitmapDrawable(btm), (delay / speed).toInt())
+                                    drawable.addFrame(
+                                        BitmapDrawable(
+                                            btm
+                                        ), (delay / speed).toInt())
 
                                     when(disposeOp) {
                                         Utils.Companion.DisposeOp.APNG_DISPOSE_OP_PREVIOUS -> {
@@ -226,7 +249,9 @@ class ApngDecoder {
                                             val res = Bitmap.createBitmap(maxWidth, maxHeight, Bitmap.Config.ARGB_8888)
                                             val can = Canvas(res)
                                             can.drawBitmap(btm, 0f, 0f, null)
-                                            can.drawRect(xOffset.toFloat(), yOffset.toFloat(), xOffset + decoded.width.toFloat(), yOffset + decoded.height.toFloat(), clearPaint)
+                                            can.drawRect(xOffset.toFloat(), yOffset.toFloat(), xOffset + decoded.width.toFloat(), yOffset + decoded.height.toFloat(),
+                                                clearPaint
+                                            )
                                             buffer = res
                                         }
                                         else -> buffer = btm
@@ -243,7 +268,13 @@ class ApngDecoder {
                                         it.addAll(iend.asList())
                                         it.addAll(Utils.to4Bytes(crC32.value.toInt()).asList())
                                         inputStream.close()
-                                        return BitmapDrawable(BitmapFactory.decodeByteArray(it.toByteArray(), 0, it.size))
+                                        return BitmapDrawable(
+                                            BitmapFactory.decodeByteArray(
+                                                it.toByteArray(),
+                                                0,
+                                                it.size
+                                            )
+                                        )
                                     }
                                 }
                             }
@@ -252,11 +283,12 @@ class ApngDecoder {
                                     if (cover == null) {
                                         cover = ArrayList()
                                         cover.addAll(Utils.pngSignature.asList())
-                                        cover.addAll(generateIhdr(
-                                            ihdr,
-                                            maxWidth,
-                                            maxHeight
-                                        ).asList())
+                                        cover.addAll(
+                                            generateIhdr(
+                                                ihdr,
+                                                maxWidth,
+                                                maxHeight
+                                            ).asList())
                                     }
                                     // Find the chunk length
                                     val bodySize = Utils.parseLength(byteArray.copyOfRange(i - 4, i))
@@ -334,7 +366,10 @@ class ApngDecoder {
          */
         @Suppress("unused")
         @JvmStatic
-        fun decodeApng(file : File, speed: Float = 1f) : Drawable = decodeApng(FileInputStream(file), speed)
+        fun decodeApng(file : File, speed: Float = 1f) : Drawable =
+            decodeApng(
+                FileInputStream(file), speed
+            )
 
         /**
          * Decode Apng and return a Drawable who can be an [CustomAnimationDrawable] if it end successfully.
@@ -346,7 +381,10 @@ class ApngDecoder {
         fun decodeApng(context : Context, uri : Uri, speed: Float = 1f) : Drawable {
             val inputStream = context.contentResolver.openInputStream(uri)
                 ?: throw Exception("Failed to open InputStream, InputStream is null")
-            return decodeApng(inputStream, speed)
+            return decodeApng(
+                inputStream,
+                speed
+            )
         }
 
         /**
@@ -357,7 +395,10 @@ class ApngDecoder {
          */
         @Suppress("unused")
         @JvmStatic
-        fun decodeApng(context : Context, @RawRes res : Int, speed: Float = 1f) : Drawable = decodeApng(context.resources.openRawResource(res), speed)
+        fun decodeApng(context : Context, @RawRes res : Int, speed: Float = 1f) : Drawable =
+            decodeApng(
+                context.resources.openRawResource(res), speed
+            )
 
         /**
          * Decode Apng and return a Drawable who can be an [CustomAnimationDrawable] if it end successfully.
@@ -368,7 +409,11 @@ class ApngDecoder {
         @Suppress("unused")
         @JvmStatic
         suspend fun decodeApng(context : Context, url : URL, speed: Float = 1f) = withContext(Dispatchers.IO) {
-            decodeApng(FileInputStream(Loader.load(context, url)), speed)
+            decodeApng(
+                FileInputStream(
+                    Loader.load(context, url)
+                ), speed
+            )
         }
 
         /**
@@ -384,7 +429,11 @@ class ApngDecoder {
         fun decodeApngAsyncInto(file : File, imageView : ImageView, speed: Float = 1f, callback: Callback? = null) {
             GlobalScope.launch(Dispatchers.IO) {
                 try {
-                    val drawable = decodeApng(FileInputStream(file), speed)
+                    val drawable =
+                        decodeApng(
+                            FileInputStream(file),
+                            speed
+                        )
                     withContext(Dispatchers.Main) {
                         imageView.setImageDrawable(drawable)
                         (drawable as? CustomAnimationDrawable)?.start()
@@ -413,7 +462,11 @@ class ApngDecoder {
             val inputStream = context.contentResolver.openInputStream(uri) ?: throw Exception("Failed to open InputStream, InputStream is null")
             GlobalScope.launch(Dispatchers.IO) {
                 try {
-                    val drawable = decodeApng(inputStream, speed)
+                    val drawable =
+                        decodeApng(
+                            inputStream,
+                            speed
+                        )
                     withContext(Dispatchers.Main) {
                         imageView.setImageDrawable(drawable)
                         (drawable as? CustomAnimationDrawable)?.start()
@@ -441,7 +494,11 @@ class ApngDecoder {
         fun decodeApngAsyncInto(context : Context, @RawRes res : Int, imageView: ImageView, speed: Float = 1f, callback: Callback? = null) {
             GlobalScope.launch(Dispatchers.IO) {
                 try {
-                    val drawable = decodeApng(context.resources.openRawResource(res), speed)
+                    val drawable =
+                        decodeApng(
+                            context.resources.openRawResource(res),
+                            speed
+                        )
                     withContext(Dispatchers.Main) {
                         imageView.setImageDrawable(drawable)
                         (drawable as? CustomAnimationDrawable)?.start()
@@ -470,7 +527,16 @@ class ApngDecoder {
         fun decodeApngAsyncInto(context : Context, url : URL, imageView: ImageView, speed: Float = 1f, callback: Callback? = null) {
             GlobalScope.launch(Dispatchers.IO) {
                 try {
-                    val drawable = decodeApng(FileInputStream(Loader.load(context, url)), speed)
+                    val drawable =
+                        decodeApng(
+                            FileInputStream(
+                                Loader.load(
+                                    context,
+                                    url
+                                )
+                            ),
+                            speed
+                        )
                     withContext(Dispatchers.Main) {
                         imageView.setImageDrawable(drawable)
                         (drawable as? CustomAnimationDrawable)?.start()
@@ -499,13 +565,29 @@ class ApngDecoder {
             GlobalScope.launch(Dispatchers.IO) {
                 try {
                     if (string.startsWith("http://") || string.startsWith("https://")) {
-                        decodeApngAsyncInto(context, URL(string), imageView, speed, callback)
+                        decodeApngAsyncInto(
+                            context,
+                            URL(string),
+                            imageView,
+                            speed,
+                            callback
+                        )
                     } else if(File(string).exists()) {
                         var pathToLoad = if (string.startsWith("content://")) string else "file://$string"
                         pathToLoad = pathToLoad.replace("%", "%25").replace("#", "%23")
-                        decodeApngAsyncInto(context, Uri.parse(pathToLoad), imageView, speed, callback)
+                        decodeApngAsyncInto(
+                            context,
+                            Uri.parse(pathToLoad),
+                            imageView,
+                            speed,
+                            callback
+                        )
                     } else if (string.startsWith("file://android_asset/")) {
-                        val drawable = decodeApng(context.assets.open(string.replace("file:///android_asset/", "")), speed)
+                        val drawable =
+                            decodeApng(
+                                context.assets.open(string.replace("file:///android_asset/", "")),
+                                speed
+                            )
                         withContext(Dispatchers.Main) {
                             imageView.setImageDrawable(drawable)
                             (drawable as? CustomAnimationDrawable)?.start()

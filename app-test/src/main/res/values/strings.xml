@@ -11,6 +11,8 @@
     <string name="menu_title_apng_decoder_fragment">ApngDecoder</string>
 
     <string name="create">Create</string>
+    <string name="share">Share</string>
+    <string name="select_image">Select an image</string>
 
     <string name="open">open</string>
     <string name="close">close</string>
