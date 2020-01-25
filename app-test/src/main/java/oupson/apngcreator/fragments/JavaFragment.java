@@ -1,4 +1,4 @@
-package oupson.apngcreator;
+package oupson.apngcreator.fragments;
 
 
 import android.content.Context;
@@ -14,7 +14,8 @@ import androidx.fragment.app.Fragment;
 
 import org.jetbrains.annotations.NotNull;
 
-import oupson.apng.ExperimentalApngDecoder;
+import oupson.apng.ApngDecoder;
+import oupson.apngcreator.R;
 
 
 public class JavaFragment extends Fragment {
@@ -45,7 +46,7 @@ public class JavaFragment extends Fragment {
                 return Unit.INSTANCE;
             });
             */
-            ExperimentalApngDecoder.decodeApngAsyncInto(context, imageUrl, imageView, 1f, new ExperimentalApngDecoder.Callback() {
+            ApngDecoder.decodeApngAsyncInto(context, imageUrl, imageView, 1f, new ApngDecoder.Callback() {
                 @Override
                 public void onSuccess(@NotNull Drawable drawable) {
                     Log.i(TAG, "Success");

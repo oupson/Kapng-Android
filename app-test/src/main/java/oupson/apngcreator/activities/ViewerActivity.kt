@@ -1,4 +1,4 @@
-package oupson.apngcreator
+package oupson.apngcreator.activities
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -11,8 +11,9 @@ import kotlinx.android.synthetic.main.activity_viewer.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import oupson.apng.ApngDecoder
 import oupson.apng.CustomAnimationDrawable
-import oupson.apng.ExperimentalApngDecoder
+import oupson.apngcreator.R
 
 class ViewerActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,7 +44,7 @@ class ViewerActivity : AppCompatActivity() {
         val uri = intent.data ?: return
         GlobalScope.launch(Dispatchers.IO) {
             //val animator = imageView.loadApng(uri, null)
-            val drawable = ExperimentalApngDecoder.decodeApng(this@ViewerActivity, uri)
+            val drawable = ApngDecoder.decodeApng(this@ViewerActivity, uri)
             GlobalScope.launch(Dispatchers.Main) {
                 viewerImageView.setImageDrawable(drawable)
                 if (drawable is CustomAnimationDrawable)

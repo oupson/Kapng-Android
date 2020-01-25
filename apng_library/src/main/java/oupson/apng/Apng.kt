@@ -17,6 +17,8 @@ import oupson.apng.utils.Utils.Companion.to4Bytes
 import java.io.File
 import java.util.zip.CRC32
 
+
+// TODO CREATE A BETTER CLASS
 /**
  * Create an APNG file
  */

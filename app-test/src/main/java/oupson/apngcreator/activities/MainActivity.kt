@@ -1,4 +1,4 @@
-package oupson.apngcreator
+package oupson.apngcreator.activities
 
 import android.annotation.SuppressLint
 import android.os.Bundle
@@ -13,10 +13,15 @@ import com.google.android.material.shape.ShapeAppearanceModel
 import com.google.android.material.shape.ShapePath
 import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.startActivity
+import oupson.apngcreator.R
+import oupson.apngcreator.fragments.ApngDecoderFragment
+import oupson.apngcreator.fragments.JavaFragment
+import oupson.apngcreator.fragments.KotlinFragment
 
 
 class MainActivity : AppCompatActivity() {
     companion object {
+        @Suppress("unused")
         private const val TAG = "MainActivity"
     }
 
@@ -34,7 +39,10 @@ class MainActivity : AppCompatActivity() {
             startActivity<CreatorActivity>()
         }
 
-        val drawerToggle = ActionBarDrawerToggle(this, drawer_layout, bottomAppBar, R.string.open, R.string.close)
+        val drawerToggle = ActionBarDrawerToggle(this, drawer_layout, bottomAppBar,
+            R.string.open,
+            R.string.close
+        )
         drawer_layout.addDrawerListener(drawerToggle)
         drawerToggle.syncState()
 
@@ -45,7 +53,10 @@ class MainActivity : AppCompatActivity() {
                 R.id.menu_kotlin_fragment -> {
                     if (selected != 0) {
                         supportFragmentManager.beginTransaction().apply {
-                            replace(R.id.fragment_container, KotlinFragment.newInstance())
+                            replace(
+                                R.id.fragment_container,
+                                KotlinFragment.newInstance()
+                            )
                             addToBackStack(null)
                         }.commit()
                         selected = 0
@@ -54,7 +65,10 @@ class MainActivity : AppCompatActivity() {
                 R.id.menu_java_fragment -> {
                     if (selected != 1) {
                         supportFragmentManager.beginTransaction().apply {
-                            replace(R.id.fragment_container, JavaFragment())
+                            replace(
+                                R.id.fragment_container,
+                                JavaFragment()
+                            )
                             addToBackStack(null)
                         }.commit()
                         selected = 1
@@ -63,7 +77,10 @@ class MainActivity : AppCompatActivity() {
                 R.id.menu_apng_decoder_fragment -> {
                     if (selected != 2) {
                         supportFragmentManager.beginTransaction().apply {
-                            replace(R.id.fragment_container, ApngDecoderFragment.newInstance())
+                            replace(
+                                R.id.fragment_container,
+                                ApngDecoderFragment.newInstance()
+                            )
                             addToBackStack(null)
                         }.commit()
                         selected = 2
@@ -80,21 +97,29 @@ class MainActivity : AppCompatActivity() {
             when(intent.getStringExtra("fragment")) {
                 "kotlin" -> {
                     supportFragmentManager.beginTransaction().apply {
-                        add(R.id.fragment_container, KotlinFragment.newInstance(), "KotlinFragment")
+                        add(
+                            R.id.fragment_container,
+                            KotlinFragment.newInstance(), "KotlinFragment")
                     }.commit()
                     navigationView.setCheckedItem(R.id.menu_kotlin_fragment)
                     selected = 0
                 }
                 "java" -> {
                     supportFragmentManager.beginTransaction().apply {
-                        add(R.id.fragment_container, JavaFragment())
+                        add(
+                            R.id.fragment_container,
+                            JavaFragment()
+                        )
                     }.commit()
                     navigationView.setCheckedItem(R.id.menu_java_fragment)
                     selected = 1
                 }
                 "apng_decoder" -> {
                     supportFragmentManager.beginTransaction().apply {
-                        add(R.id.fragment_container, ApngDecoderFragment.newInstance())
+                        add(
+                            R.id.fragment_container,
+                            ApngDecoderFragment.newInstance()
+                        )
                     }.commit()
                     navigationView.setCheckedItem(R.id.menu_apng_decoder_fragment)
                     selected = 2
@@ -102,7 +127,9 @@ class MainActivity : AppCompatActivity() {
             }
         } else {
             supportFragmentManager.beginTransaction().apply {
-                add(R.id.fragment_container, KotlinFragment.newInstance(), "KotlinFragment")
+                add(
+                    R.id.fragment_container,
+                    KotlinFragment.newInstance(), "KotlinFragment")
             }.commit()
             navigationView.setCheckedItem(R.id.menu_kotlin_fragment)
         }

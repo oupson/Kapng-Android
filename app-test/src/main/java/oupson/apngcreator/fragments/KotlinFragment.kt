@@ -1,4 +1,4 @@
-package oupson.apngcreator
+package oupson.apngcreator.fragments
 
 
 import android.os.Bundle
@@ -13,6 +13,8 @@ import androidx.fragment.app.Fragment
 import com.squareup.picasso.Picasso
 import oupson.apng.ApngAnimator
 import oupson.apng.loadApng
+import oupson.apngcreator.BuildConfig
+import oupson.apngcreator.R
 
 
 class KotlinFragment : Fragment() {
@@ -102,9 +104,9 @@ class KotlinFragment : Fragment() {
         if (BuildConfig.DEBUG)
             Log.i(TAG, "onPause()")
 
-        // animator = null
+        animator = null
         normalImageView?.setImageDrawable(null)
-        // apngImageView?.setImageDrawable(null)
+        apngImageView?.setImageDrawable(null)
 
         playButton?.setOnClickListener(null)
         pauseButton?.setOnClickListener(null)

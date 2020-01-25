@@ -1,4 +1,4 @@
-package oupson.apngcreator
+package oupson.apngcreator.fragments
 
 
 import android.graphics.drawable.Drawable
@@ -9,7 +9,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.fragment.app.Fragment
-import oupson.apng.ExperimentalApngDecoder
+import oupson.apng.ApngDecoder
+import oupson.apngcreator.BuildConfig
+import oupson.apngcreator.R
 import java.net.URL
 
 class ApngDecoderFragment : Fragment() {
@@ -30,11 +32,11 @@ class ApngDecoderFragment : Fragment() {
         val imageView : ImageView = view.findViewById(R.id.apngDecoderImageView) ?: return  view
 
         if (context != null) {
-            ExperimentalApngDecoder.decodeApngAsyncInto(
+            ApngDecoder.decodeApngAsyncInto(
                 this.context!!,
-                URL("http://littlesvr.ca/apng/images/GenevaDrive.png"),
+                URL("https://metagif.files.wordpress.com/2015/01/bugbuckbunny.png"),
                 imageView,
-                callback = object : ExperimentalApngDecoder.Callback {
+                callback = object : ApngDecoder.Callback {
                     override fun onSuccess(drawable: Drawable) {
                         if (BuildConfig.DEBUG)
                             Log.i(TAG, "onSuccess()")

@@ -5,6 +5,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.BufferedInputStream
 import java.io.File
+import java.io.IOException
 import java.net.URL
 
 class Loader {
@@ -15,7 +16,7 @@ class Loader {
          * @param url Url of the file to download
          * @return [ByteArray] of the file
          */
-        // @Throws(IOException::class, java.io.FileNotFoundException::class, java.lang.Exception::class)
+        @Throws(IOException::class, java.io.FileNotFoundException::class)
         suspend fun load(context: Context, url: URL) =
             withContext(Dispatchers.IO) {
                 val currentDir = context.filesDir

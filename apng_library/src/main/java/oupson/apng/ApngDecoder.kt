@@ -24,16 +24,14 @@ import java.io.InputStream
 import java.net.URL
 import java.util.zip.CRC32
 
-// TODO DOC CODE
-class ExperimentalApngDecoder {
+class ApngDecoder {
     interface Callback {
         fun onSuccess(drawable : Drawable)
         fun onError(error : java.lang.Exception)
     }
 
     companion object {
-        // TODO Change TAG
-        private const val TAG = "ExperimentalApngDecoder"
+        private const val TAG = "ApngDecoder"
 
         private val clearPaint : Paint by lazy {
             Paint().apply {
@@ -378,7 +376,7 @@ class ExperimentalApngDecoder {
          * @param file File to decode.
          * @param imageView Image View.
          * @param speed Optional parameter.
-         * @param callback [ExperimentalApngDecoder.Callback] to handle success and error
+         * @param callback [ApngDecoder.Callback] to handle success and error
          */
         @Suppress("unused")
         @JvmStatic
@@ -406,7 +404,7 @@ class ExperimentalApngDecoder {
          * @param uri Uri to load
          * @param imageView Image View.
          * @param speed Optional parameter.
-         * @param callback [ExperimentalApngDecoder.Callback] to handle success and error
+         * @param callback [ApngDecoder.Callback] to handle success and error
          */
         @Suppress("unused")
         @JvmStatic
@@ -435,7 +433,7 @@ class ExperimentalApngDecoder {
          * @param res Raw resource to load
          * @param imageView Image View.
          * @param speed Optional parameter.
-         * @param callback [ExperimentalApngDecoder.Callback] to handle success and error
+         * @param callback [ApngDecoder.Callback] to handle success and error
          */
         @Suppress("unused")
         @JvmStatic
@@ -464,7 +462,7 @@ class ExperimentalApngDecoder {
          * @param url URL to load
          * @param imageView Image View.
          * @param speed Optional parameter.
-         * @param callback [ExperimentalApngDecoder.Callback] to handle success and error
+         * @param callback [ApngDecoder.Callback] to handle success and error
          */
         @Suppress("unused")
         @JvmStatic
@@ -492,7 +490,7 @@ class ExperimentalApngDecoder {
          * @param string URL to load
          * @param imageView Image View.
          * @param speed Optional parameter.
-         * @param callback [ExperimentalApngDecoder.Callback] to handle success and error
+         * @param callback [ApngDecoder.Callback] to handle success and error
          */
         @Suppress("unused")
         @JvmStatic

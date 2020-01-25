@@ -92,7 +92,7 @@ fun ImageView.loadApng(@RawRes res : Int, speed : Float? = null, apngAnimatorOpt
 
 /**
  * Class to play APNG
- * For better performance but lesser features use [ExperimentalApngDecoder] instead
+ * For better performance but lesser features use [ApngDecoder] instead
  */
 class ApngAnimator(private val context: Context?) {
     @Suppress("MemberVisibilityCanBePrivate")
@@ -112,6 +112,7 @@ class ApngAnimator(private val context: Context?) {
         }
     private var imageView: ImageView? = null
 
+    @Suppress("MemberVisibilityCanBePrivate")
     var anim: CustomAnimationDrawable? = null
     private var activeAnimation: CustomAnimationDrawable? = null
 
