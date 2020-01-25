@@ -16,7 +16,7 @@
 
     <color name="gray">#999999</color>
 
-    <color name="background">#ffffff</color>
+    <color name="background">#FFFFFF</color>
 
     <color name="control">#fff</color>
 </resources>

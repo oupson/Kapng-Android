@@ -1,6 +1,8 @@
 package oupson.apngcreator;
 
 
+import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -10,9 +12,9 @@ import android.widget.ImageView;
 
 import androidx.fragment.app.Fragment;
 
-import kotlin.Unit;
-import oupson.apng.ApngAnimator;
-import oupson.apng.ApngAnimatorKt;
+import org.jetbrains.annotations.NotNull;
+
+import oupson.apng.ExperimentalApngDecoder;
 
 
 public class JavaFragment extends Fragment {
@@ -22,10 +24,16 @@ public class JavaFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         Log.i(TAG, "onCreateView()");
+
         View v = inflater.inflate(R.layout.fragment_java, container, false);
+
         String imageUrl = "https://metagif.files.wordpress.com/2015/01/bugbuckbunny.png";
         ImageView imageView = v.findViewById(R.id.javaImageView);
-        if (imageView != null) {
+
+        Context context = this.getContext();
+
+        if (imageView != null && context != null) {
+            /*
             ApngAnimator a = ApngAnimatorKt.loadApng(imageView, imageUrl);
             a.onLoaded((animator) -> {
                 animator.setOnFrameChangeLister((index) -> {
@@ -36,6 +44,19 @@ public class JavaFragment extends Fragment {
                 });
                 return Unit.INSTANCE;
             });
+            */
+            ExperimentalApngDecoder.decodeApngAsyncInto(context, imageUrl, imageView, 1f, new ExperimentalApngDecoder.Callback() {
+                @Override
+                public void onSuccess(@NotNull Drawable drawable) {
+                    Log.i(TAG, "Success");
+                }
+
+                @Override
+                public void onError(@NotNull Exception error) {
+                    Log.e(TAG, "Error", error);
+                }
+            });
+
         }
         return v;
     }

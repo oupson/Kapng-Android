@@ -2,12 +2,16 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <group android:checkableBehavior="single">
         <item
-                android:id="@+id/menu_kotlin_activity"
+                android:id="@+id/menu_kotlin_fragment"
                 android:icon="@drawable/ic_kotlin"
-                android:title="@string/menu_title_kotlin_activity" />
+                android:title="@string/menu_title_kotlin_fragment" />
         <item
-                android:id="@+id/menu_java_activity"
+                android:id="@+id/menu_java_fragment"
                 android:icon="@drawable/ic_java"
-                android:title="@string/menu_title_java_activity" />
+                android:title="@string/menu_title_java_fragment" />
+
+        <item
+                android:id="@+id/menu_apng_decoder_fragment"
+                android:title="@string/menu_title_apng_decoder_fragment" />
     </group>
 </menu>

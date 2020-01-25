@@ -5,8 +5,11 @@ import android.graphics.*
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.util.Log
+import android.widget.ImageView
 import androidx.annotation.RawRes
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import oupson.apng.chunks.IHDR
 import oupson.apng.chunks.fcTL
@@ -23,6 +26,11 @@ import java.util.zip.CRC32
 
 // TODO DOC CODE
 class ExperimentalApngDecoder {
+    interface Callback {
+        fun onSuccess(drawable : Drawable)
+        fun onError(error : java.lang.Exception)
+    }
+
     companion object {
         // TODO Change TAG
         private const val TAG = "ExperimentalApngDecoder"
@@ -363,6 +371,159 @@ class ExperimentalApngDecoder {
         @JvmStatic
         suspend fun decodeApng(context : Context, url : URL, speed: Float = 1f) = withContext(Dispatchers.IO) {
             decodeApng(FileInputStream(Loader.load(context, url)), speed)
+        }
+
+        /**
+         * Load Apng into an imageView, asynchronously
+         * @param file File to decode.
+         * @param imageView Image View.
+         * @param speed Optional parameter.
+         * @param callback [ExperimentalApngDecoder.Callback] to handle success and error
+         */
+        @Suppress("unused")
+        @JvmStatic
+        @JvmOverloads
+        fun decodeApngAsyncInto(file : File, imageView : ImageView, speed: Float = 1f, callback: Callback? = null) {
+            GlobalScope.launch(Dispatchers.IO) {
+                try {
+                    val drawable = decodeApng(FileInputStream(file), speed)
+                    withContext(Dispatchers.Main) {
+                        imageView.setImageDrawable(drawable)
+                        (drawable as? CustomAnimationDrawable)?.start()
+                        callback?.onSuccess(drawable)
+                    }
+                } catch (e : java.lang.Exception) {
+                    withContext(Dispatchers.Main) {
+                        callback?.onError(e)
+                    }
+                }
+            }
+        }
+
+        /**
+         * Load Apng into an imageView, asynchronously
+         * @param context Context
+         * @param uri Uri to load
+         * @param imageView Image View.
+         * @param speed Optional parameter.
+         * @param callback [ExperimentalApngDecoder.Callback] to handle success and error
+         */
+        @Suppress("unused")
+        @JvmStatic
+        @JvmOverloads
+        fun decodeApngAsyncInto(context : Context, uri : Uri, imageView: ImageView, speed: Float = 1f, callback: Callback? = null)  {
+            val inputStream = context.contentResolver.openInputStream(uri) ?: throw Exception("Failed to open InputStream, InputStream is null")
+            GlobalScope.launch(Dispatchers.IO) {
+                try {
+                    val drawable = decodeApng(inputStream, speed)
+                    withContext(Dispatchers.Main) {
+                        imageView.setImageDrawable(drawable)
+                        (drawable as? CustomAnimationDrawable)?.start()
+                        callback?.onSuccess(drawable)
+                    }
+                } catch (e : java.lang.Exception) {
+                    withContext(Dispatchers.Main) {
+                        callback?.onError(e)
+                    }
+                }
+            }
+        }
+
+        /**
+         * Load Apng into an imageView, asynchronously
+         * @param context Context
+         * @param res Raw resource to load
+         * @param imageView Image View.
+         * @param speed Optional parameter.
+         * @param callback [ExperimentalApngDecoder.Callback] to handle success and error
+         */
+        @Suppress("unused")
+        @JvmStatic
+        @JvmOverloads
+        fun decodeApngAsyncInto(context : Context, @RawRes res : Int, imageView: ImageView, speed: Float = 1f, callback: Callback? = null) {
+            GlobalScope.launch(Dispatchers.IO) {
+                try {
+                    val drawable = decodeApng(context.resources.openRawResource(res), speed)
+                    withContext(Dispatchers.Main) {
+                        imageView.setImageDrawable(drawable)
+                        (drawable as? CustomAnimationDrawable)?.start()
+                        callback?.onSuccess(drawable)
+                    }
+                } catch (e : java.lang.Exception) {
+                    withContext(Dispatchers.Main) {
+                        callback?.onError(e)
+                    }
+                }
+            }
+
+        }
+
+        /**
+         * Load Apng into an imageView, asynchronously
+         * @param context Context
+         * @param url URL to load
+         * @param imageView Image View.
+         * @param speed Optional parameter.
+         * @param callback [ExperimentalApngDecoder.Callback] to handle success and error
+         */
+        @Suppress("unused")
+        @JvmStatic
+        @JvmOverloads
+        fun decodeApngAsyncInto(context : Context, url : URL, imageView: ImageView, speed: Float = 1f, callback: Callback? = null) {
+            GlobalScope.launch(Dispatchers.IO) {
+                try {
+                    val drawable = decodeApng(FileInputStream(Loader.load(context, url)), speed)
+                    withContext(Dispatchers.Main) {
+                        imageView.setImageDrawable(drawable)
+                        (drawable as? CustomAnimationDrawable)?.start()
+                        callback?.onSuccess(drawable)
+                    }
+                } catch (e : java.lang.Exception) {
+                    withContext(Dispatchers.Main) {
+                        callback?.onError(e)
+                    }
+                }
+            }
+        }
+
+        /**
+         * Load Apng into an imageView, asynchronously
+         * @param context Context
+         * @param string URL to load
+         * @param imageView Image View.
+         * @param speed Optional parameter.
+         * @param callback [ExperimentalApngDecoder.Callback] to handle success and error
+         */
+        @Suppress("unused")
+        @JvmStatic
+        @JvmOverloads
+        fun decodeApngAsyncInto(context : Context, string: String, imageView: ImageView, speed: Float = 1f, callback: Callback? = null) {
+            GlobalScope.launch(Dispatchers.IO) {
+                try {
+                    if (string.startsWith("http://") || string.startsWith("https://")) {
+                        decodeApngAsyncInto(context, URL(string), imageView, speed, callback)
+                    } else if(File(string).exists()) {
+                        var pathToLoad = if (string.startsWith("content://")) string else "file://$string"
+                        pathToLoad = pathToLoad.replace("%", "%25").replace("#", "%23")
+                        decodeApngAsyncInto(context, Uri.parse(pathToLoad), imageView, speed, callback)
+                    } else if (string.startsWith("file://android_asset/")) {
+                        val drawable = decodeApng(context.assets.open(string.replace("file:///android_asset/", "")), speed)
+                        withContext(Dispatchers.Main) {
+                            imageView.setImageDrawable(drawable)
+                            (drawable as? CustomAnimationDrawable)?.start()
+                            callback?.onSuccess(drawable)
+                        }
+                    } else {
+                        withContext(Dispatchers.Main) {
+                            callback?.onError(java.lang.Exception("Cannot open string"))
+                        }
+                    }
+                } catch (e : java.lang.Exception) {
+                    withContext(Dispatchers.Main) {
+                        callback?.onError(e)
+                    }
+                }
+            }
         }
 
         /**

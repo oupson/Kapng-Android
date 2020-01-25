@@ -16,6 +16,9 @@ import org.jetbrains.anko.startActivity
 
 
 class MainActivity : AppCompatActivity() {
+    companion object {
+        private const val TAG = "MainActivity"
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,7 +42,7 @@ class MainActivity : AppCompatActivity() {
 
         navigationView.setNavigationItemSelectedListener { menuItem : MenuItem ->
             when(menuItem.itemId) {
-                R.id.menu_kotlin_activity -> {
+                R.id.menu_kotlin_fragment -> {
                     if (selected != 0) {
                         supportFragmentManager.beginTransaction().apply {
                             replace(R.id.fragment_container, KotlinFragment.newInstance())
@@ -48,13 +51,22 @@ class MainActivity : AppCompatActivity() {
                         selected = 0
                     }
                 }
-                R.id.menu_java_activity -> {
+                R.id.menu_java_fragment -> {
                     if (selected != 1) {
                         supportFragmentManager.beginTransaction().apply {
                             replace(R.id.fragment_container, JavaFragment())
                             addToBackStack(null)
                         }.commit()
                         selected = 1
+                    }
+                }
+                R.id.menu_apng_decoder_fragment -> {
+                    if (selected != 2) {
+                        supportFragmentManager.beginTransaction().apply {
+                            replace(R.id.fragment_container, ApngDecoderFragment.newInstance())
+                            addToBackStack(null)
+                        }.commit()
+                        selected = 2
                     }
                 }
             }
@@ -64,12 +76,36 @@ class MainActivity : AppCompatActivity() {
             return@setNavigationItemSelectedListener true
         }
 
-        supportFragmentManager.beginTransaction().apply {
-            add(R.id.fragment_container, KotlinFragment.newInstance(), "KotlinFragment")
-        }.commit()
-
-
-        navigationView.setCheckedItem(R.id.menu_kotlin_activity)
+        if (intent.hasExtra("fragment")) {
+            when(intent.getStringExtra("fragment")) {
+                "kotlin" -> {
+                    supportFragmentManager.beginTransaction().apply {
+                        add(R.id.fragment_container, KotlinFragment.newInstance(), "KotlinFragment")
+                    }.commit()
+                    navigationView.setCheckedItem(R.id.menu_kotlin_fragment)
+                    selected = 0
+                }
+                "java" -> {
+                    supportFragmentManager.beginTransaction().apply {
+                        add(R.id.fragment_container, JavaFragment())
+                    }.commit()
+                    navigationView.setCheckedItem(R.id.menu_java_fragment)
+                    selected = 1
+                }
+                "apng_decoder" -> {
+                    supportFragmentManager.beginTransaction().apply {
+                        add(R.id.fragment_container, ApngDecoderFragment.newInstance())
+                    }.commit()
+                    navigationView.setCheckedItem(R.id.menu_apng_decoder_fragment)
+                    selected = 2
+                }
+            }
+        } else {
+            supportFragmentManager.beginTransaction().apply {
+                add(R.id.fragment_container, KotlinFragment.newInstance(), "KotlinFragment")
+            }.commit()
+            navigationView.setCheckedItem(R.id.menu_kotlin_fragment)
+        }
     }
 
     private fun setUpBottomAppBarShapeAppearance() {

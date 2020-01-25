@@ -10,8 +10,9 @@
     <string name="title_playButton">Play</string>
     <string name="title_pauseButton">Pause</string>
 
-    <string name="menu_title_kotlin_activity">Kotlin Activity</string>
-    <string name="menu_title_java_activity">Java Activity</string>
+    <string name="menu_title_kotlin_fragment">Kotlin Fragment</string>
+    <string name="menu_title_java_fragment">Java Fragment</string>
+    <string name="menu_title_apng_decoder_fragment">ApngDecoder</string>
 
     <string name="create">Create</string>
 
