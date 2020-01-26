@@ -5,6 +5,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.BufferedInputStream
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
 import java.net.URL
 
@@ -28,10 +29,18 @@ class Loader {
                     val connection = url.openConnection()
                     connection.connect()
                     val input = BufferedInputStream(connection.getInputStream())
-                    val bytes = input.readBytes()
+                    val output = FileOutputStream(filePNG)
+                    var bytesRead : Int
+                    val buffer = ByteArray(4096)
+                    do {
+                        bytesRead = input.read(buffer)
+                        if (bytesRead > -1)
+                            output.write(buffer, 0, bytesRead)
+                    } while (bytesRead != -1)
                     input.close()
+                    output.close()
                     fileTXT.writeText(url.toString())
-                    filePNG.apply { writeBytes(bytes) }
+                    filePNG
                 }
             }
     }

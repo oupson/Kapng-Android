@@ -51,6 +51,7 @@ class Apng {
      * @param disposeOp `DisposeOp` specifies how the output buffer should be changed at the end of the delay (before rendering the next frame).
      * @param blendOp `BlendOp` specifies whether the frame is to be alpha blended into the current output buffer content, or whether it should completely replace its region in the output buffer.
      */
+    @Suppress("MemberVisibilityCanBePrivate")
     fun addFrames(bitmap : Bitmap, index : Int? = null, delay : Float = 1000f, xOffset : Int = 0, yOffset : Int = 0, disposeOp: Utils.Companion.DisposeOp = Utils.Companion.DisposeOp.APNG_DISPOSE_OP_NONE, blendOp: Utils.Companion.BlendOp = Utils.Companion.BlendOp.APNG_BLEND_OP_SOURCE) {
         if (index == null)
             frames.add(Frame(PngEncoder.encode(bitmap, true), delay, xOffset, yOffset, blendOp, disposeOp))

@@ -2,8 +2,11 @@ package oupson.apng.decoder
 
 import android.content.Context
 import android.graphics.*
+import android.graphics.drawable.AnimatedImageDrawable
+import android.graphics.drawable.AnimationDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
+import android.os.Build
 import android.util.Log
 import android.widget.ImageView
 import androidx.annotation.RawRes
@@ -11,7 +14,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import oupson.apng.*
+import oupson.apng.APNGDisassembler
+import oupson.apng.BitmapDrawable
+import oupson.apng.BuildConfig
+import oupson.apng.Loader
 import oupson.apng.chunks.IHDR
 import oupson.apng.chunks.fcTL
 import oupson.apng.exceptions.BadApng
@@ -23,6 +29,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
 import java.net.URL
+import java.nio.ByteBuffer
 import java.util.zip.CRC32
 
 class ApngDecoder {
@@ -43,7 +50,7 @@ class ApngDecoder {
         }
 
         /**
-         * Decode Apng and return a Drawable who can be an [CustomAnimationDrawable] if it end successfully.
+         * Decode Apng and return a Drawable who can be an [AnimationDrawable] if it end successfully. Can also be an [android.graphics.drawable.AnimatedImageDrawable]
          * @param inStream Input Stream to decode. Will be close at the end
          * @param speed Optional parameter.
          */
@@ -54,7 +61,6 @@ class ApngDecoder {
             val bytes = ByteArray(8)
             inputStream.mark(0)
             inputStream.read(bytes)
-
             if (isPng(bytes)) {
                 var png: ArrayList<Byte>? = null
                 var cover: ArrayList<Byte>? = null
@@ -70,7 +76,7 @@ class ApngDecoder {
                 val ihdr = IHDR()
                 var isApng = false
 
-                val drawable = CustomAnimationDrawable()
+                val drawable = AnimationDrawable()
 
                 var buffer : Bitmap? = null
 
@@ -352,15 +358,24 @@ class ApngDecoder {
                 if (BuildConfig.DEBUG)
                     Log.i(TAG, "Decoding non APNG stream")
                 inputStream.reset()
-                return Drawable.createFromStream(
-                    inputStream,
-                    null
-                )
+
+                return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    val bytesRead = inputStream.readBytes()
+                    inputStream.close()
+                    val buf = ByteBuffer.wrap(bytesRead)
+                    val source = ImageDecoder.createSource(buf)
+                    ImageDecoder.decodeDrawable(source)
+                } else {
+                    Drawable.createFromStream(
+                        inputStream,
+                        null
+                    )
+                }
             }
         }
 
         /**
-         * Decode Apng and return a Drawable who can be an [CustomAnimationDrawable] if it end successfully.
+         * Decode Apng and return a Drawable who can be an [AnimationDrawable] if it end successfully. Can also be an [android.graphics.drawable.AnimatedImageDrawable].
          * @param file File to decode.
          * @param speed Optional parameter.
          */
@@ -372,11 +387,12 @@ class ApngDecoder {
             )
 
         /**
-         * Decode Apng and return a Drawable who can be an [CustomAnimationDrawable] if it end successfully.
+         * Decode Apng and return a Drawable who can be an [AnimationDrawable] if it end successfully. Can also be an [android.graphics.drawable.AnimatedImageDrawable].
          * @param context Context is needed for contentResolver
          * @param uri Uri to open.
          * @param speed Optional parameter.
          */
+        @Suppress("unused")
         @JvmStatic
         fun decodeApng(context : Context, uri : Uri, speed: Float = 1f) : Drawable {
             val inputStream = context.contentResolver.openInputStream(uri)
@@ -388,7 +404,7 @@ class ApngDecoder {
         }
 
         /**
-         * Decode Apng and return a Drawable who can be an [CustomAnimationDrawable] if it end successfully.
+         * Decode Apng and return a Drawable who can be an [AnimationDrawable] if it end successfully. Can also be an [android.graphics.drawable.AnimatedImageDrawable].
          * @param context Context is needed for contentResolver
          * @param res Resource to decode.
          * @param speed Optional parameter.
@@ -401,7 +417,7 @@ class ApngDecoder {
             )
 
         /**
-         * Decode Apng and return a Drawable who can be an [CustomAnimationDrawable] if it end successfully.
+         * Decode Apng and return a Drawable who can be an [AnimationDrawable] if it end successfully. Can also be an [android.graphics.drawable.AnimatedImageDrawable].
          * @param context Context is needed for contentResolver
          * @param url URL to decode.
          * @param speed Optional parameter.
@@ -436,7 +452,10 @@ class ApngDecoder {
                         )
                     withContext(Dispatchers.Main) {
                         imageView.setImageDrawable(drawable)
-                        (drawable as? CustomAnimationDrawable)?.start()
+                        (drawable as? AnimationDrawable)?.start()
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                            (drawable as? AnimatedImageDrawable)?.start()
+                        }
                         callback?.onSuccess(drawable)
                     }
                 } catch (e : java.lang.Exception) {
@@ -469,7 +488,10 @@ class ApngDecoder {
                         )
                     withContext(Dispatchers.Main) {
                         imageView.setImageDrawable(drawable)
-                        (drawable as? CustomAnimationDrawable)?.start()
+                        (drawable as? AnimationDrawable)?.start()
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                            (drawable as? AnimatedImageDrawable)?.start()
+                        }
                         callback?.onSuccess(drawable)
                     }
                 } catch (e : java.lang.Exception) {
@@ -501,7 +523,10 @@ class ApngDecoder {
                         )
                     withContext(Dispatchers.Main) {
                         imageView.setImageDrawable(drawable)
-                        (drawable as? CustomAnimationDrawable)?.start()
+                        (drawable as? AnimationDrawable)?.start()
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                            (drawable as? AnimatedImageDrawable)?.start()
+                        }
                         callback?.onSuccess(drawable)
                     }
                 } catch (e : java.lang.Exception) {
@@ -539,7 +564,10 @@ class ApngDecoder {
                         )
                     withContext(Dispatchers.Main) {
                         imageView.setImageDrawable(drawable)
-                        (drawable as? CustomAnimationDrawable)?.start()
+                        (drawable as? AnimationDrawable)?.start()
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                            (drawable as? AnimatedImageDrawable)?.start()
+                        }
                         callback?.onSuccess(drawable)
                     }
                 } catch (e : java.lang.Exception) {
@@ -590,7 +618,10 @@ class ApngDecoder {
                             )
                         withContext(Dispatchers.Main) {
                             imageView.setImageDrawable(drawable)
-                            (drawable as? CustomAnimationDrawable)?.start()
+                            (drawable as? AnimationDrawable)?.start()
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                                (drawable as? AnimatedImageDrawable)?.start()
+                            }
                             callback?.onSuccess(drawable)
                         }
                     } else {

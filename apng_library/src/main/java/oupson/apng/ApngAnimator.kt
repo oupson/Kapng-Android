@@ -92,7 +92,7 @@ fun ImageView.loadApng(@RawRes res : Int, speed : Float? = null, apngAnimatorOpt
 
 /**
  * Class to play APNG
- * For better performance but lesser features use [ApngDecoder] instead
+ * For better performance but lesser features use [oupson.apng.decoder.ApngDecoder] instead
  */
 class ApngAnimator(private val context: Context?) {
     @Suppress("MemberVisibilityCanBePrivate")
