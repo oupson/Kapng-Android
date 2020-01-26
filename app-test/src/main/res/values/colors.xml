@@ -19,4 +19,6 @@
     <color name="background">#FFFFFF</color>
 
     <color name="control">#fff</color>
+
+    <color name="ic_launcher_background">@color/primary</color>
 </resources>

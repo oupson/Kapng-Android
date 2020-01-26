@@ -27,6 +27,9 @@ class ApngEncoder(
         outputStream.write(generateACTL(numberOfFrames))
     }
 
+    // TODO ADD SUPPORT FOR FIRST FRAME NOT IN ANIM
+    // TODO OPTIMISE APNG
+
     fun writeFrame(
         inputStream: InputStream,
         delay: Float = 1000f,
@@ -37,6 +40,13 @@ class ApngEncoder(
     ) {
         val btm = BitmapFactory.decodeStream(inputStream)
         inputStream.close()
+
+        if (frameIndex == 0) {
+            if (btm.width != width)
+                throw Exception("Width of first frame must be equal to width of APNG. (${btm.width} != $width)")
+            if (btm.height != height)
+                throw Exception("Height of first frame must be equal to height of APNG. (${btm.height} != $height)")
+        }
 
         generateFCTL(btm, delay, disposeOp, blendOp, xOffsets, yOffsets)
 
@@ -186,8 +196,8 @@ class ApngEncoder(
         fcTL.addAll(Utils.to4Bytes(btm.height).asList())
 
         // Add offsets
-        fcTL.addAll(Utils.to4Bytes(xOffsets ).asList())
-        fcTL.addAll(Utils.to4Bytes(yOffsets ).asList())
+        fcTL.addAll(Utils.to4Bytes(xOffsets).asList())
+        fcTL.addAll(Utils.to4Bytes(yOffsets).asList())
 
         // Set frame delay
         fcTL.addAll(Utils.to2Bytes(delay.toInt()).asList())

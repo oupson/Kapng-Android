@@ -126,7 +126,7 @@ class ApngDecoder {
                                     val height = fcTL.pngHeight
 
                                     if (xOffset + width > maxWidth) {
-                                        throw BadApng("`yOffset` + `height` must be <= `IHDR` height")
+                                        throw BadApng("`xOffset` + `width` must be <= `IHDR` width")
                                     } else if (yOffset + height > maxHeight) {
                                         throw BadApng("`yOffset` + `height` must be <= `IHDR` height")
                                     }
