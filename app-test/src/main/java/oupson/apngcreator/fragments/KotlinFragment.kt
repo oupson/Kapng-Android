@@ -87,12 +87,17 @@ class KotlinFragment : Fragment() {
         })
 
         if (animator == null) {
-            animator = apngImageView?.loadApng(imageUrls[selected])?.apply {
-                onLoaded {
-                    setOnFrameChangeLister {
-                        // Log.e("app-test", "onLoop")
+            try {
+                animator = apngImageView?.loadApng(imageUrls[selected])?.apply {
+                    onLoaded {
+                        setOnFrameChangeLister {
+                            // Log.e("app-test", "onLoop")
+                        }
                     }
                 }
+            } catch (e : Exception) {
+                if (BuildConfig.DEBUG)
+                    Log.e(TAG, "Error : $e")
             }
         }
 

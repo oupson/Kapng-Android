@@ -14,6 +14,7 @@
         <item name="android:windowLightStatusBar" tools:targetApi="m">@bool/is_theme_light</item>
         <item name="android:navigationBarColor">@color/colorPrimary</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">@bool/nav_bar_light</item>
+        <item name="colorControlHighlight">@color/colorPrimary</item>
     </style>
 
     <style name="AppShapeAppearance.MediumComponent" parent="ShapeAppearance.MaterialComponents.MediumComponent">

@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.*
 import android.net.Uri
+import android.util.Log
 import android.widget.ImageView
 import androidx.annotation.RawRes
 import kotlinx.coroutines.Dispatchers
@@ -17,6 +18,8 @@ import oupson.apng.utils.Utils.Companion.isApng
 import oupson.apng.utils.Utils.Companion.isPng
 import java.io.File
 import java.net.URL
+
+// TODO REWRITE WITH CALLBACKS
 
 /**
  * @param file The APNG to load
@@ -270,20 +273,32 @@ class ApngAnimator(private val context: Context?) {
         GlobalScope.launch(Dispatchers.IO) {
             this@ApngAnimator.speed = speed
             // Download PNG
-            Loader.load(context!!, url).apply {
-                try {
-                    this@ApngAnimator.load(this, speed, apngAnimatorOptions)
-                } catch (e : NotPngException) {
-                    if (loadNotApng) {
-                        val bytes = this.readBytes()
-                        GlobalScope.launch(Dispatchers.Main) {
-                            imageView?.scaleType = this@ApngAnimator.scaleType ?: ImageView.ScaleType.FIT_CENTER
-                            imageView?.setImageBitmap(BitmapFactory.decodeByteArray(bytes, 0, bytes.size))
+            try {
+                Loader.load(context!!, url).apply {
+                    try {
+                        this@ApngAnimator.load(this, speed, apngAnimatorOptions)
+                    } catch (e: NotPngException) {
+                        if (loadNotApng) {
+                            val bytes = this.readBytes()
+                            GlobalScope.launch(Dispatchers.Main) {
+                                imageView?.scaleType =
+                                    this@ApngAnimator.scaleType ?: ImageView.ScaleType.FIT_CENTER
+                                imageView?.setImageBitmap(
+                                    BitmapFactory.decodeByteArray(
+                                        bytes,
+                                        0,
+                                        bytes.size
+                                    )
+                                )
+                            }
+                        } else {
+                            throw NotApngException()
                         }
-                    } else {
-                        throw NotApngException()
                     }
                 }
+            } catch (e : java.lang.Exception) {
+                if (BuildConfig.DEBUG)
+                    Log.e("ApngAnimator", "Error : $e")
             }
         }
         return this
@@ -535,6 +550,7 @@ class ApngAnimator(private val context: Context?) {
     private fun toAnimationDrawable( generatedFrame : ArrayList<Bitmap> ): CustomAnimationDrawable {
         if (isApng) {
             return CustomAnimationDrawable().apply {
+                isOneShot = false
                 for (i in 0 until generatedFrame.size) {
                     addFrame(BitmapDrawable(generatedFrame[i]), ((duration!![i]) / (speed ?: 1f)).toInt())
                 }

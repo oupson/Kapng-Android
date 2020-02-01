@@ -15,6 +15,7 @@ import androidx.fragment.app.Fragment;
 import org.jetbrains.annotations.NotNull;
 
 import oupson.apng.decoder.ApngDecoder;
+import oupson.apngcreator.BuildConfig;
 import oupson.apngcreator.R;
 
 
@@ -24,7 +25,8 @@ public class JavaFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        Log.i(TAG, "onCreateView()");
+        if (BuildConfig.DEBUG)
+            Log.i(TAG, "onCreateView()");
 
         View v = inflater.inflate(R.layout.fragment_java, container, false);
 
@@ -49,12 +51,14 @@ public class JavaFragment extends Fragment {
             ApngDecoder.decodeApngAsyncInto(context, imageUrl, imageView, 1f, new ApngDecoder.Callback() {
                 @Override
                 public void onSuccess(@NotNull Drawable drawable) {
-                    Log.i(TAG, "Success");
+                    if (BuildConfig.DEBUG)
+                        Log.i(TAG, "Success");
                 }
 
                 @Override
                 public void onError(@NotNull Exception error) {
-                    Log.e(TAG, "Error", error);
+                    if (BuildConfig.DEBUG)
+                        Log.e(TAG, "Error : " + error.toString());
                 }
             });
 

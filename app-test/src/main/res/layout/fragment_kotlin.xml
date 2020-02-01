@@ -9,7 +9,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-        <ImageView
+        <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/ApngImageView"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
@@ -22,7 +22,7 @@
                 app:layout_constraintTop_toTopOf="parent"
                 android:contentDescription="@string/description_viewer_imageView"/>
 
-        <ImageView
+        <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/NormalImageView"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
@@ -36,7 +36,7 @@
                 app:layout_constraintTop_toBottomOf="@id/ApngImageView"
                 android:contentDescription="@string/description_viewer_imageView" />
 
-        <SeekBar
+        <androidx.appcompat.widget.AppCompatSeekBar
                 android:id="@+id/SpeedSeekBar"
                 style="@style/Widget.AppCompat.SeekBar"
                 android:layout_width="0dp"
@@ -49,24 +49,26 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent" />
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/PlayButton"
-                style="@android:style/Widget.Material.Light.Button.Borderless.Colored"
+                android:theme="@style/Widget.AppCompat.Button.Borderless.Colored"
+                android:backgroundTint="@color/colorPrimary"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:background="@android:color/white"
+                android:textColor="@color/control"
                 android:text="@string/title_playButton"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent" />
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/PauseButton"
-                style="@style/Widget.AppCompat.Button.Borderless.Colored"
+                android:theme="@style/Widget.AppCompat.Button.Borderless.Colored"
+                android:backgroundTint="@color/colorPrimary"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
-                android:background="@android:color/white"
+                android:textColor="@color/control"
                 android:text="@string/title_pauseButton"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />

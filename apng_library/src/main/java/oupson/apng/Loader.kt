@@ -12,10 +12,10 @@ import java.net.URL
 class Loader {
     companion object {
         /**
-         * Download file from given url
-         * @param context Context of app
-         * @param url Url of the file to download
-         * @return [ByteArray] of the file
+         * Download file from given url.
+         * @param context Context of app.
+         * @param url Url of the file to download.
+         * @return [ByteArray] of the file.
          */
         @Throws(IOException::class, java.io.FileNotFoundException::class)
         suspend fun load(context: Context, url: URL) =
