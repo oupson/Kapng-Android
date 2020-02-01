@@ -76,7 +76,9 @@ class ApngDecoder {
                 val ihdr = IHDR()
                 var isApng = false
 
-                val drawable = AnimationDrawable()
+                val drawable = AnimationDrawable().apply {
+                    isOneShot = false
+                }
 
                 var buffer : Bitmap? = null
 

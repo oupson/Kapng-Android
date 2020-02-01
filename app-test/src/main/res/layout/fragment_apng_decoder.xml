@@ -5,7 +5,7 @@
         android:layout_height="match_parent"
         tools:context=".fragments.ApngDecoderFragment">
 
-    <ImageView
+    <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/apngDecoderImageView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
