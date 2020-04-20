@@ -23,8 +23,10 @@ import oupson.apng.encoder.ApngEncoder
 import oupson.apngcreator.BuildConfig
 import oupson.apngcreator.R
 import oupson.apngcreator.adapter.ImageAdapter
+import oupson.apngcreator.dialogs.DelayInputDialog
 import java.io.File
 import java.io.FileOutputStream
+
 
 class CreatorActivity : AppCompatActivity() {
     companion object {
@@ -32,8 +34,9 @@ class CreatorActivity : AppCompatActivity() {
         private const val WRITE_REQUEST_CODE = 2
         private const val TAG = "CreatorActivity"
     }
-    private var items : ArrayList<Uri> = ArrayList()
-    private var adapter : ImageAdapter? = null
+
+    private var items: ArrayList<Pair<Uri, Int>> = ArrayList()
+    private var adapter: ImageAdapter? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,7 +47,8 @@ class CreatorActivity : AppCompatActivity() {
             val getIntent = Intent(Intent.ACTION_GET_CONTENT)
             getIntent.type = "image/*"
 
-            startActivityForResult(getIntent,
+            startActivityForResult(
+                getIntent,
                 PICK_IMAGE
             )
         }
@@ -56,6 +60,19 @@ class CreatorActivity : AppCompatActivity() {
         imageRecyclerView.setItemViewCacheSize(20)
         if (adapter != null)
             ItemTouchHelper(SwipeToDeleteCallback(adapter!!)).attachToRecyclerView(imageRecyclerView)
+
+        adapter?.clickListener = { position ->
+            DelayInputDialog(object : DelayInputDialog.InputSenderDialogListener {
+                override fun onOK(number: Int?) {
+                    if (number != null) {
+                        items[position] = Pair(items[position].first, number)
+                        adapter?.notifyDataSetChanged()
+                    }
+                }
+
+                override fun onCancel(number: Int?) {}
+            }, items[position].second).show(supportFragmentManager, null)
+        }
 
         setSupportActionBar(creatorBottomAppBar)
         imageRecyclerView.adapter = adapter
@@ -74,7 +91,7 @@ class CreatorActivity : AppCompatActivity() {
                     GlobalScope.launch(Dispatchers.IO) {
                         val f = File(filesDir, "images/apng.png").apply {
                             if (!exists()) {
-                                parentFile.mkdirs()
+                                parentFile?.mkdirs()
                                 println(createNewFile())
                             }
                         }
@@ -82,7 +99,7 @@ class CreatorActivity : AppCompatActivity() {
                         var maxWidth = 0
                         var maxHeight = 0
                         items.forEach {
-                            val str = contentResolver.openInputStream(it)
+                            val str = contentResolver.openInputStream(it.first)
                             val btm = BitmapFactory.decodeStream(str)
                             if (btm.width > maxWidth)
                                 maxWidth = btm.width
@@ -95,12 +112,12 @@ class CreatorActivity : AppCompatActivity() {
                             Log.i(TAG, "MaxWidth : $maxWidth; MaxHeight : $maxHeight")
 
                         val encoder = ApngEncoder(out, maxWidth, maxHeight, items.size)
-                        items.forEachIndexed { i, uri ->
+                        items.forEach { uri ->
                             // println("delay : ${adapter?.delay?.get(i)?.toFloat() ?: 1000f}ms")
-                            val str = contentResolver.openInputStream(uri) ?: return@forEachIndexed
+                            val str = contentResolver.openInputStream(uri.first) ?: return@forEach
                             encoder.writeFrame(
                                 str,
-                                delay = adapter?.delay?.get(i)?.toFloat() ?: 1000f
+                                delay = uri.second.toFloat()
                             )
                         }
 
@@ -126,7 +143,7 @@ class CreatorActivity : AppCompatActivity() {
                     GlobalScope.launch(Dispatchers.IO) {
                         val f = File(filesDir, "images/apng.png").apply {
                             if (!exists()) {
-                                parentFile.mkdirs()
+                                parentFile?.mkdirs()
                                 println(createNewFile())
                             }
                         }
@@ -134,7 +151,7 @@ class CreatorActivity : AppCompatActivity() {
                         var maxWidth = 0
                         var maxHeight = 0
                         items.forEach {
-                            val str = contentResolver.openInputStream(it)
+                            val str = contentResolver.openInputStream(it.first)
                             val btm = BitmapFactory.decodeStream(str)
                             if (btm.width > maxWidth)
                                 maxWidth = btm.width
@@ -144,12 +161,12 @@ class CreatorActivity : AppCompatActivity() {
                         }
 
                         val encoder = ApngEncoder(out, maxWidth, maxHeight, items.size)
-                        items.forEachIndexed { i, uri ->
-                            println("delay : ${adapter?.delay?.get(i)?.toFloat() ?: 1000f}ms")
-                            val str = contentResolver.openInputStream(uri) ?: return@forEachIndexed
+                        items.forEach { uri ->
+                            println("delay : ${uri.second.toFloat()}ms")
+                            val str = contentResolver.openInputStream(uri.first) ?: return@forEach
                             encoder.writeFrame(
                                 str,
-                                delay = adapter?.delay?.get(i)?.toFloat() ?: 1000f
+                                delay = uri.second.toFloat()
                             )
                         }
 
@@ -188,23 +205,23 @@ class CreatorActivity : AppCompatActivity() {
 
                         // Create a file with the requested MIME type.
                         type = "image/png"
-                        putExtra(Intent.EXTRA_TITLE, "${items[0].lastPathSegment}.png")
+                        putExtra(Intent.EXTRA_TITLE, "${items[0].first.lastPathSegment}.png")
                     }
                     startActivityForResult(intent, WRITE_REQUEST_CODE)
                 }
                 true
             }
-            else -> super.onOptionsItemSelected(item)
+            else -> if (item != null) super.onOptionsItemSelected(item) else true
         }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        when(requestCode) {
+        when (requestCode) {
             PICK_IMAGE -> {
                 if (resultCode == Activity.RESULT_OK) {
                     if (data?.data != null) {
-                        items.add(data.data!!)
+                        items.add(Pair(data.data!!, 1000))
                         adapter?.notifyDataSetChanged()
                     }
                 }
@@ -219,7 +236,7 @@ class CreatorActivity : AppCompatActivity() {
                             var maxWidth = 0
                             var maxHeight = 0
                             items.forEach {
-                                val str = contentResolver.openInputStream(it)
+                                val str = contentResolver.openInputStream(it.first)
                                 val btm = BitmapFactory.decodeStream(str)
                                 if (btm.width > maxWidth)
                                     maxWidth = btm.width
@@ -232,12 +249,13 @@ class CreatorActivity : AppCompatActivity() {
                                 Log.i(TAG, "MaxWidth : $maxWidth; MaxHeight : $maxHeight")
 
                             val encoder = ApngEncoder(out, maxWidth, maxHeight, items.size)
-                            items.forEachIndexed { i, uri ->
+                            items.forEach { uri ->
                                 // println("delay : ${adapter?.delay?.get(i)?.toFloat() ?: 1000f}ms")
-                                val str = contentResolver.openInputStream(uri) ?: return@forEachIndexed
+                                val str =
+                                    contentResolver.openInputStream(uri.first) ?: return@forEach
                                 encoder.writeFrame(
                                     str,
-                                    delay = adapter?.delay?.get(i)?.toFloat() ?: 1000f
+                                    delay = uri.second.toFloat()
                                 )
                             }
 
@@ -245,7 +263,11 @@ class CreatorActivity : AppCompatActivity() {
                             out.close()
 
                             withContext(Dispatchers.Main) {
-                                Snackbar.make(imageRecyclerView, R.string.done, Snackbar.LENGTH_SHORT).show()
+                                Snackbar.make(
+                                    imageRecyclerView,
+                                    R.string.done,
+                                    Snackbar.LENGTH_SHORT
+                                ).show()
                             }
                         }
                     }
@@ -254,27 +276,23 @@ class CreatorActivity : AppCompatActivity() {
         }
     }
 
-    inner class SwipeToDeleteCallback(private val adapter: ImageAdapter) : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
+    // TODO MOVE TOP AND BOTTOM
+    inner class SwipeToDeleteCallback(private val adapter: ImageAdapter) :
+        ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
         override fun onMove(
             recyclerView: RecyclerView,
             viewHolder: RecyclerView.ViewHolder,
             target: RecyclerView.ViewHolder
-        ) : Boolean {
+        ): Boolean {
             return false
         }
 
         override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
             val position = viewHolder.adapterPosition
-            adapter.delay.removeAt(position)
             items.removeAt(position)
             adapter.notifyDataSetChanged()
-            adapter.listeners.forEachIndexed { index, listener ->
-                if (index >= position)
-                    listener.position = index
-            }
         }
 
         override fun isItemViewSwipeEnabled() = true
     }
 }
-

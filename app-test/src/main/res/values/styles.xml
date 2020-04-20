@@ -21,4 +21,13 @@
         <item name="cornerFamily">cut</item>
         <item name="cornerSize">8dp</item>
     </style>
+
+    <style name="RoundedCornersDialog" parent="@style/ThemeOverlay.MaterialComponents.MaterialAlertDialog">
+        <item name="shapeAppearanceOverlay">@style/RoundedCornersDialog.ShapeOverlay</item>
+    </style>
+
+    <style name="RoundedCornersDialog.ShapeOverlay">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">8dp</item>
+    </style>
 </resources>

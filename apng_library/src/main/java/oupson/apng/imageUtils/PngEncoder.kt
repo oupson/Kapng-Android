@@ -9,6 +9,7 @@ import java.util.zip.DeflaterOutputStream
 import kotlin.math.max
 import kotlin.math.min
 
+// TODO FIND A BETTER SOLUTION
 /**
  * Taken from http://catcode.com/pngencoder/com/keypoint/PngEncoder.java
  */
@@ -395,7 +396,6 @@ class PngEncoder {
                 System.err.println(e.toString())
                 return false
             }
-
         }
 
         /**

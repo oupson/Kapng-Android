@@ -4,38 +4,26 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.textfield.TextInputEditText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import oupson.apngcreator.R
 
-class ImageAdapter(private val context : Context, private val list : List<Uri>) : RecyclerView.Adapter<ImageAdapter.ImageHolder>() {
-    val delay : ArrayList<String> = arrayListOf()
-    val listeners : ArrayList<Listener> = arrayListOf()
-    inner class Listener : TextWatcher {
-        var position : Int = -1
-        override fun afterTextChanged(s: Editable?) {}
-        override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-        override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-            if (position > -1)
-                delay[position] = s?.toString() ?: ""
-        }
+class ImageAdapter(private val context : Context, private val list : List<Pair<Uri, Int>>) : RecyclerView.Adapter<ImageAdapter.ImageHolder>() {
+    inner class ImageHolder(view : View) : RecyclerView.ViewHolder(view) {
+        val imageView : ImageView? = view.findViewById(R.id.listImageView)
+        val textDelay : TextView? = view.findViewById(R.id.textDelay)
+        val positionTextView : TextView? = view.findViewById(R.id.position_textView)
     }
 
-    inner class ImageHolder(view : View) : RecyclerView.ViewHolder(view) {
-        val imageView = view.findViewById<ImageView?>(R.id.listImageView)
-        val textDelay = view.findViewById<TextInputEditText?>(R.id.textDelay)
-        val listener = Listener()
-    }
+    var clickListener : ((position : Int) -> Unit)? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -43,14 +31,11 @@ class ImageAdapter(private val context : Context, private val list : List<Uri>) 
     }
 
     override fun onBindViewHolder(holder: ImageHolder, position: Int) {
-        if (delay.size <= position)
-            delay.add("1000")
-        holder.textDelay?.addTextChangedListener(holder.listener.also{
-            it.position = position
-            listeners.add(position, it)
-        })
+        holder.itemView.setOnClickListener { clickListener?.invoke(position) }
+        holder.textDelay?.text = String.format("%dms", list[position].second)
+        holder.positionTextView?.text = String.format("# %d", position + 1)
         GlobalScope.launch(Dispatchers.IO) {
-            val inputStream = context.contentResolver.openInputStream(list[position])
+            val inputStream = context.contentResolver.openInputStream(list[position].first)
             val btm = BitmapFactory.decodeStream(inputStream, null, BitmapFactory.Options().apply {
                 inPreferredConfig = Bitmap.Config.RGB_565
             })
@@ -59,12 +44,6 @@ class ImageAdapter(private val context : Context, private val list : List<Uri>) 
                 holder.imageView?.setImageBitmap(btm)
             }
         }
-    }
-
-    override fun onViewDetachedFromWindow(holder: ImageHolder) {
-        super.onViewDetachedFromWindow(holder)
-        holder.textDelay?.removeTextChangedListener(holder.listener)
-        listeners.remove(holder.listener)
     }
 
     override fun getItemCount(): Int = list.count()
