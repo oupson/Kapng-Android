@@ -2,19 +2,19 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
-        android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
 
-    <TextView
+    <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/position_textView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            tools:text="#1"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="#1" />
 
     <oupson.apngcreator.views.SquareImageView
             android:id="@+id/listImageView"
@@ -22,22 +22,34 @@
             android:layout_height="80dp"
             android:layout_marginStart="8dp"
             android:scaleType="fitCenter"
-            app:layout_constraintBottom_toBottomOf="@id/textDelay"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toEndOf="@+id/position_textView"
-            app:layout_constraintTop_toTopOf="@+id/textDelay"
+            app:layout_constraintTop_toTopOf="parent"
             tools:srcCompat="@tools:sample/avatars" />
 
     <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/textDelay"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
+            app:layout_constraintBottom_toTopOf="@+id/name_textView"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/listImageView"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="1000ms" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/name_textView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
             android:layout_marginBottom="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/listImageView"
-            app:layout_constraintTop_toTopOf="parent"/>
+            app:layout_constraintTop_toBottomOf="@+id/textDelay"
+            tools:text="foo.png" />
 </androidx.constraintlayout.widget.ConstraintLayout>

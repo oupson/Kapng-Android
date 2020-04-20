@@ -45,6 +45,7 @@ class CreatorActivity : AppCompatActivity() {
 
         fabAddImage.setOnClickListener {
             val getIntent = Intent(Intent.ACTION_GET_CONTENT)
+            getIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
             getIntent.type = "image/*"
 
             startActivityForResult(
@@ -228,6 +229,11 @@ class CreatorActivity : AppCompatActivity() {
                 }
                 true
             }
+            R.id.menu_clear -> {
+                items.clear()
+                adapter?.notifyDataSetChanged()
+                true
+            }
             else -> if (item != null) super.onOptionsItemSelected(item) else true
         }
     }
@@ -237,7 +243,12 @@ class CreatorActivity : AppCompatActivity() {
         when (requestCode) {
             PICK_IMAGE -> {
                 if (resultCode == Activity.RESULT_OK) {
-                    if (data?.data != null) {
+                    if (data?.clipData != null) {
+                        for (i in 0 until data.clipData!!.itemCount) {
+                            items.add(Pair(data.clipData!!.getItemAt(i).uri, 1000))
+                        }
+                        adapter?.notifyDataSetChanged()
+                    } else if (data?.data != null) {
                         items.add(Pair(data.data!!, 1000))
                         adapter?.notifyDataSetChanged()
                     }

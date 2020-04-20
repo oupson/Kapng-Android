@@ -10,6 +10,7 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.util.zip.CRC32
 
+// TODO DOCUMENTATION
 class ApngEncoder(
     private val outputStream: OutputStream,
     private val width : Int,

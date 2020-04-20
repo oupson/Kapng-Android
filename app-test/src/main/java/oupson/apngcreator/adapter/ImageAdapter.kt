@@ -21,6 +21,7 @@ class ImageAdapter(private val context : Context, private val list : List<Pair<U
         val imageView : ImageView? = view.findViewById(R.id.listImageView)
         val textDelay : TextView? = view.findViewById(R.id.textDelay)
         val positionTextView : TextView? = view.findViewById(R.id.position_textView)
+        val nameTextView : TextView? = view.findViewById(R.id.name_textView)
     }
 
     var clickListener : ((position : Int) -> Unit)? = null
@@ -34,6 +35,7 @@ class ImageAdapter(private val context : Context, private val list : List<Pair<U
         holder.itemView.setOnClickListener { clickListener?.invoke(position) }
         holder.textDelay?.text = String.format("%dms", list[position].second)
         holder.positionTextView?.text = String.format("# %d", position + 1)
+        holder.nameTextView?.text = list[position].first.path?.substringAfterLast("/")
         GlobalScope.launch(Dispatchers.IO) {
             val inputStream = context.contentResolver.openInputStream(list[position].first)
             val btm = BitmapFactory.decodeStream(inputStream, null, BitmapFactory.Options().apply {

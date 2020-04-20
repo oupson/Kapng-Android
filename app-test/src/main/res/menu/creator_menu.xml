@@ -29,4 +29,10 @@
             android:title="@string/set_all_duration"
             app:showAsAction="ifRoom"
             app:iconTint="@color/control"/>
+
+    <item
+        android:id="@+id/menu_clear"
+        android:title="@string/clear"
+        app:showAsAction="never"
+        app:iconTint="@color/control" />
 </menu>

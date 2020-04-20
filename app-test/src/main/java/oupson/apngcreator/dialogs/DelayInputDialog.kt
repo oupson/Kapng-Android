@@ -3,7 +3,6 @@ package oupson.apngcreator.dialogs
 import android.app.Dialog
 import android.content.DialogInterface
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
 import android.widget.EditText
 import androidx.fragment.app.DialogFragment
@@ -25,7 +24,7 @@ class DelayInputDialog(
     override fun getTheme() = R.style.RoundedCornersDialog
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val dialogLayout: View = LayoutInflater.from(activity).inflate(R.layout.dialog_delay, null)
+        val dialogLayout: View = View.inflate(context, R.layout.dialog_delay, null)
         mNumberEdit =
             dialogLayout.findViewById<TextInputLayout>(R.id.delay_textInputLayout).editText
         if (value != null)

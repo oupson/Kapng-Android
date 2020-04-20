@@ -15,6 +15,7 @@
     <string name="save">Save</string>
     <string name="set_all_duration">Set duration of all frames</string>
     <string name="done">Done</string>
+    <string name="clear">Clear</string>
 
     <string name="open">open</string>
     <string name="close">close</string>
