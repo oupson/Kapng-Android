@@ -158,6 +158,7 @@ class CreatorActivity : AppCompatActivity() {
                                         delay = uri.second.toFloat()
                                     )
                                 }
+                                str.close()
                             } catch (e : Exception) {
                                 Log.e(TAG, "Error when creating apng", e)
                             }
