@@ -5,6 +5,7 @@ import android.graphics.BitmapFactory
 import oupson.apng.chunks.IDAT
 import oupson.apng.imageUtils.PngEncoder
 import oupson.apng.utils.Utils
+import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.zip.CRC32
@@ -29,15 +30,22 @@ class ApngEncoder(
 
     // TODO ADD SUPPORT FOR FIRST FRAME NOT IN ANIM
     // TODO OPTIMISE APNG
+    @JvmOverloads
     fun writeFrame(
         inputStream: InputStream,
         delay: Float = 1000f,
         xOffsets: Int = 0,
         yOffsets: Int = 0,
         blendOp: Utils.Companion.BlendOp = Utils.Companion.BlendOp.APNG_BLEND_OP_SOURCE,
-        disposeOp: Utils.Companion.DisposeOp = Utils.Companion.DisposeOp.APNG_DISPOSE_OP_NONE
+        disposeOp: Utils.Companion.DisposeOp = Utils.Companion.DisposeOp.APNG_DISPOSE_OP_NONE,
+        usePngEncoder: Boolean = false
     ) {
-        val btm = BitmapFactory.decodeStream(inputStream)
+        val btm = BitmapFactory.decodeStream(inputStream).let {
+            if (it.config != Bitmap.Config.ARGB_8888)
+                it.copy(Bitmap.Config.ARGB_8888, it.isMutable)
+            else
+                it
+        }
         inputStream.close()
 
         if (frameIndex == 0) {
@@ -50,7 +58,13 @@ class ApngEncoder(
         generateFCTL(btm, delay, disposeOp, blendOp, xOffsets, yOffsets)
 
         val idat = IDAT().apply {
-            val byteArray = PngEncoder.encode(btm, true)
+            val byteArray = if (usePngEncoder) {
+                PngEncoder.encode(btm, true)
+            } else {
+                val outputStream = ByteArrayOutputStream()
+                btm.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+                outputStream.toByteArray()
+            }
             var cursor = 8
             while (cursor < byteArray.size) {
                 val chunk = byteArray.copyOfRange(cursor, cursor + Utils.parseLength(byteArray.copyOfRange(cursor, cursor + 4)) + 12)

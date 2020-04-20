@@ -22,4 +22,11 @@
             android:title="@string/share"
             app:showAsAction="ifRoom"
             app:iconTint="@color/control"/>
+
+    <item
+            android:id="@+id/menu_set_all_duration"
+            android:icon="@drawable/ic_access_time_white_24dp"
+            android:title="@string/set_all_duration"
+            app:showAsAction="ifRoom"
+            app:iconTint="@color/control"/>
 </menu>

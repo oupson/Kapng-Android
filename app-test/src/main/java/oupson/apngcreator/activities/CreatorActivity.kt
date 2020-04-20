@@ -211,6 +211,23 @@ class CreatorActivity : AppCompatActivity() {
                 }
                 true
             }
+            R.id.menu_set_all_duration -> {
+                if (items.size > 0) {
+                    DelayInputDialog(object : DelayInputDialog.InputSenderDialogListener {
+                        override fun onCancel(number: Int?) {}
+
+                        override fun onOK(number: Int?) {
+                            if (number != null) {
+                                for (i in 0 until items.size) {
+                                    items[i] = Pair(items[i].first, number)
+                                }
+                                adapter?.notifyDataSetChanged()
+                            }
+                        }
+                    }).show(supportFragmentManager, null)
+                }
+                true
+            }
             else -> if (item != null) super.onOptionsItemSelected(item) else true
         }
     }
