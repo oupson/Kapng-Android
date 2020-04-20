@@ -2,6 +2,7 @@ package oupson.apngcreator.activities
 
 import android.app.Activity
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
@@ -24,6 +25,8 @@ import oupson.apngcreator.BuildConfig
 import oupson.apngcreator.R
 import oupson.apngcreator.adapter.ImageAdapter
 import oupson.apngcreator.dialogs.DelayInputDialog
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 
@@ -101,25 +104,63 @@ class CreatorActivity : AppCompatActivity() {
                         var maxHeight = 0
                         items.forEach {
                             val str = contentResolver.openInputStream(it.first)
+                            if (str == null) {
+                                Log.e(TAG, "Input Stream is null : ${it.first}")
+                                return@forEach
+                            }
                             val btm = BitmapFactory.decodeStream(str)
-                            if (btm.width > maxWidth)
-                                maxWidth = btm.width
-                            if (btm.height > maxHeight)
-                                maxHeight = btm.height
-                            str?.close()
+                            if (btm != null) {
+                                if (btm.width > maxWidth)
+                                    maxWidth = btm.width
+                                if (btm.height > maxHeight)
+                                    maxHeight = btm.height
+                            } else {
+                                Log.e(TAG, "Btm is null")
+                            }
+                            str.close()
                         }
 
                         if (BuildConfig.DEBUG)
                             Log.i(TAG, "MaxWidth : $maxWidth; MaxHeight : $maxHeight")
 
                         val encoder = ApngEncoder(out, maxWidth, maxHeight, items.size)
-                        items.forEach { uri ->
+                        items.forEachIndexed { i, uri ->
+                            if (BuildConfig.DEBUG)
+                                Log.v(TAG, "Encoding frame $i")
                             // println("delay : ${adapter?.delay?.get(i)?.toFloat() ?: 1000f}ms")
-                            val str = contentResolver.openInputStream(uri.first) ?: return@forEach
-                            encoder.writeFrame(
-                                str,
-                                delay = uri.second.toFloat()
-                            )
+                            try {
+                                val str = contentResolver.openInputStream(uri.first)
+                                    ?: return@forEachIndexed
+                                if (i == 0) {
+                                    val btm =
+                                        BitmapFactory.decodeStream(str) ?: return@forEachIndexed
+                                    val newBtm =
+                                        if (btm.width != maxWidth && btm.height != maxHeight)
+                                            Bitmap.createScaledBitmap(
+                                                btm,
+                                                maxWidth,
+                                                maxHeight,
+                                                false
+                                            )
+                                        else
+                                            btm
+                                    val output = ByteArrayOutputStream()
+                                    newBtm.compress(Bitmap.CompressFormat.PNG, 100, output)
+                                    val input = ByteArrayInputStream(output.toByteArray())
+                                    encoder.writeFrame(
+                                        input,
+                                        delay = uri.second.toFloat()
+                                    )
+                                    input.close()
+                                } else {
+                                    encoder.writeFrame(
+                                        str,
+                                        delay = uri.second.toFloat()
+                                    )
+                                }
+                            } catch (e : Exception) {
+                                Log.e(TAG, "Error when creating apng", e)
+                            }
                         }
 
                         encoder.writeEnd()
