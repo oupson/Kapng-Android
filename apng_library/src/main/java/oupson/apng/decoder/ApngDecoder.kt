@@ -56,6 +56,7 @@ class ApngDecoder {
          */
         @Suppress("MemberVisibilityCanBePrivate")
         @JvmStatic
+        @JvmOverloads
         fun decodeApng(context: Context, inStream: InputStream, speed: Float = 1f): Drawable {
             val inputStream = BufferedInputStream(inStream)
             val bytes = ByteArray(8)

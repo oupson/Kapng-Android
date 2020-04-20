@@ -29,7 +29,6 @@ class ApngEncoder(
 
     // TODO ADD SUPPORT FOR FIRST FRAME NOT IN ANIM
     // TODO OPTIMISE APNG
-
     fun writeFrame(
         inputStream: InputStream,
         delay: Float = 1000f,

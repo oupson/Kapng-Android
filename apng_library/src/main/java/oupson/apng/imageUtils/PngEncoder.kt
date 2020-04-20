@@ -389,6 +389,7 @@ class PngEncoder {
                 crcValue = crc.value
                 bytePos = writeInt4(crcValue.toInt(), bytePos)
                 scrunch.finish()
+                scrunch.end()
                 return true
             } catch (e: IOException) {
                 System.err.println(e.toString())

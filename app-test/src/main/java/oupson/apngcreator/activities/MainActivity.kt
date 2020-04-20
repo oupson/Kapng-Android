@@ -1,6 +1,7 @@
 package oupson.apngcreator.activities
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.appcompat.app.ActionBarDrawerToggle
@@ -12,7 +13,6 @@ import com.google.android.material.shape.MaterialShapeDrawable
 import com.google.android.material.shape.ShapeAppearanceModel
 import com.google.android.material.shape.ShapePath
 import kotlinx.android.synthetic.main.activity_main.*
-import org.jetbrains.anko.startActivity
 import oupson.apngcreator.R
 import oupson.apngcreator.fragments.ApngDecoderFragment
 import oupson.apngcreator.fragments.JavaFragment
@@ -36,7 +36,7 @@ class MainActivity : AppCompatActivity() {
         setUpBottomAppBarShapeAppearance()
 
         fabCreate.setOnClickListener {
-            startActivity<CreatorActivity>()
+            startActivity(Intent(this, CreatorActivity::class.java))
         }
 
         val drawerToggle = ActionBarDrawerToggle(this, drawer_layout, bottomAppBar,
