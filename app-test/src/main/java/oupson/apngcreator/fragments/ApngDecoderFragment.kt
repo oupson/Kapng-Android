@@ -1,6 +1,7 @@
 package oupson.apngcreator.fragments
 
 
+import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
@@ -36,6 +37,7 @@ class ApngDecoderFragment : Fragment() {
                 this.context!!,
                 URL("https://metagif.files.wordpress.com/2015/01/bugbuckbunny.png"),
                 imageView,
+                config = Bitmap.Config.RGB_565,
                 callback = object : ApngDecoder.Callback {
                     override fun onSuccess(drawable: Drawable) {
                         if (BuildConfig.DEBUG)

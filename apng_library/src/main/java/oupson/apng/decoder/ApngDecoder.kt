@@ -59,7 +59,7 @@ class ApngDecoder {
         fun decodeApng(context: Context, inStream: InputStream, speed: Float = 1f, config : Bitmap.Config = Bitmap.Config.ARGB_8888): Drawable {
             val inputStream = BufferedInputStream(inStream)
             val bytes = ByteArray(8)
-            inputStream.mark(0)
+            inputStream.mark(8)
             inputStream.read(bytes)
             if (isPng(bytes)) {
                 var png: ArrayList<Byte>? = null
@@ -197,6 +197,8 @@ class ApngDecoder {
                                         BitmapDrawable(
                                             context.resources,
                                             if (btm.config != config) {
+                                                if (BuildConfig.DEBUG)
+                                                    Log.v(TAG, "Bitmap Config : ${btm.config}, Config : $config")
                                                 btm.copy(config, btm.isMutable)
                                             } else {
                                                 btm
@@ -303,6 +305,8 @@ class ApngDecoder {
                                         BitmapDrawable(
                                             context.resources,
                                             if (btm.config != config) {
+                                                if (BuildConfig.DEBUG)
+                                                    Log.v(TAG, "Bitmap Config : ${btm.config}, Config : $config")
                                                 btm.copy(config, btm.isMutable)
                                             } else {
                                                 btm

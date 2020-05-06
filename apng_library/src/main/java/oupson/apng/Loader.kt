@@ -15,7 +15,7 @@ class Loader {
          * @param url Url of the file to download.
          * @return [ByteArray] of the file.
          */
-        @Throws(IOException::class)
+        @Throws(IOException::class, Exception::class)
         suspend fun load(url: URL): ByteArray =
             withContext(Dispatchers.IO) {
                 val connection = url.openConnection() as HttpURLConnection
