@@ -24,10 +24,7 @@ import oupson.apng.exceptions.BadApng
 import oupson.apng.exceptions.BadCRC
 import oupson.apng.utils.Utils
 import oupson.apng.utils.Utils.Companion.isPng
-import java.io.BufferedInputStream
-import java.io.File
-import java.io.FileInputStream
-import java.io.InputStream
+import java.io.*
 import java.net.URL
 import java.nio.ByteBuffer
 import java.util.zip.CRC32
@@ -536,9 +533,7 @@ class ApngDecoder {
             withContext(Dispatchers.IO) {
                 decodeApng(
                     context,
-                    FileInputStream(
-                        Loader.load(context, url)
-                    ),
+                    ByteArrayInputStream(Loader.load(url)),
                     speed,
                     config
                 )
@@ -706,9 +701,8 @@ class ApngDecoder {
                     val drawable =
                         decodeApng(
                             context,
-                            FileInputStream(
+                            ByteArrayInputStream(
                                 Loader.load(
-                                    context,
                                     url
                                 )
                             ),

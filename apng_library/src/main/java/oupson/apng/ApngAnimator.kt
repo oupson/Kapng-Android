@@ -274,20 +274,19 @@ class ApngAnimator(private val context: Context?) {
             this@ApngAnimator.speed = speed
             // Download PNG
             try {
-                Loader.load(context!!, url).apply {
+                Loader.load(url).apply {
                     try {
                         this@ApngAnimator.load(this, speed, apngAnimatorOptions)
                     } catch (e: NotPngException) {
                         if (loadNotApng) {
-                            val bytes = this.readBytes()
                             GlobalScope.launch(Dispatchers.Main) {
                                 imageView?.scaleType =
                                     this@ApngAnimator.scaleType ?: ImageView.ScaleType.FIT_CENTER
                                 imageView?.setImageBitmap(
                                     BitmapFactory.decodeByteArray(
-                                        bytes,
+                                        this@apply,
                                         0,
-                                        bytes.size
+                                        this@apply.size
                                     )
                                 )
                             }

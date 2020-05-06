@@ -2,6 +2,7 @@ package oupson.apngcreator.activities
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.net.http.HttpResponseCache
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.appcompat.app.ActionBarDrawerToggle
@@ -17,6 +18,7 @@ import oupson.apngcreator.R
 import oupson.apngcreator.fragments.ApngDecoderFragment
 import oupson.apngcreator.fragments.JavaFragment
 import oupson.apngcreator.fragments.KotlinFragment
+import java.io.File
 
 
 class MainActivity : AppCompatActivity() {
@@ -30,10 +32,14 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_main)
 
-
         setSupportActionBar(bottomAppBar)
 
         setUpBottomAppBarShapeAppearance()
+
+        val httpCacheSize = 10 * 1024 * 1024.toLong() // 10 MiB
+
+        val httpCacheDir = File(cacheDir, "http")
+        HttpResponseCache.install(httpCacheDir, httpCacheSize)
 
         fabCreate.setOnClickListener {
             startActivity(Intent(this, CreatorActivity::class.java))
@@ -133,6 +139,11 @@ class MainActivity : AppCompatActivity() {
             }.commit()
             navigationView.setCheckedItem(R.id.menu_kotlin_fragment)
         }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        HttpResponseCache.getInstalled()?.flush()
     }
 
     private fun setUpBottomAppBarShapeAppearance() {

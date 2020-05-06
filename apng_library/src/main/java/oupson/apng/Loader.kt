@@ -1,36 +1,30 @@
 package oupson.apng
 
-import android.content.Context
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.BufferedInputStream
-import java.io.File
-import java.io.FileOutputStream
+import java.io.ByteArrayOutputStream
 import java.io.IOException
+import java.net.HttpURLConnection
 import java.net.URL
 
 class Loader {
     companion object {
         /**
          * Download file from given url.
-         * @param context Context of app.
          * @param url Url of the file to download.
          * @return [ByteArray] of the file.
          */
-        @Throws(IOException::class, java.io.FileNotFoundException::class)
-        suspend fun load(context: Context, url: URL) =
+        @Throws(IOException::class)
+        suspend fun load(url: URL): ByteArray =
             withContext(Dispatchers.IO) {
-                val currentDir = context.filesDir
-                val fileTXT = File(currentDir, "apngLoader.txt")
-                val filePNG = File(currentDir, "apngLoader.png")
-                if (fileTXT.exists() && url.toString() == fileTXT.readText()) {
-                    filePNG
-                } else {
-                    val connection = url.openConnection()
-                    connection.connect()
-                    val input = BufferedInputStream(connection.getInputStream())
-                    val output = FileOutputStream(filePNG)
-                    var bytesRead : Int
+                val connection = url.openConnection() as HttpURLConnection
+                connection.useCaches = true
+                connection.connect()
+                if (connection.responseCode == 200) {
+                    val input = BufferedInputStream(connection.inputStream)
+                    val output = ByteArrayOutputStream()
+                    var bytesRead: Int
                     val buffer = ByteArray(4096)
                     do {
                         bytesRead = input.read(buffer)
@@ -39,8 +33,11 @@ class Loader {
                     } while (bytesRead != -1)
                     input.close()
                     output.close()
-                    fileTXT.writeText(url.toString())
-                    filePNG
+                    connection.disconnect()
+                    output.toByteArray()
+                } else {
+                    connection.disconnect()
+                    throw Exception("Error when downloading file : ${connection.responseCode}")
                 }
             }
     }
