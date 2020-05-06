@@ -51,13 +51,15 @@ class ApngDecoder {
 
         /**
          * Decode Apng and return a Drawable who can be an [AnimationDrawable] if it end successfully. Can also be an [android.graphics.drawable.AnimatedImageDrawable].
+         * @param context Context needed for the animation drawable
          * @param inStream Input Stream to decode. Will be close at the end.
          * @param speed Optional parameter.
+         * @param config Configuration applied to the bitmap added to the animation. Please note that the frame is decoded in ARGB_8888 and converted after, for the buffer.
          */
         @Suppress("MemberVisibilityCanBePrivate")
         @JvmStatic
         @JvmOverloads
-        fun decodeApng(context: Context, inStream: InputStream, speed: Float = 1f): Drawable {
+        fun decodeApng(context: Context, inStream: InputStream, speed: Float = 1f, config : Bitmap.Config = Bitmap.Config.ARGB_8888): Drawable {
             val inputStream = BufferedInputStream(inStream)
             val bytes = ByteArray(8)
             inputStream.mark(0)
@@ -197,7 +199,11 @@ class ApngDecoder {
                                     drawable.addFrame(
                                         BitmapDrawable(
                                             context.resources,
-                                            btm
+                                            if (btm.config != config) {
+                                                btm.copy(config, btm.isMutable)
+                                            } else {
+                                                btm
+                                            }
                                         ),
                                         (delay / speed).toInt()
                                     )
@@ -299,7 +305,11 @@ class ApngDecoder {
                                     drawable.addFrame(
                                         BitmapDrawable(
                                             context.resources,
-                                            btm
+                                            if (btm.config != config) {
+                                                btm.copy(config, btm.isMutable)
+                                            } else {
+                                                btm
+                                            }
                                         ),
                                         (delay / speed).toInt()
                                     )
@@ -451,87 +461,97 @@ class ApngDecoder {
                     val source = ImageDecoder.createSource(buf)
                     ImageDecoder.decodeDrawable(source)
                 } else {
-                    Drawable.createFromStream(
+                    val drawable = Drawable.createFromStream(
                         inputStream,
                         null
                     )
+                    inputStream.close()
+                    drawable
                 }
             }
         }
 
         /**
          * Decode Apng and return a Drawable who can be an [AnimationDrawable] if it end successfully. Can also be an [android.graphics.drawable.AnimatedImageDrawable].
-         * @param context Context.
+         * @param context Context needed for animation drawable.
          * @param file File to decode.
          * @param speed Optional parameter.
+         * @param config Configuration applied to the bitmap added to the animation. Please note that the frame is decoded in ARGB_8888 and converted after, for the buffer.
          */
         @Suppress("unused")
         @JvmStatic
-        fun decodeApng(context: Context, file: File, speed: Float = 1f): Drawable =
+        fun decodeApng(context: Context, file: File, speed: Float = 1f, config : Bitmap.Config = Bitmap.Config.ARGB_8888): Drawable =
             decodeApng(
                 context,
-                FileInputStream(file), speed
+                FileInputStream(file), speed, config
             )
 
         /**
          * Decode Apng and return a Drawable who can be an [AnimationDrawable] if it end successfully. Can also be an [android.graphics.drawable.AnimatedImageDrawable].
-         * @param context Context is needed for contentResolver.
+         * @param context Context is needed for contentResolver and animation drawable.
          * @param uri Uri to open.
          * @param speed Optional parameter.
+         * @param config Configuration applied to the bitmap added to the animation. Please note that the frame is decoded in ARGB_8888 and converted after, for the buffer.
          */
         @Suppress("unused")
         @JvmStatic
-        fun decodeApng(context: Context, uri: Uri, speed: Float = 1f): Drawable {
+        fun decodeApng(context: Context, uri: Uri, speed: Float = 1f, config : Bitmap.Config = Bitmap.Config.ARGB_8888): Drawable {
             val inputStream = context.contentResolver.openInputStream(uri)
                 ?: throw Exception("Failed to open InputStream, InputStream is null")
             return decodeApng(
                 context,
                 inputStream,
-                speed
+                speed,
+                config
             )
         }
 
         /**
          * Decode Apng and return a Drawable who can be an [AnimationDrawable] if it end successfully. Can also be an [android.graphics.drawable.AnimatedImageDrawable].
-         * @param context Context is needed for contentResolver.
+         * @param context Context is needed for contentResolver and animation drawable.
          * @param res Resource to decode.
          * @param speed Optional parameter.
+         * @param config Configuration applied to the bitmap added to the animation. Please note that the frame is decoded in ARGB_8888 and converted after, for the buffer.
          */
         @Suppress("unused")
         @JvmStatic
-        fun decodeApng(context: Context, @RawRes res: Int, speed: Float = 1f): Drawable =
+        fun decodeApng(context: Context, @RawRes res: Int, speed: Float = 1f, config : Bitmap.Config = Bitmap.Config.ARGB_8888): Drawable =
             decodeApng(
                 context,
                 context.resources.openRawResource(res),
-                speed
+                speed,
+                config
             )
 
         /**
          * Decode Apng and return a Drawable who can be an [AnimationDrawable] if it end successfully. Can also be an [android.graphics.drawable.AnimatedImageDrawable].
-         * @param context Context is needed for contentResolver.
+         * @param context Context is needed for contentResolver and animation drawable.
          * @param url URL to decode.
          * @param speed Optional parameter.
+         * @param config Configuration applied to the bitmap added to the animation. Please note that the frame is decoded in ARGB_8888 and converted after, for the buffer.
          */
         @Suppress("unused")
         @JvmStatic
-        suspend fun decodeApng(context: Context, url: URL, speed: Float = 1f) =
+        suspend fun decodeApng(context: Context, url: URL, speed: Float = 1f, config : Bitmap.Config = Bitmap.Config.ARGB_8888) =
             withContext(Dispatchers.IO) {
                 decodeApng(
                     context,
                     FileInputStream(
                         Loader.load(context, url)
                     ),
-                    speed
+                    speed,
+                    config
                 )
             }
 
         /**
          * Load Apng into an imageView, asynchronously.
-         * @param context Context.
+         * @param context Context needed for animation drawable.
          * @param file File to decode.
          * @param imageView Image View.
          * @param speed Optional parameter.
          * @param callback [ApngDecoder.Callback] to handle success and error.
+         * @param config Configuration applied to the bitmap added to the animation. Please note that the frame is decoded in ARGB_8888 and converted after, for the buffer.
          */
         @Suppress("unused")
         @JvmStatic
@@ -541,7 +561,8 @@ class ApngDecoder {
             file: File,
             imageView: ImageView,
             speed: Float = 1f,
-            callback: Callback? = null
+            callback: Callback? = null,
+            config : Bitmap.Config = Bitmap.Config.ARGB_8888
         ) {
             GlobalScope.launch(Dispatchers.IO) {
                 try {
@@ -549,7 +570,8 @@ class ApngDecoder {
                         decodeApng(
                             context,
                             FileInputStream(file),
-                            speed
+                            speed,
+                            config
                         )
                     withContext(Dispatchers.Main) {
                         imageView.setImageDrawable(drawable)
@@ -569,11 +591,12 @@ class ApngDecoder {
 
         /**
          * Load Apng into an imageView, asynchronously.
-         * @param context Context.
+         * @param context Context needed for animation drawable and content resolver.
          * @param uri Uri to load.
          * @param imageView Image View.
          * @param speed Optional parameter.
          * @param callback [ApngDecoder.Callback] to handle success and error.
+         * @param config Configuration applied to the bitmap added to the animation. Please note that the frame is decoded in ARGB_8888 and converted after, for the buffer.
          */
         @Suppress("unused")
         @JvmStatic
@@ -583,7 +606,8 @@ class ApngDecoder {
             uri: Uri,
             imageView: ImageView,
             speed: Float = 1f,
-            callback: Callback? = null
+            callback: Callback? = null,
+            config : Bitmap.Config = Bitmap.Config.ARGB_8888
         ) {
             val inputStream = context.contentResolver.openInputStream(uri)
                 ?: throw Exception("Failed to open InputStream, InputStream is null")
@@ -593,7 +617,8 @@ class ApngDecoder {
                         decodeApng(
                             context,
                             inputStream,
-                            speed
+                            speed,
+                            config
                         )
                     withContext(Dispatchers.Main) {
                         imageView.setImageDrawable(drawable)
@@ -613,11 +638,12 @@ class ApngDecoder {
 
         /**
          * Load Apng into an imageView, asynchronously.
-         * @param context Context.
+         * @param context Context needed to decode the resource and for the animation drawable.
          * @param res Raw resource to load.
          * @param imageView Image View.
          * @param speed Optional parameter.
          * @param callback [ApngDecoder.Callback] to handle success and error.
+         * @param config Configuration applied to the bitmap added to the animation. Please note that the frame is decoded in ARGB_8888 and converted after, for the buffer.
          */
         @Suppress("unused")
         @JvmStatic
@@ -626,7 +652,8 @@ class ApngDecoder {
             context: Context, @RawRes res: Int,
             imageView: ImageView,
             speed: Float = 1f,
-            callback: Callback? = null
+            callback: Callback? = null,
+            config : Bitmap.Config = Bitmap.Config.ARGB_8888
         ) {
             GlobalScope.launch(Dispatchers.IO) {
                 try {
@@ -634,7 +661,8 @@ class ApngDecoder {
                         decodeApng(
                             context,
                             context.resources.openRawResource(res),
-                            speed
+                            speed,
+                            config
                         )
                     withContext(Dispatchers.Main) {
                         imageView.setImageDrawable(drawable)
@@ -655,11 +683,12 @@ class ApngDecoder {
 
         /**
          * Load Apng into an imageView, asynchronously.
-         * @param context Context.
+         * @param context Context needed for the animation drawable.
          * @param url URL to load.
          * @param imageView Image View.
          * @param speed Optional parameter.
          * @param callback [ApngDecoder.Callback] to handle success and error.
+         * @param config Configuration applied to the bitmap added to the animation. Please note that the frame is decoded in ARGB_8888 and converted after, for the buffer.
          */
         @Suppress("unused")
         @JvmStatic
@@ -669,7 +698,8 @@ class ApngDecoder {
             url: URL,
             imageView: ImageView,
             speed: Float = 1f,
-            callback: Callback? = null
+            callback: Callback? = null,
+            config : Bitmap.Config = Bitmap.Config.ARGB_8888
         ) {
             GlobalScope.launch(Dispatchers.IO) {
                 try {
@@ -682,7 +712,8 @@ class ApngDecoder {
                                     url
                                 )
                             ),
-                            speed
+                            speed,
+                            config
                         )
                     withContext(Dispatchers.Main) {
                         imageView.setImageDrawable(drawable)
@@ -702,11 +733,12 @@ class ApngDecoder {
 
         /**
          * Load Apng into an imageView, asynchronously.
-         * @param context Context.
+         * @param context Context needed for decoding the image and creating the animation drawable.
          * @param string URL to load
          * @param imageView Image View.
          * @param speed Optional parameter.
          * @param callback [ApngDecoder.Callback] to handle success and error.
+         * @param config Configuration applied to the bitmap added to the animation. Please note that the frame is decoded in ARGB_8888 and converted after, for the buffer.
          */
         @Suppress("unused")
         @JvmStatic
@@ -716,7 +748,8 @@ class ApngDecoder {
             string: String,
             imageView: ImageView,
             speed: Float = 1f,
-            callback: Callback? = null
+            callback: Callback? = null,
+            config : Bitmap.Config = Bitmap.Config.ARGB_8888
         ) {
             GlobalScope.launch(Dispatchers.IO) {
                 try {
@@ -726,7 +759,8 @@ class ApngDecoder {
                             URL(string),
                             imageView,
                             speed,
-                            callback
+                            callback,
+                            config
                         )
                     } else if (File(string).exists()) {
                         var pathToLoad =
@@ -737,14 +771,16 @@ class ApngDecoder {
                             Uri.parse(pathToLoad),
                             imageView,
                             speed,
-                            callback
+                            callback,
+                            config
                         )
                     } else if (string.startsWith("file://android_asset/")) {
                         val drawable =
                             decodeApng(
                                 context,
                                 context.assets.open(string.replace("file:///android_asset/", "")),
-                                speed
+                                speed,
+                                config
                             )
                         withContext(Dispatchers.Main) {
                             imageView.setImageDrawable(drawable)
