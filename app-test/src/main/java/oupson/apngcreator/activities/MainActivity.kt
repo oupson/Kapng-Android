@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.http.HttpResponseCache
 import android.os.Bundle
+import android.util.Log
 import android.view.MenuItem
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
@@ -29,6 +30,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.i(TAG, "${supportFragmentManager.fragments.size}")
 
         setContentView(R.layout.activity_main)
 
@@ -99,7 +101,7 @@ class MainActivity : AppCompatActivity() {
             return@setNavigationItemSelectedListener true
         }
 
-        if (intent.hasExtra("fragment")) {
+        if (intent.hasExtra("fragment") && supportFragmentManager.fragments.size == 0) {
             when(intent.getStringExtra("fragment")) {
                 "kotlin" -> {
                     supportFragmentManager.beginTransaction().apply {
@@ -131,7 +133,7 @@ class MainActivity : AppCompatActivity() {
                     selected = 2
                 }
             }
-        } else {
+        } else if (supportFragmentManager.fragments.size == 0) {
             supportFragmentManager.beginTransaction().apply {
                 add(
                     R.id.fragment_container,

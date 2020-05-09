@@ -20,6 +20,11 @@ import java.io.File
 import java.net.URL
 
 // TODO REWRITE WITH CALLBACKS
+// TODO REWRITE
+
+/**
+ * USE [ApngDecoder] instead of this class to load an APNG
+ */
 
 /**
  * @param file The APNG to load
@@ -422,6 +427,7 @@ class ApngAnimator(private val context: Context?) {
             GlobalScope.launch(Dispatchers.Main) {
                 imageView?.apply {
                     scaleType = this@ApngAnimator.scaleType ?: ImageView.ScaleType.FIT_CENTER
+                    clearAnimation()
                     setImageDrawable(activeAnimation)
                 }
                 activeAnimation?.start()
