@@ -11,6 +11,8 @@ import java.io.OutputStream
 import java.util.zip.CRC32
 
 // TODO DOCUMENTATION
+// TODO BITMAP ENCODING
+// TODO BUFFER AND BUFFER DEACTIVATION WHEN BITMAP CONFIG DOES NOT CONTAIN AN ALPHA CHANNEL
 class ApngEncoder(
     private val outputStream: OutputStream,
     private val width : Int,

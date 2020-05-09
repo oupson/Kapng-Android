@@ -183,7 +183,7 @@ class ApngAnimator(private val context: Context?) {
                 // Download PNG
 
                 val inputStream = file.inputStream()
-                APNGDisassembler.disassemble(inputStream).also {
+                APNGDisassembler().disassemble(inputStream).also {
                     inputStream.close()
                     if (it.isApng) {
                         it.frames.also {frames ->
@@ -231,7 +231,7 @@ class ApngAnimator(private val context: Context?) {
                 // Download PNG
 
                 val inputStream = context.contentResolver.openInputStream(uri)!!
-                APNGDisassembler.disassemble(inputStream).also {
+                APNGDisassembler().disassemble(inputStream).also {
                     inputStream.close()
                     if (it.isApng) {
                         isApng = true
@@ -319,7 +319,8 @@ class ApngAnimator(private val context: Context?) {
                 this@ApngAnimator.speed = speed
                 scaleType = apngAnimatorOptions?.scaleType
                 // Download PNG
-                APNGDisassembler.disassemble(byteArray).frames.also { frames ->
+                println(byteArray.size)
+                APNGDisassembler().disassemble(byteArray).frames.also { frames ->
                     draw(frames).apply {
                         setupAnimationDrawableAndStart(this)
                     }
@@ -391,7 +392,7 @@ class ApngAnimator(private val context: Context?) {
                 this@ApngAnimator.speed = speed
                 scaleType = apngAnimatorOptions?.scaleType
                 // Download PNG
-                APNGDisassembler.disassemble(byteArray).frames.also { frames ->
+                APNGDisassembler().disassemble(byteArray).frames.also { frames ->
                     draw(frames).apply {
                         setupAnimationDrawableAndStart(this)
                     }

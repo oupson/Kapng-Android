@@ -15,7 +15,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import oupson.apng.APNGDisassembler
 import oupson.apng.BuildConfig
 import oupson.apng.Loader
 import oupson.apng.chunks.IHDR
@@ -31,13 +30,23 @@ import java.util.zip.CRC32
 
 class ApngDecoder {
     interface Callback {
+        /**
+         * Function called when the file was successfully decoded.
+         * @param drawable Can be an [AnimationDrawable] if successful and an [AnimatedImageDrawable] if the image decoded is not an APNG but a gif. If it is not an animated image, it is a [Drawable].
+         */
         fun onSuccess(drawable: Drawable)
+
+        /**
+         * Function called when something gone wrong.
+         * @param error The problem.
+         */
         fun onError(error: java.lang.Exception)
     }
 
     companion object {
         private const val TAG = "ApngDecoder"
 
+        // Paint used to clear the buffer
         private val clearPaint: Paint by lazy {
             Paint().apply {
                 xfermode = PorterDuffXfermode(
@@ -52,11 +61,17 @@ class ApngDecoder {
          * @param inStream Input Stream to decode. Will be close at the end.
          * @param speed Optional parameter.
          * @param config Configuration applied to the bitmap added to the animation. Please note that the frame is decoded in ARGB_8888 and converted after, for the buffer.
+         * @return [AnimationDrawable] if successful and an [AnimatedImageDrawable] if the image decoded is not an APNG but a gif. If it is not an animated image, it is a [Drawable].
          */
         @Suppress("MemberVisibilityCanBePrivate")
         @JvmStatic
         @JvmOverloads
-        fun decodeApng(context: Context, inStream: InputStream, speed: Float = 1f, config : Bitmap.Config = Bitmap.Config.ARGB_8888): Drawable {
+        fun decodeApng(
+            context: Context,
+            inStream: InputStream,
+            speed: Float = 1f,
+            config: Bitmap.Config = Bitmap.Config.ARGB_8888
+        ): Drawable {
             val inputStream = BufferedInputStream(inStream)
             val bytes = ByteArray(8)
             inputStream.mark(8)
@@ -115,11 +130,11 @@ class ApngDecoder {
                                         crC32.update(iend, 0, iend.size)
                                         it.addAll(iend.asList())
                                         it.addAll(Utils.to4Bytes(crC32.value.toInt()).asList())
-                                        APNGDisassembler.apng.cover = BitmapFactory.decodeByteArray(
+                                        /**APNGDisassembler.apng.cover = BitmapFactory.decodeByteArray(
                                             it.toByteArray(),
                                             0,
                                             it.size
-                                        )
+                                        )*/ // TODO
                                     }
                                     png = ArrayList()
                                     val fcTL = fcTL()
@@ -198,7 +213,10 @@ class ApngDecoder {
                                             context.resources,
                                             if (btm.config != config) {
                                                 if (BuildConfig.DEBUG)
-                                                    Log.v(TAG, "Bitmap Config : ${btm.config}, Config : $config")
+                                                    Log.v(
+                                                        TAG,
+                                                        "Bitmap Config : ${btm.config}, Config : $config"
+                                                    )
                                                 btm.copy(config, btm.isMutable)
                                             } else {
                                                 btm
@@ -306,7 +324,10 @@ class ApngDecoder {
                                             context.resources,
                                             if (btm.config != config) {
                                                 if (BuildConfig.DEBUG)
-                                                    Log.v(TAG, "Bitmap Config : ${btm.config}, Config : $config")
+                                                    Log.v(
+                                                        TAG,
+                                                        "Bitmap Config : ${btm.config}, Config : $config"
+                                                    )
                                                 btm.copy(config, btm.isMutable)
                                             } else {
                                                 btm
@@ -478,10 +499,16 @@ class ApngDecoder {
          * @param file File to decode.
          * @param speed Optional parameter.
          * @param config Configuration applied to the bitmap added to the animation. Please note that the frame is decoded in ARGB_8888 and converted after, for the buffer.
+         * @return [AnimationDrawable] if successful and an [AnimatedImageDrawable] if the image decoded is not an APNG but a gif. If it is not an animated image, it is a [Drawable].
          */
         @Suppress("unused")
         @JvmStatic
-        fun decodeApng(context: Context, file: File, speed: Float = 1f, config : Bitmap.Config = Bitmap.Config.ARGB_8888): Drawable =
+        fun decodeApng(
+            context: Context,
+            file: File,
+            speed: Float = 1f,
+            config: Bitmap.Config = Bitmap.Config.ARGB_8888
+        ): Drawable =
             decodeApng(
                 context,
                 FileInputStream(file), speed, config
@@ -493,12 +520,17 @@ class ApngDecoder {
          * @param uri Uri to open.
          * @param speed Optional parameter.
          * @param config Configuration applied to the bitmap added to the animation. Please note that the frame is decoded in ARGB_8888 and converted after, for the buffer.
+         * @return [AnimationDrawable] if successful and an [AnimatedImageDrawable] if the image decoded is not an APNG but a gif.
          */
         @Suppress("unused")
         @JvmStatic
-        fun decodeApng(context: Context, uri: Uri, speed: Float = 1f, config : Bitmap.Config = Bitmap.Config.ARGB_8888): Drawable {
-            val inputStream = context.contentResolver.openInputStream(uri)
-                ?: throw Exception("Failed to open InputStream, InputStream is null")
+        fun decodeApng(
+            context: Context,
+            uri: Uri,
+            speed: Float = 1f,
+            config: Bitmap.Config = Bitmap.Config.ARGB_8888
+        ): Drawable {
+            val inputStream = context.contentResolver.openInputStream(uri)!!
             return decodeApng(
                 context,
                 inputStream,
@@ -513,10 +545,16 @@ class ApngDecoder {
          * @param res Resource to decode.
          * @param speed Optional parameter.
          * @param config Configuration applied to the bitmap added to the animation. Please note that the frame is decoded in ARGB_8888 and converted after, for the buffer.
+         * @return [AnimationDrawable] if successful and an [AnimatedImageDrawable] if the image decoded is not an APNG but a gif.
          */
         @Suppress("unused")
         @JvmStatic
-        fun decodeApng(context: Context, @RawRes res: Int, speed: Float = 1f, config : Bitmap.Config = Bitmap.Config.ARGB_8888): Drawable =
+        fun decodeApng(
+            context: Context,
+            @RawRes res: Int,
+            speed: Float = 1f,
+            config: Bitmap.Config = Bitmap.Config.ARGB_8888
+        ): Drawable =
             decodeApng(
                 context,
                 context.resources.openRawResource(res),
@@ -530,10 +568,16 @@ class ApngDecoder {
          * @param url URL to decode.
          * @param speed Optional parameter.
          * @param config Configuration applied to the bitmap added to the animation. Please note that the frame is decoded in ARGB_8888 and converted after, for the buffer.
+         * @return [AnimationDrawable] if successful and an [AnimatedImageDrawable] if the image decoded is not an APNG but a gif.
          */
         @Suppress("unused")
         @JvmStatic
-        suspend fun decodeApng(context: Context, url: URL, speed: Float = 1f, config : Bitmap.Config = Bitmap.Config.ARGB_8888) =
+        suspend fun decodeApng(
+            context: Context,
+            url: URL,
+            speed: Float = 1f,
+            config: Bitmap.Config = Bitmap.Config.ARGB_8888
+        ) =
             withContext(Dispatchers.IO) {
                 decodeApng(
                     context,
@@ -561,7 +605,7 @@ class ApngDecoder {
             imageView: ImageView,
             speed: Float = 1f,
             callback: Callback? = null,
-            config : Bitmap.Config = Bitmap.Config.ARGB_8888
+            config: Bitmap.Config = Bitmap.Config.ARGB_8888
         ) {
             GlobalScope.launch(Dispatchers.IO) {
                 try {
@@ -606,10 +650,9 @@ class ApngDecoder {
             imageView: ImageView,
             speed: Float = 1f,
             callback: Callback? = null,
-            config : Bitmap.Config = Bitmap.Config.ARGB_8888
+            config: Bitmap.Config = Bitmap.Config.ARGB_8888
         ) {
-            val inputStream = context.contentResolver.openInputStream(uri)
-                ?: throw Exception("Failed to open InputStream, InputStream is null")
+            val inputStream = context.contentResolver.openInputStream(uri)!!
             GlobalScope.launch(Dispatchers.IO) {
                 try {
                     val drawable =
@@ -652,7 +695,7 @@ class ApngDecoder {
             imageView: ImageView,
             speed: Float = 1f,
             callback: Callback? = null,
-            config : Bitmap.Config = Bitmap.Config.ARGB_8888
+            config: Bitmap.Config = Bitmap.Config.ARGB_8888
         ) {
             GlobalScope.launch(Dispatchers.IO) {
                 try {
@@ -698,7 +741,7 @@ class ApngDecoder {
             imageView: ImageView,
             speed: Float = 1f,
             callback: Callback? = null,
-            config : Bitmap.Config = Bitmap.Config.ARGB_8888
+            config: Bitmap.Config = Bitmap.Config.ARGB_8888
         ) {
             GlobalScope.launch(Dispatchers.IO) {
                 try {
@@ -747,7 +790,7 @@ class ApngDecoder {
             imageView: ImageView,
             speed: Float = 1f,
             callback: Callback? = null,
-            config : Bitmap.Config = Bitmap.Config.ARGB_8888
+            config: Bitmap.Config = Bitmap.Config.ARGB_8888
         ) {
             GlobalScope.launch(Dispatchers.IO) {
                 try {

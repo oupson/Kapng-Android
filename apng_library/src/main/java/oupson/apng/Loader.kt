@@ -8,12 +8,15 @@ import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 
+// TODO DOCUMENTATION (MAYBE WIKI) FOR THE CACHE
 class Loader {
     companion object {
         /**
-         * Download file from given url.
+         * Download file from given url on the [Dispatchers.IO] scope.
          * @param url Url of the file to download.
          * @return [ByteArray] of the file.
+         * @throws IOException thrown when retrieving the file.
+         * @throws Exception when returned code of the [HttpURLConnection] is not 200 (OK).
          */
         @Throws(IOException::class, Exception::class)
         suspend fun load(url: URL): ByteArray =
