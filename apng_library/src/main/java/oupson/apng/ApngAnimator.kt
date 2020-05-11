@@ -23,86 +23,84 @@ import java.net.URL
 // TODO REWRITE
 
 /**
- * USE [ApngDecoder] instead of this class to load an APNG
- */
-
-/**
- * @param file The APNG to load
- * @param speed The speed of the APNG
- * @param apngAnimatorOptions Options of the animator
- * @return [ApngAnimator] The animator
- */
-@Suppress("unused")
-@JvmOverloads
-fun ImageView.loadApng(file: File, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) = ApngAnimator(this.context).loadInto(this).apply {
-    load(file, speed, apngAnimatorOptions)
-}
-
-/**
- * @param uri The APNG to load
- * @param speed The speed of the APNG
- * @param apngAnimatorOptions Options of the animator
- * @return [ApngAnimator] The animator
- */
-@Suppress("unused")
-@JvmOverloads
-fun ImageView.loadApng(uri : Uri, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) = ApngAnimator(this.context).loadInto(this).apply {
-    load(uri, speed, apngAnimatorOptions)
-}
-
-/**
- * @param url The url of the APNG to load
- * @param speed The speed of the APNG
- * @param apngAnimatorOptions Options of the animator
- * @return [ApngAnimator] The animator
- */
-@Suppress("unused")
-@JvmOverloads
-fun ImageView.loadApng(url: URL, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) = ApngAnimator(this.context).loadInto(this).apply {
-    loadUrl(url, speed, apngAnimatorOptions)
-}
-
-/**
- * @param byteArray The APNG to load
- * @param speed The speed of the APNG
- * @param apngAnimatorOptions Options of the animator
- * @return [ApngAnimator] The animator
- */
-@Suppress("unused")
-@JvmOverloads
-fun ImageView.loadApng(byteArray: ByteArray, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) = ApngAnimator(this.context).loadInto(this).apply {
-    load(byteArray, speed, apngAnimatorOptions)
-}
-
-/**
- * @param string The path APNG to load
- * @param speed The speed of the APNG
- * @param apngAnimatorOptions Options of the animator
- * @return [ApngAnimator] The animator
- */
-@Suppress("unused")
-@JvmOverloads
-fun ImageView.loadApng(string: String, speed : Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) = ApngAnimator(this.context).loadInto(this).apply {
-    load(string, speed, apngAnimatorOptions)
-}
-
-/**
- * @param res The Resource Int of the APNG to load, must be in the raw folder
- * @param speed The speed of the APNG
- * @param apngAnimatorOptions Options of the animator
- * @return [ApngAnimator] The animator
- */
-@Suppress("unused")
-@JvmOverloads
-fun ImageView.loadApng(@RawRes res : Int, speed : Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) = ApngAnimator(this.context).loadInto(this).apply {
-    load(res, speed, apngAnimatorOptions)
-}
-
-/**
  * Class to play APNG
- * For better performance but lesser features use [oupson.apng.decoder.ApngDecoder] instead
+ * For better performance but lesser features using [oupson.apng.decoder.ApngDecoder] is strongly recommended.
  */
 class ApngAnimator(private val context: Context?) {
+    companion object {
+        /**
+         * @param file The APNG to load
+         * @param speed The speed of the APNG
+         * @param apngAnimatorOptions Options of the animator
+         * @return [ApngAnimator] The animator
+         */
+        @Suppress("unused")
+        @JvmOverloads
+        fun ImageView.loadApng(file: File, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) = ApngAnimator(this.context).loadInto(this).apply {
+            load(file, speed, apngAnimatorOptions)
+        }
+
+        /**
+         * @param uri The APNG to load
+         * @param speed The speed of the APNG
+         * @param apngAnimatorOptions Options of the animator
+         * @return [ApngAnimator] The animator
+         */
+        @Suppress("unused")
+        @JvmOverloads
+        fun ImageView.loadApng(uri : Uri, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) = ApngAnimator(this.context).loadInto(this).apply {
+            load(uri, speed, apngAnimatorOptions)
+        }
+
+        /**
+         * @param url The url of the APNG to load
+         * @param speed The speed of the APNG
+         * @param apngAnimatorOptions Options of the animator
+         * @return [ApngAnimator] The animator
+         */
+        @Suppress("unused")
+        @JvmOverloads
+        fun ImageView.loadApng(url: URL, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) = ApngAnimator(this.context).loadInto(this).apply {
+            loadUrl(url, speed, apngAnimatorOptions)
+        }
+
+        /**
+         * @param byteArray The APNG to load
+         * @param speed The speed of the APNG
+         * @param apngAnimatorOptions Options of the animator
+         * @return [ApngAnimator] The animator
+         */
+        @Suppress("unused")
+        @JvmOverloads
+        fun ImageView.loadApng(byteArray: ByteArray, speed: Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) = ApngAnimator(this.context).loadInto(this).apply {
+            load(byteArray, speed, apngAnimatorOptions)
+        }
+
+        /**
+         * @param string The path APNG to load
+         * @param speed The speed of the APNG
+         * @param apngAnimatorOptions Options of the animator
+         * @return [ApngAnimator] The animator
+         */
+        @Suppress("unused")
+        @JvmOverloads
+        fun ImageView.loadApng(string: String, speed : Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) = ApngAnimator(this.context).loadInto(this).apply {
+            load(string, speed, apngAnimatorOptions)
+        }
+
+        /**
+         * @param res The Resource Int of the APNG to load, must be in the raw folder
+         * @param speed The speed of the APNG
+         * @param apngAnimatorOptions Options of the animator
+         * @return [ApngAnimator] The animator
+         */
+        @Suppress("unused")
+        @JvmOverloads
+        fun ImageView.loadApng(@RawRes res : Int, speed : Float? = null, apngAnimatorOptions: ApngAnimatorOptions? = null) = ApngAnimator(this.context).loadInto(this).apply {
+            load(res, speed, apngAnimatorOptions)
+        }
+    }
+
     @Suppress("MemberVisibilityCanBePrivate")
     var isPlaying = true
         private set
@@ -533,6 +531,7 @@ class ApngAnimator(private val context: Context?) {
      * Set animation loop listener
      * @param frameChangeListener The listener.
      */
+    @Suppress("unused")
     fun setOnFrameChangeLister(frameChangeListener : (index : Int) -> Unit?) {
         if (isApng) {
             this.frameChangeLister = frameChangeListener
@@ -543,6 +542,7 @@ class ApngAnimator(private val context: Context?) {
     /**
      * Execute on loaded
      */
+    @Suppress("unused")
     fun onLoaded(f : (ApngAnimator) -> Unit) {
         doOnLoaded = f
     }

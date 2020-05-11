@@ -12,7 +12,7 @@ import android.widget.SeekBar
 import androidx.fragment.app.Fragment
 import com.squareup.picasso.Picasso
 import oupson.apng.ApngAnimator
-import oupson.apng.loadApng
+import oupson.apng.ApngAnimator.Companion.loadApng
 import oupson.apngcreator.BuildConfig
 import oupson.apngcreator.R
 

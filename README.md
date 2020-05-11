@@ -14,7 +14,7 @@ val imageUrl = "https://upload.wikimedia.org/wikipedia/commons/1/14/Animated_PNG
 ApngDecoder.decodeApngAsyncInto(context, URL(url), imageView)
 ```
 
-You can load a file, an uri, a ressource int, an url, or an inputStream.
+You can load a file, an uri, a resource int, an url, or an inputStream.
 
 ## With a callback :
 ```kotlin

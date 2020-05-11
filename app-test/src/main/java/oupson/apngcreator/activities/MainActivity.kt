@@ -15,6 +15,7 @@ import com.google.android.material.shape.MaterialShapeDrawable
 import com.google.android.material.shape.ShapeAppearanceModel
 import com.google.android.material.shape.ShapePath
 import kotlinx.android.synthetic.main.activity_main.*
+import oupson.apngcreator.BuildConfig
 import oupson.apngcreator.R
 import oupson.apngcreator.fragments.ApngDecoderFragment
 import oupson.apngcreator.fragments.JavaFragment
@@ -30,7 +31,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.i(TAG, "${supportFragmentManager.fragments.size}")
+        if (BuildConfig.DEBUG)
+            Log.v(TAG, "supportFragmentManager.fragments.size : ${supportFragmentManager.fragments.size}")
 
         setContentView(R.layout.activity_main)
 
