@@ -21,6 +21,7 @@ import java.util.zip.CRC32
 // TODO CREATE A BETTER CLASS
 /**
  * Create an APNG file
+ * If you want to create an APNG, use ApngEncoder instead
  */
 @Suppress("unused")
 class Apng {
@@ -54,9 +55,9 @@ class Apng {
     @Suppress("MemberVisibilityCanBePrivate")
     fun addFrames(bitmap : Bitmap, index : Int? = null, delay : Float = 1000f, xOffset : Int = 0, yOffset : Int = 0, disposeOp: Utils.Companion.DisposeOp = Utils.Companion.DisposeOp.APNG_DISPOSE_OP_NONE, blendOp: Utils.Companion.BlendOp = Utils.Companion.BlendOp.APNG_BLEND_OP_SOURCE) {
         if (index == null)
-            frames.add(Frame(PngEncoder.encode(bitmap, true), delay, xOffset, yOffset, blendOp, disposeOp))
+            frames.add(Frame(PngEncoder().encode(bitmap, true), delay, xOffset, yOffset, blendOp, disposeOp))
         else
-            frames.add(index, Frame(PngEncoder.encode(bitmap, true), delay, xOffset, yOffset, blendOp, disposeOp))
+            frames.add(index, Frame(PngEncoder().encode(bitmap, true), delay, xOffset, yOffset, blendOp, disposeOp))
     }
 
     /**
@@ -154,7 +155,7 @@ class Apng {
             // Add cover image : Not part of animation
             // region IDAT
             val idat = IDAT()
-            idat.parse(PngEncoder.encode(cover!!, true, 1))
+            idat.parse(PngEncoder().encode(cover!!, true, 1))
             idat.IDATBody.forEach {
                 val idatByteArray = ArrayList<Byte>()
                 framesByte.addAll(to4Bytes(it.size).asList())
@@ -422,11 +423,11 @@ class Apng {
             it.maxHeight = maxHeight
         }
         val drawedFrame = ApngAnimator(null).draw(frames)
-        File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "frame0.png").writeBytes(PngEncoder.encode(drawedFrame[0]))
+        File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "frame0.png").writeBytes(PngEncoder().encode(drawedFrame[0]))
         for (i in 1 until frames.size) {
             val diffCalculator = BitmapDiffCalculator(drawedFrame[i - 1], drawedFrame[i])
-            File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "frame$i.png").writeBytes(PngEncoder.encode(diffCalculator.res, true))
-            frames[i].byteArray = PngEncoder.encode(diffCalculator.res, true)
+            File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "frame$i.png").writeBytes(PngEncoder().encode(diffCalculator.res, true))
+            frames[i].byteArray = PngEncoder().encode(diffCalculator.res, true)
             frames[i].xOffsets = diffCalculator.xOffset
             frames[i].yOffsets = diffCalculator.yOffset
             frames[i].blendOp = Utils.Companion.BlendOp.APNG_BLEND_OP_OVER

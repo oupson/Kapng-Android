@@ -65,7 +65,7 @@ class ExperimentalApngEncoder(
 
         val idat = IDAT().apply {
             val byteArray = if (usePngEncoder) {
-                PngEncoder.encode(btm, true)
+                PngEncoder().encode(btm, true)
             } else {
                 val outputStream = ByteArrayOutputStream()
                 btm.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
@@ -117,9 +117,9 @@ class ExperimentalApngEncoder(
             }
         }
         frameIndex++
-        if (usePngEncoder) {
+        /**if (usePngEncoder) {
             PngEncoder.release()
-        }
+        }*/
     }
 
     fun writeEnd() {

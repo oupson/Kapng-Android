@@ -5,7 +5,6 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -319,11 +318,7 @@ class CreatorActivity : AppCompatActivity() {
                             if (BuildConfig.DEBUG)
                                 Log.i(TAG, "MaxWidth : $maxWidth; MaxHeight : $maxHeight")
 
-                            val encoder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                ExperimentalApngEncoder(out, maxWidth, maxHeight, items.size, Bitmap.Config.RGBA_F16)
-                            } else {
-                                TODO("VERSION.SDK_INT < O")
-                            }
+                            val encoder = ExperimentalApngEncoder(out, maxWidth, maxHeight, items.size, Bitmap.Config.ARGB_8888)
                             items.forEach { uri ->
                                 // println("delay : ${adapter?.delay?.get(i)?.toFloat() ?: 1000f}ms")
                                 val str =
