@@ -2,6 +2,7 @@ package oupson.apng.encoder
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.os.Build
 import oupson.apng.chunks.IDAT
 import oupson.apng.imageUtils.PngEncoder
 import oupson.apng.utils.Utils
@@ -13,11 +14,13 @@ import java.util.zip.CRC32
 // TODO DOCUMENTATION
 // TODO BITMAP ENCODING
 // TODO BUFFER AND BUFFER DEACTIVATION WHEN BITMAP CONFIG DOES NOT CONTAIN AN ALPHA CHANNEL
-class ApngEncoder(
+// TODO JAVA OVERLOADS
+class ExperimentalApngEncoder(
     private val outputStream: OutputStream,
     private val width : Int,
     private val height : Int,
-    numberOfFrames : Int) {
+    numberOfFrames : Int,
+    private val config : Bitmap.Config = Bitmap.Config.ARGB_8888) {
     private var frameIndex = 0
     private var seq = 0
 
@@ -44,8 +47,8 @@ class ApngEncoder(
         usePngEncoder: Boolean = false
     ) {
         val btm = BitmapFactory.decodeStream(inputStream).let {
-            if (it.config != Bitmap.Config.ARGB_8888)
-                it.copy(Bitmap.Config.ARGB_8888, it.isMutable)
+            if (it.config != config)
+                it.copy(config, it.isMutable)
             else
                 it
         }
@@ -149,18 +152,48 @@ class ApngEncoder(
 
         // Add chunk body length
         ihdr.addAll(arrayListOf(0x00, 0x00, 0x00, 0x0d))
+        // ADD IHDR
         ihdrBody.addAll(arrayListOf(0x49, 0x48, 0x44, 0x52))
 
         // Add the max width and height
         ihdrBody.addAll(Utils.to4Bytes(width).asList())
         ihdrBody.addAll(Utils.to4Bytes(height).asList())
 
-        ihdrBody.add(8.toByte())
-        ihdrBody.add(6.toByte())
-        ihdrBody.add(0.toByte())
-        ihdrBody.add(0.toByte())
-        ihdrBody.add(0.toByte())
+        // BIT DEPTH
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            ihdrBody.add(when (config) {
+                Bitmap.Config.ARGB_8888 -> 8.toByte()
+                Bitmap.Config.RGBA_F16 -> 8.toByte()
+                Bitmap.Config.RGB_565 -> 8.toByte()
+                else -> throw Exception("CONFIG IS NOT SUPPORTED")
+            })
+        } else {
+            // SEEMS LIKE THERE IS A BUG WITH RGBA_F16 AND WHEN
+            ihdrBody.add(
+                if (config == Bitmap.Config.ARGB_8888)
+                    8.toByte()
+                else if (config == Bitmap.Config.RGB_565)
+                    8.toByte()
+                else
+                    throw Exception("CONFIG IS NOT SUPPORTED")
+            )
+        }
 
+        // COLOR TYPE
+        ihdrBody.add(
+            if (config == Bitmap.Config.RGB_565) {
+                2.toByte()
+            } else {
+                6.toByte()
+            }
+        )
+
+        // COMPRESSION
+        ihdrBody.add(0.toByte())
+        // FILTER
+        ihdrBody.add(0.toByte())
+        // INTERLACE
+        ihdrBody.add(0.toByte())
 
         // Generate CRC
         val crC32 = CRC32()

@@ -10,6 +10,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 // TODO FIND A BETTER SOLUTION
+// TODO ABSOLUTELY NOT THREAD SAFE, FIX THAT
 /**
  * Taken from http://catcode.com/pngencoder/com/keypoint/PngEncoder.java
  */
@@ -135,6 +136,12 @@ class PngEncoder {
             val oldLength = array.size
             System.arraycopy(array, 0, newArray, 0, min(oldLength, newLength))
             return newArray
+        }
+
+        fun release() {
+            image?.recycle()
+            image = null
+            pngBytes = null
         }
 
         /**

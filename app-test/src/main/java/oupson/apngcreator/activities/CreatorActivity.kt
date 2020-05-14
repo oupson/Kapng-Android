@@ -5,6 +5,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -20,7 +21,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import oupson.apng.encoder.ApngEncoder
+import oupson.apng.encoder.ExperimentalApngEncoder
 import oupson.apngcreator.BuildConfig
 import oupson.apngcreator.R
 import oupson.apngcreator.adapter.ImageAdapter
@@ -123,7 +124,7 @@ class CreatorActivity : AppCompatActivity() {
                         if (BuildConfig.DEBUG)
                             Log.i(TAG, "MaxWidth : $maxWidth; MaxHeight : $maxHeight")
 
-                        val encoder = ApngEncoder(out, maxWidth, maxHeight, items.size)
+                        val encoder = ExperimentalApngEncoder(out, maxWidth, maxHeight, items.size)
                         items.forEachIndexed { i, uri ->
                             if (BuildConfig.DEBUG)
                                 Log.v(TAG, "Encoding frame $i")
@@ -203,7 +204,7 @@ class CreatorActivity : AppCompatActivity() {
                             str?.close()
                         }
 
-                        val encoder = ApngEncoder(out, maxWidth, maxHeight, items.size)
+                        val encoder = ExperimentalApngEncoder(out, maxWidth, maxHeight, items.size)
                         items.forEach { uri ->
                             println("delay : ${uri.second.toFloat()}ms")
                             val str = contentResolver.openInputStream(uri.first) ?: return@forEach
@@ -318,7 +319,11 @@ class CreatorActivity : AppCompatActivity() {
                             if (BuildConfig.DEBUG)
                                 Log.i(TAG, "MaxWidth : $maxWidth; MaxHeight : $maxHeight")
 
-                            val encoder = ApngEncoder(out, maxWidth, maxHeight, items.size)
+                            val encoder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                ExperimentalApngEncoder(out, maxWidth, maxHeight, items.size, Bitmap.Config.RGBA_F16)
+                            } else {
+                                TODO("VERSION.SDK_INT < O")
+                            }
                             items.forEach { uri ->
                                 // println("delay : ${adapter?.delay?.get(i)?.toFloat() ?: 1000f}ms")
                                 val str =
