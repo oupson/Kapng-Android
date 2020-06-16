@@ -25,7 +25,6 @@ import java.io.File
 
 class MainActivity : AppCompatActivity() {
     companion object {
-        @Suppress("unused")
         private const val TAG = "MainActivity"
     }
 
