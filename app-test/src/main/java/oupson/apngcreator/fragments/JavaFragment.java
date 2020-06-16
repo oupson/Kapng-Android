@@ -27,7 +27,7 @@ public class JavaFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         if (BuildConfig.DEBUG)
-            Log.i(TAG, "onCreateView()");
+            Log.v(TAG, "onCreateView()");
 
         View v = inflater.inflate(R.layout.fragment_java, container, false);
 
@@ -37,18 +37,8 @@ public class JavaFragment extends Fragment {
         Context context = this.getContext();
 
         if (imageView != null && context != null) {
-            /*
-            ApngAnimator a = ApngAnimatorKt.loadApng(imageView, imageUrl);
-            a.onLoaded((animator) -> {
-                animator.setOnFrameChangeLister((index) -> {
-                    if (index == 0) {
-                        Log.i(TAG, "Loop");
-                    }
-                    return Unit.INSTANCE;
-                });
-                return Unit.INSTANCE;
-            });
-            */
+            if (BuildConfig.DEBUG)
+                Log.v(TAG, "Loading " + imageUrl);
             ApngDecoder.decodeApngAsyncInto(context, imageUrl, imageView, 1f, new ApngDecoder.Callback() {
                 @Override
                 public void onSuccess(@NotNull Drawable drawable) {
@@ -58,12 +48,11 @@ public class JavaFragment extends Fragment {
 
                 @Override
                 public void onError(@NotNull Exception error) {
-                    if (BuildConfig.DEBUG)
-                        Log.e(TAG, "Error : " + error.toString());
+                    Log.e(TAG, "Error : " + error.toString());
                 }
             });
-
         }
+
         return v;
     }
 

@@ -27,7 +27,6 @@ class ApngDecoderFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.fragment_apng_decoder, container, false)
 
         val imageView : ImageView = view.findViewById(R.id.apngDecoderImageView) ?: return  view
@@ -53,6 +52,4 @@ class ApngDecoderFragment : Fragment() {
 
         return view
     }
-
-
 }

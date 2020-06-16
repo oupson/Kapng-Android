@@ -96,7 +96,7 @@ class CreatorActivity : AppCompatActivity() {
                         val f = File(filesDir, "images/apng.png").apply {
                             if (!exists()) {
                                 parentFile?.mkdirs()
-                                println(createNewFile())
+                                createNewFile()
                             }
                         }
                         val out = FileOutputStream(f)

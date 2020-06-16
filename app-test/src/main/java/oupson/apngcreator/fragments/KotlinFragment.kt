@@ -18,6 +18,13 @@ import oupson.apngcreator.R
 
 
 class KotlinFragment : Fragment() {
+    companion object {
+        private const val TAG = "KotlinFragment"
+        @JvmStatic
+        fun newInstance() =
+            KotlinFragment()
+    }
+
     private var apngImageView : ImageView? = null
     private var normalImageView : ImageView? = null
 
@@ -43,8 +50,8 @@ class KotlinFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         if (BuildConfig.DEBUG)
-            Log.i(TAG, "onCreateView()")
-        // Inflate the layout for this fragment
+            Log.v(TAG, "onCreateView()")
+
         val view = inflater.inflate(R.layout.fragment_kotlin, container, false)
 
         apngImageView = view.findViewById(R.id.ApngImageView)
@@ -61,7 +68,7 @@ class KotlinFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         if (BuildConfig.DEBUG)
-            Log.i(TAG, "onResume()")
+            Log.v(TAG, "onResume()")
 
         playButton?.setOnClickListener {
             animator?.play()
@@ -91,13 +98,12 @@ class KotlinFragment : Fragment() {
                 animator = apngImageView?.loadApng(imageUrls[selected])?.apply {
                     onLoaded {
                         setOnFrameChangeLister {
-                            // Log.e("app-test", "onLoop")
+                            // Log.v("app-test", "onLoop")
                         }
                     }
                 }
             } catch (e : Exception) {
-                if (BuildConfig.DEBUG)
-                    Log.e(TAG, "Error : $e")
+                Log.e(TAG, "Error : $e")
             }
         }
 
@@ -107,7 +113,7 @@ class KotlinFragment : Fragment() {
     override fun onPause() {
         super.onPause()
         if (BuildConfig.DEBUG)
-            Log.i(TAG, "onPause()")
+            Log.v(TAG, "onPause()")
 
         animator = null
         normalImageView?.setImageDrawable(null)
@@ -116,12 +122,5 @@ class KotlinFragment : Fragment() {
         playButton?.setOnClickListener(null)
         pauseButton?.setOnClickListener(null)
         speedSeekBar?.setOnSeekBarChangeListener(null)
-    }
-
-    companion object {
-        private const val TAG = "KotlinFragment"
-        @JvmStatic
-        fun newInstance() =
-            KotlinFragment()
     }
 }

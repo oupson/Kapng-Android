@@ -203,6 +203,5 @@ class MainActivity : AppCompatActivity() {
             shapePath.lineTo(middle + (fabMargin + diamondSize - cradleVerticalOffset), 0f)
             shapePath.lineTo(length, 0f)
         }
-
     }
 }
