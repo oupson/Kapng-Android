@@ -40,7 +40,7 @@ class ApngDecoder {
          * Function called when something gone wrong.
          * @param error The problem.
          */
-        fun onError(error: java.lang.Exception)
+        fun onError(error: Exception)
     }
 
     companion object {
@@ -745,17 +745,16 @@ class ApngDecoder {
         ) {
             GlobalScope.launch(Dispatchers.IO) {
                 try {
-                    val drawable =
-                        decodeApng(
-                            context,
-                            ByteArrayInputStream(
-                                Loader.load(
-                                    url
-                                )
-                            ),
-                            speed,
-                            config
-                        )
+                    val drawable = decodeApng(
+                        context,
+                        ByteArrayInputStream(
+                            Loader.load(
+                                url
+                            )
+                        ),
+                        speed,
+                        config
+                    )
                     withContext(Dispatchers.Main) {
                         imageView.setImageDrawable(drawable)
                         (drawable as? AnimationDrawable)?.start()
