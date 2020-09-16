@@ -90,13 +90,13 @@ class ExperimentalApngEncoder(
                     i.toByteArray()
                 }
                 // Add the chunk body length
-                outputStream.write(Utils.to4Bytes(idatBody.size))
+                outputStream.write(Utils.to4BytesArray(idatBody.size))
 
                 // Generate CRC
                 val crc1 = CRC32()
                 crc1.update(idatChunk, 0, idatChunk.size)
                 outputStream.write(idatChunk)
-                outputStream.write(Utils.to4Bytes(crc1.value.toInt()))
+                outputStream.write(Utils.to4BytesArray(crc1.value.toInt()))
             } else {
                 val fdat = ArrayList<Byte>().let { fdat ->
                     fdat.addAll(byteArrayOf(0x66, 0x64, 0x41, 0x54).asList())
@@ -107,13 +107,13 @@ class ExperimentalApngEncoder(
                     fdat.toByteArray()
                 }
                 // Add the chunk body length
-                outputStream.write(Utils.to4Bytes(idatBody.size + 4))
+                outputStream.write(Utils.to4BytesArray(idatBody.size + 4))
 
                 // Generate CRC
                 val crc1 = CRC32()
                 crc1.update(fdat, 0, fdat.size)
                 outputStream.write(fdat)
-                outputStream.write(Utils.to4Bytes(crc1.value.toInt()))
+                outputStream.write(Utils.to4BytesArray(crc1.value.toInt()))
             }
         }
         frameIndex++
@@ -124,14 +124,14 @@ class ExperimentalApngEncoder(
 
     fun writeEnd() {
         // Add IEND body length : 0
-        outputStream.write(Utils.to4Bytes(0))
+        outputStream.write(Utils.to4BytesArray(0))
         // Add IEND
         val iend = byteArrayOf(0x49, 0x45, 0x4E, 0x44)
         // Generate crc for IEND
         val crC32 = CRC32()
         crC32.update(iend, 0, iend.size)
         outputStream.write(iend)
-        outputStream.write(Utils.to4Bytes(crC32.value.toInt()))
+        outputStream.write(Utils.to4BytesArray(crC32.value.toInt()))
     }
 
     /**
@@ -263,6 +263,6 @@ class ExperimentalApngEncoder(
         val crc = CRC32()
         crc.update(fcTL.toByteArray(), 0, fcTL.size)
         outputStream.write(fcTL.toByteArray())
-        outputStream.write(Utils.to4Bytes(crc.value.toInt()))
+        outputStream.write(Utils.to4BytesArray(crc.value.toInt()))
     }
 }

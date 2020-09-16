@@ -45,6 +45,7 @@ class ApngDecoder {
 
     companion object {
         private const val TAG = "ApngDecoder"
+        private val zeroLength = arrayOf(0x00, 0x00, 0x00, 0x00).map { it.toByte() }
 
         // Paint used to clear the buffer
         private val clearPaint: Paint by lazy {
@@ -58,7 +59,7 @@ class ApngDecoder {
         /**
          * Decode Apng and return a Drawable who can be an [AnimationDrawable] if it end successfully. Can also be an [android.graphics.drawable.AnimatedImageDrawable].
          * @param context Context needed for the animation drawable
-         * @param inStream Input Stream to decode. Will be close at the end.
+         * @param inStream Input Stream to decode. Will be closed at the end.
          * @param speed Optional parameter.
          * @param config Configuration applied to the bitmap added to the animation. Please note that the frame is decoded in ARGB_8888 and converted after, for the buffer.
          * @return [AnimationDrawable] if successful and an [AnimatedImageDrawable] if the image decoded is not an APNG but a gif. If it is not an animated image, it is a [Drawable].
@@ -122,14 +123,12 @@ class ApngDecoder {
                             name.contentEquals(Utils.fcTL) -> {
                                 if (png == null) {
                                     cover?.let {
-                                        it.addAll(Utils.to4Bytes(0).asList())
-                                        // Add IEND
-                                        val iend = byteArrayOf(0x49, 0x45, 0x4E, 0x44)
+                                        it.addAll(zeroLength)
                                         // Generate crc for IEND
                                         val crC32 = CRC32()
-                                        crC32.update(iend, 0, iend.size)
-                                        it.addAll(iend.asList())
-                                        it.addAll(Utils.to4Bytes(crC32.value.toInt()).asList())
+                                        crC32.update(Utils.IEND, 0, Utils.IEND.size)
+                                        it.addAll(Utils.IEND.asList())
+                                        it.addAll(Utils.to4Bytes(crC32.value.toInt()))
                                         /**APNGDisassembler.apng.cover = BitmapFactory.decodeByteArray(
                                             it.toByteArray(),
                                             0,
@@ -169,14 +168,13 @@ class ApngDecoder {
                                     }
                                 } else {
                                     // Add IEND body length : 0
-                                    png.addAll(Utils.to4Bytes(0).asList())
+                                    png.addAll(zeroLength)
                                     // Add IEND
-                                    val iend = byteArrayOf(0x49, 0x45, 0x4E, 0x44)
                                     // Generate crc for IEND
                                     val crC32 = CRC32()
-                                    crC32.update(iend, 0, iend.size)
-                                    png.addAll(iend.asList())
-                                    png.addAll(Utils.to4Bytes(crC32.value.toInt()).asList())
+                                    crC32.update(Utils.IEND, 0, Utils.IEND.size)
+                                    png.addAll(Utils.IEND.asList())
+                                    png.addAll(Utils.to4Bytes(crC32.value.toInt()))
 
                                     val btm = Bitmap.createBitmap(
                                         maxWidth,
@@ -280,14 +278,13 @@ class ApngDecoder {
                             }
                             name.contentEquals(Utils.IEND) -> {
                                 if (isApng && png != null) {
-                                    png.addAll(Utils.to4Bytes(0).asList())
+                                    png.addAll(zeroLength)
                                     // Add IEND
-                                    val iend = byteArrayOf(0x49, 0x45, 0x4E, 0x44)
                                     // Generate crc for IEND
                                     val crC32 = CRC32()
-                                    crC32.update(iend, 0, iend.size)
-                                    png.addAll(iend.asList())
-                                    png.addAll(Utils.to4Bytes(crC32.value.toInt()).asList())
+                                    crC32.update(Utils.IEND, 0, Utils.IEND.size)
+                                    png.addAll(Utils.IEND.asList())
+                                    png.addAll(Utils.to4Bytes(crC32.value.toInt()))
 
 
                                     val btm = Bitmap.createBitmap(
@@ -364,14 +361,13 @@ class ApngDecoder {
                                 } else {
                                     // TODO Check before the end
                                     cover?.let {
-                                        it.addAll(Utils.to4Bytes(0).asList())
+                                        it.addAll(zeroLength)
                                         // Add IEND
-                                        val iend = byteArrayOf(0x49, 0x45, 0x4E, 0x44)
                                         // Generate crc for IEND
                                         val crC32 = CRC32()
-                                        crC32.update(iend, 0, iend.size)
-                                        it.addAll(iend.asList())
-                                        it.addAll(Utils.to4Bytes(crC32.value.toInt()).asList())
+                                        crC32.update(Utils.IEND, 0, Utils.IEND.size)
+                                        it.addAll(Utils.IEND.asList())
+                                        it.addAll(Utils.to4Bytes(crC32.value.toInt()))
                                         inputStream.close()
                                         return BitmapDrawable(
                                             context.resources,
@@ -402,7 +398,7 @@ class ApngDecoder {
                                         Utils.parseLength(byteArray.copyOfRange(i - 4, i))
                                     cover.addAll(byteArray.copyOfRange(i - 4, i).asList())
                                     val body = ArrayList<Byte>()
-                                    body.addAll(byteArrayOf(0x49, 0x44, 0x41, 0x54).asList())
+                                    body.addAll(Utils.IDAT.asList())
                                     // Get image bytes
                                     body.addAll(
                                         byteArray.copyOfRange(
@@ -413,14 +409,14 @@ class ApngDecoder {
                                     val crC32 = CRC32()
                                     crC32.update(body.toByteArray(), 0, body.size)
                                     cover.addAll(body)
-                                    cover.addAll(Utils.to4Bytes(crC32.value.toInt()).asList())
+                                    cover.addAll(Utils.to4Bytes(crC32.value.toInt()))
                                 } else {
                                     // Find the chunk length
                                     val bodySize =
                                         Utils.parseLength(byteArray.copyOfRange(i - 4, i))
                                     png.addAll(byteArray.copyOfRange(i - 4, i).asList())
                                     val body = ArrayList<Byte>()
-                                    body.addAll(byteArrayOf(0x49, 0x44, 0x41, 0x54).asList())
+                                    body.addAll(Utils.IDAT.asList())
                                     // Get image bytes
                                     body.addAll(
                                         byteArray.copyOfRange(
@@ -431,7 +427,7 @@ class ApngDecoder {
                                     val crC32 = CRC32()
                                     crC32.update(body.toByteArray(), 0, body.size)
                                     png.addAll(body)
-                                    png.addAll(Utils.to4Bytes(crC32.value.toInt()).asList())
+                                    png.addAll(Utils.to4Bytes(crC32.value.toInt()))
                                 }
                             }
                             name.contentEquals(Utils.fdAT) -> {
@@ -439,13 +435,13 @@ class ApngDecoder {
                                 val bodySize = Utils.parseLength(byteArray.copyOfRange(i - 4, i))
                                 png?.addAll(Utils.to4Bytes(bodySize - 4).asList())
                                 val body = ArrayList<Byte>()
-                                body.addAll(byteArrayOf(0x49, 0x44, 0x41, 0x54).asList())
+                                body.addAll(Utils.IDAT.asList())
                                 // Get image bytes
                                 body.addAll(byteArray.copyOfRange(i + 8, i + 4 + bodySize).asList())
                                 val crC32 = CRC32()
                                 crC32.update(body.toByteArray(), 0, body.size)
                                 png?.addAll(body)
-                                png?.addAll(Utils.to4Bytes(crC32.value.toInt()).asList())
+                                png?.addAll(Utils.to4Bytes(crC32.value.toInt()))
                             }
                             name.contentEquals(Utils.plte) -> {
                                 plte = byteArray
@@ -855,19 +851,19 @@ class ApngDecoder {
             // We need a body var to know body length and generate crc
             val ihdrBody = ArrayList<Byte>()
             // Add chunk body length
-            ihdr.addAll(Utils.to4Bytes(ihdrOfApng.body.size).asList())
+            ihdr.addAll(Utils.to4Bytes(ihdrOfApng.body.size))
             // Add IHDR
             ihdrBody.addAll(
-                byteArrayOf(
+                arrayOf(
                     0x49.toByte(),
                     0x48.toByte(),
                     0x44.toByte(),
                     0x52.toByte()
-                ).asList()
+                )
             )
             // Add the max width and height
-            ihdrBody.addAll(Utils.to4Bytes(width).asList())
-            ihdrBody.addAll(Utils.to4Bytes(height).asList())
+            ihdrBody.addAll(Utils.to4Bytes(width))
+            ihdrBody.addAll(Utils.to4Bytes(height))
             // Add complicated stuff like depth color ...
             // If you want correct png you need same parameters. Good solution is to create new png.
             ihdrBody.addAll(ihdrOfApng.body.copyOfRange(8, 13).asList())
@@ -875,7 +871,7 @@ class ApngDecoder {
             val crC32 = CRC32()
             crC32.update(ihdrBody.toByteArray(), 0, ihdrBody.size)
             ihdr.addAll(ihdrBody)
-            ihdr.addAll(Utils.to4Bytes(crC32.value.toInt()).asList())
+            ihdr.addAll(Utils.to4Bytes(crC32.value.toInt()))
             return ihdr.toByteArray()
         }
     }

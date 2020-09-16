@@ -121,9 +121,18 @@ class Utils {
         /**
          * Generate a 4 bytes array from an Int
          * @param i The int
-         * @return [ByteArray] 2 Bytes
+         * @return [Array] 4 Bytes
          */
-        fun to4Bytes(i: Int): ByteArray {
+        fun to4Bytes(i: Int): Array<Byte> {
+            return arrayOf((i shr 24).toByte(), (i shr 16).toByte(), (i shr 8).toByte(), i.toByte())
+        }
+
+        /**
+         * Generate a 4 bytes array from an Int
+         * @param i The int
+         * @return [ByteArray] 4 Bytes
+         */
+        fun to4BytesArray(i: Int): ByteArray {
             return byteArrayOf((i shr 24).toByte(), (i shr 16).toByte(), (i shr 8).toByte(), i.toByte())
         }
 
