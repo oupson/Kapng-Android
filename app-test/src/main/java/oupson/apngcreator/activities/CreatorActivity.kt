@@ -25,8 +25,6 @@ import oupson.apngcreator.BuildConfig
 import oupson.apngcreator.R
 import oupson.apngcreator.adapter.ImageAdapter
 import oupson.apngcreator.dialogs.DelayInputDialog
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 
@@ -134,7 +132,8 @@ class CreatorActivity : AppCompatActivity() {
                                 if (i == 0) {
                                     val btm =
                                         BitmapFactory.decodeStream(str) ?: return@forEachIndexed
-                                    val newBtm =
+                                    str.close()
+                                    encoder.writeFrame(
                                         if (btm.width != maxWidth && btm.height != maxHeight)
                                             Bitmap.createScaledBitmap(
                                                 btm,
@@ -143,15 +142,10 @@ class CreatorActivity : AppCompatActivity() {
                                                 false
                                             )
                                         else
-                                            btm
-                                    val output = ByteArrayOutputStream()
-                                    newBtm.compress(Bitmap.CompressFormat.PNG, 100, output)
-                                    val input = ByteArrayInputStream(output.toByteArray())
-                                    encoder.writeFrame(
-                                        input,
+                                            btm,
                                         delay = uri.second.toFloat()
                                     )
-                                    input.close()
+                                    //input.close()
                                 } else {
                                     encoder.writeFrame(
                                         str,

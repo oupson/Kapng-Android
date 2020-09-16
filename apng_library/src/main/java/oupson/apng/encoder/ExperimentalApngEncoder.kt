@@ -54,6 +54,26 @@ class ExperimentalApngEncoder(
         }
         inputStream.close()
 
+        writeFrame(btm, delay, xOffsets, yOffsets, blendOp, disposeOp, usePngEncoder)
+    }
+
+    // TODO ADD SUPPORT FOR FIRST FRAME NOT IN ANIM
+    // TODO OPTIMISE APNG
+    @JvmOverloads
+    fun writeFrame(
+        b : Bitmap,
+        delay: Float = 1000f,
+        xOffsets: Int = 0,
+        yOffsets: Int = 0,
+        blendOp: Utils.Companion.BlendOp = Utils.Companion.BlendOp.APNG_BLEND_OP_SOURCE,
+        disposeOp: Utils.Companion.DisposeOp = Utils.Companion.DisposeOp.APNG_DISPOSE_OP_NONE,
+        usePngEncoder: Boolean = false
+    ) {
+        val btm =  if (b.config != config)
+            b.copy(config, b.isMutable)
+        else
+            b
+
         if (frameIndex == 0) {
             if (btm.width != width)
                 throw Exception("Width of first frame must be equal to width of APNG. (${btm.width} != $width)")
@@ -69,6 +89,7 @@ class ExperimentalApngEncoder(
             } else {
                 val outputStream = ByteArrayOutputStream()
                 btm.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+                outputStream.close()
                 outputStream.toByteArray()
             }
             var cursor = 8
@@ -118,7 +139,7 @@ class ExperimentalApngEncoder(
         }
         frameIndex++
         /**if (usePngEncoder) {
-            PngEncoder.release()
+        PngEncoder.release()
         }*/
     }
 
