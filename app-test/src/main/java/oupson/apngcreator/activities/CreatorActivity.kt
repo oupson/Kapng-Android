@@ -143,13 +143,15 @@ class CreatorActivity : AppCompatActivity() {
                                             )
                                         else
                                             btm,
-                                        delay = uri.second.toFloat()
+                                        delay = uri.second.toFloat(),
+                                        usePngEncoder = true
                                     )
                                     //input.close()
                                 } else {
                                     encoder.writeFrame(
                                         str,
-                                        delay = uri.second.toFloat()
+                                        delay = uri.second.toFloat(),
+                                        usePngEncoder = true
                                     )
                                 }
                                 str.close()

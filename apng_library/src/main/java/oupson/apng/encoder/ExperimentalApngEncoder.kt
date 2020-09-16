@@ -46,12 +46,16 @@ class ExperimentalApngEncoder(
         disposeOp: Utils.Companion.DisposeOp = Utils.Companion.DisposeOp.APNG_DISPOSE_OP_NONE,
         usePngEncoder: Boolean = false
     ) {
-        val btm = BitmapFactory.decodeStream(inputStream).let {
+        val btm = BitmapFactory.decodeStream(inputStream, null, BitmapFactory.Options().also { conf -> if (Build.VERSION.SDK_INT >=
+            Build.VERSION_CODES.O) {
+            conf.outConfig = config
+        }
+        })?.let {
             if (it.config != config)
                 it.copy(config, it.isMutable)
             else
                 it
-        }
+        }!!
         inputStream.close()
 
         writeFrame(btm, delay, xOffsets, yOffsets, blendOp, disposeOp, usePngEncoder)
@@ -210,11 +214,11 @@ class ExperimentalApngEncoder(
         )
 
         // COMPRESSION
-        ihdrBody.add(0.toByte())
+        ihdrBody.add(0)
         // FILTER
-        ihdrBody.add(0.toByte())
+        ihdrBody.add(0)
         // INTERLACE
-        ihdrBody.add(0.toByte())
+        ihdrBody.add(0)
 
         // Generate CRC
         val crC32 = CRC32()
