@@ -41,7 +41,7 @@ class ApngEncoder(
         yOffsets: Int = 0,
         blendOp: Utils.Companion.BlendOp = Utils.Companion.BlendOp.APNG_BLEND_OP_SOURCE,
         disposeOp: Utils.Companion.DisposeOp = Utils.Companion.DisposeOp.APNG_DISPOSE_OP_NONE,
-        usePngEncoder: Boolean = false
+        usePngEncoder: Boolean = true
     ) {
         val btm = BitmapFactory.decodeStream(inputStream).let {
             if (it.config != Bitmap.Config.ARGB_8888)

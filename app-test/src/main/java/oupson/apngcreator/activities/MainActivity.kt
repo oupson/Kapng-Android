@@ -30,6 +30,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         if (BuildConfig.DEBUG)
             Log.v(TAG, "supportFragmentManager.fragments.size : ${supportFragmentManager.fragments.size}")
 

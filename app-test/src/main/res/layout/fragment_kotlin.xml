@@ -52,7 +52,7 @@
         <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/PlayButton"
                 android:theme="@style/Widget.AppCompat.Button.Borderless.Colored"
-                android:backgroundTint="@color/colorPrimary"
+                app:backgroundTint="@color/colorPrimary"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
@@ -64,7 +64,7 @@
         <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/PauseButton"
                 android:theme="@style/Widget.AppCompat.Button.Borderless.Colored"
-                android:backgroundTint="@color/colorPrimary"
+                app:backgroundTint="@color/colorPrimary"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"

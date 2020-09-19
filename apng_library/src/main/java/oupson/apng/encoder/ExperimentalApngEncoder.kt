@@ -1,3 +1,5 @@
+@file:Suppress("CascadeIf")
+
 package oupson.apng.encoder
 
 import android.graphics.Bitmap
@@ -44,7 +46,7 @@ class ExperimentalApngEncoder(
         yOffsets: Int = 0,
         blendOp: Utils.Companion.BlendOp = Utils.Companion.BlendOp.APNG_BLEND_OP_SOURCE,
         disposeOp: Utils.Companion.DisposeOp = Utils.Companion.DisposeOp.APNG_DISPOSE_OP_NONE,
-        usePngEncoder: Boolean = false
+        usePngEncoder: Boolean = true
     ) {
         val btm = BitmapFactory.decodeStream(inputStream, null, BitmapFactory.Options().also { conf -> if (Build.VERSION.SDK_INT >=
             Build.VERSION_CODES.O) {
