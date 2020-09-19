@@ -121,7 +121,7 @@ class CreatorActivity : AppCompatActivity() {
                         if (BuildConfig.DEBUG)
                             Log.i(TAG, "MaxWidth : $maxWidth; MaxHeight : $maxHeight")
 
-                        val encoder = ExperimentalApngEncoder(out, maxWidth, maxHeight, items.size)
+                        val encoder = ExperimentalApngEncoder(this@CreatorActivity, out, maxWidth, maxHeight, items.size)
                         items.forEachIndexed { i, uri ->
                             if (BuildConfig.DEBUG)
                                 Log.v(TAG, "Encoding frame $i")
@@ -199,7 +199,7 @@ class CreatorActivity : AppCompatActivity() {
                             str?.close()
                         }
 
-                        val encoder = ExperimentalApngEncoder(out, maxWidth, maxHeight, items.size)
+                        val encoder = ExperimentalApngEncoder(this@CreatorActivity, out, maxWidth, maxHeight, items.size)
                         items.forEach { uri ->
                             println("delay : ${uri.second.toFloat()}ms")
                             val str = contentResolver.openInputStream(uri.first) ?: return@forEach
@@ -314,7 +314,7 @@ class CreatorActivity : AppCompatActivity() {
                             if (BuildConfig.DEBUG)
                                 Log.i(TAG, "MaxWidth : $maxWidth; MaxHeight : $maxHeight")
 
-                            val encoder = ExperimentalApngEncoder(out, maxWidth, maxHeight, items.size, Bitmap.Config.ARGB_8888)
+                            val encoder = ExperimentalApngEncoder(this@CreatorActivity, out, maxWidth, maxHeight, items.size, Bitmap.Config.ARGB_8888)
                             items.forEach { uri ->
                                 // println("delay : ${adapter?.delay?.get(i)?.toFloat() ?: 1000f}ms")
                                 val str =

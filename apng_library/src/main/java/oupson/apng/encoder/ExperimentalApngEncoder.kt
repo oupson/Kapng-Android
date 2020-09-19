@@ -2,13 +2,15 @@
 
 package oupson.apng.encoder
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Build
 import oupson.apng.chunks.IDAT
-import oupson.apng.imageUtils.PngEncoder
+import oupson.apng.imageUtils.FrameEncoder
 import oupson.apng.utils.Utils
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.zip.CRC32
@@ -18,6 +20,7 @@ import java.util.zip.CRC32
 // TODO BUFFER AND BUFFER DEACTIVATION WHEN BITMAP CONFIG DOES NOT CONTAIN AN ALPHA CHANNEL
 // TODO JAVA OVERLOADS
 class ExperimentalApngEncoder(
+    private  var context : Context, // TODO REMOVE
     private val outputStream: OutputStream,
     private val width : Int,
     private val height : Int,
@@ -92,7 +95,16 @@ class ExperimentalApngEncoder(
 
         val idat = IDAT().apply {
             val byteArray = if (usePngEncoder) {
-                PngEncoder().encode(btm, true)
+                val m = ByteArrayOutputStream()
+                val e = FrameEncoder(btm.width, btm.height, true, outputStream = m)
+                e.encode(btm)
+                //PngEncoder().encode(btm, true)
+                m.close()
+                val b = m.toByteArray()
+                File(context.filesDir, "image$frameIndex.png").apply {
+                    println("Path is ${this.path}")
+                }.writeBytes(b)
+                b
             } else {
                 val outputStream = ByteArrayOutputStream()
                 btm.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
