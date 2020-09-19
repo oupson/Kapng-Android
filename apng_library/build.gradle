@@ -1,6 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
+apply plugin: "org.jetbrains.dokka"
 
 android {
     compileSdkVersion 29
@@ -40,4 +41,13 @@ dependencies {
 
 repositories {
     mavenCentral()
+}
+
+
+dokkaHtml.configure {
+    dokkaSourceSets {
+        named("main") {
+            noAndroidSdkLink.set(false)
+        }
+    }
 }

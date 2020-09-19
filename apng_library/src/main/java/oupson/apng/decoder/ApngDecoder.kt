@@ -19,6 +19,7 @@ import oupson.apng.BuildConfig
 import oupson.apng.Loader
 import oupson.apng.chunks.IHDR
 import oupson.apng.chunks.fcTL
+import oupson.apng.decoder.ApngDecoder.Companion.decodeApng
 import oupson.apng.exceptions.BadApng
 import oupson.apng.exceptions.BadCRC
 import oupson.apng.utils.Utils
@@ -28,6 +29,10 @@ import java.net.URL
 import java.nio.ByteBuffer
 import java.util.zip.CRC32
 
+/**
+ * An APNG Decoder.
+ * Call [decodeApng]
+ */
 class ApngDecoder {
     interface Callback {
         /**
