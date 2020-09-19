@@ -314,7 +314,7 @@ class CreatorActivity : AppCompatActivity() {
                             if (BuildConfig.DEBUG)
                                 Log.i(TAG, "MaxWidth : $maxWidth; MaxHeight : $maxHeight")
 
-                            val encoder = ExperimentalApngEncoder(this@CreatorActivity, out, maxWidth, maxHeight, items.size, Bitmap.Config.ARGB_8888)
+                            val encoder = ExperimentalApngEncoder(this@CreatorActivity, out, maxWidth, maxHeight, items.size)
                             items.forEach { uri ->
                                 // println("delay : ${adapter?.delay?.get(i)?.toFloat() ?: 1000f}ms")
                                 val str =
