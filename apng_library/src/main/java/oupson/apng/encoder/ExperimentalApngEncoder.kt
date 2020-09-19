@@ -61,6 +61,7 @@ class ExperimentalApngEncoder(
         inputStream.close()
 
         writeFrame(btm, delay, xOffsets, yOffsets, blendOp, disposeOp, usePngEncoder)
+        btm.recycle()
     }
 
     // TODO ADD SUPPORT FOR FIRST FRAME NOT IN ANIM
