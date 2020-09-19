@@ -2,7 +2,6 @@
 
 package oupson.apng.encoder
 
-import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import oupson.apng.utils.Utils
@@ -17,15 +16,13 @@ import kotlin.math.max
 import kotlin.math.min
 
 // TODO DOCUMENTATION
-// TODO BITMAP ENCODING
 // TODO BUFFER AND BUFFER DEACTIVATION WHEN BITMAP CONFIG DOES NOT CONTAIN AN ALPHA CHANNEL
 // TODO JAVA OVERLOADS
 class ExperimentalApngEncoder(
-    private  var context : Context, // TODO REMOVE
     private val outputStream: OutputStream,
     private val width : Int,
     private val height : Int,
-    numberOfFrames : Int) {
+    numberOfFrames : Int, private val encodeAlpha: Boolean = true, filter: Int = 0, compressionLevel: Int = 0) {
     private var frameIndex = 0
     private var seq = 0
 
@@ -35,7 +32,7 @@ class ExperimentalApngEncoder(
     /** The CRC value.  */
     private var crcValue: Long = 0
 
-    private var encodeAlpha = true
+    //private var encodeAlpha = true
 
     /** The bytes-per-pixel.  */
     private var bytesPerPixel: Int = 0
@@ -51,10 +48,6 @@ class ExperimentalApngEncoder(
 
     /** The left bytes.  */
     private var leftBytes: ByteArray? = null
-
-    private val idatName : List<Byte> by lazy {
-        listOf(0x49.toByte(), 0x44.toByte(), 0x41.toByte(), 0x54.toByte())
-    }
 
     companion object {
         /** Constants for filter (NONE)  */
@@ -72,6 +65,15 @@ class ExperimentalApngEncoder(
 
 
     init {
+        this.filter = FILTER_NONE
+        if (filter <= FILTER_LAST) {
+            this.filter = filter
+        }
+
+        if (compressionLevel in 0..9) {
+            this.compressionLevel = compressionLevel
+        }
+
         outputStream.write(Utils.pngSignature)
         writeHeader()
         outputStream.write(generateACTL(numberOfFrames))

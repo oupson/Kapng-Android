@@ -55,6 +55,7 @@ class Utils {
             )
         }
 
+        // TODO DOC DISPOSE OP AND BLEND OP
         enum class DisposeOp {
             APNG_DISPOSE_OP_NONE,
             APNG_DISPOSE_OP_BACKGROUND,

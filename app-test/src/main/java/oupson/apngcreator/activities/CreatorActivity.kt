@@ -21,6 +21,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import oupson.apng.encoder.ExperimentalApngEncoder
+import oupson.apng.utils.Utils
 import oupson.apngcreator.BuildConfig
 import oupson.apngcreator.R
 import oupson.apngcreator.adapter.ImageAdapter
@@ -121,7 +122,7 @@ class CreatorActivity : AppCompatActivity() {
                         if (BuildConfig.DEBUG)
                             Log.i(TAG, "MaxWidth : $maxWidth; MaxHeight : $maxHeight")
 
-                        val encoder = ExperimentalApngEncoder(this@CreatorActivity, out, maxWidth, maxHeight, items.size)
+                        val encoder = ExperimentalApngEncoder(out, maxWidth, maxHeight, items.size, compressionLevel = 9)
                         items.forEachIndexed { i, uri ->
                             if (BuildConfig.DEBUG)
                                 Log.v(TAG, "Encoding frame $i")
@@ -144,7 +145,8 @@ class CreatorActivity : AppCompatActivity() {
                                         else
                                             btm,
                                         delay = uri.second.toFloat(),
-                                        usePngEncoder = true
+                                        usePngEncoder = true,
+                                        disposeOp = Utils.Companion.DisposeOp.APNG_DISPOSE_OP_NONE
                                     )
                                     //input.close()
                                 } else {
@@ -162,6 +164,9 @@ class CreatorActivity : AppCompatActivity() {
 
                         encoder.writeEnd()
                         out.close()
+
+                        if (BuildConfig.DEBUG)
+                            Log.v(TAG, "${f.length() / 1000}ko")
 
                         withContext(Dispatchers.Main) {
                             val intent = Intent(Intent.ACTION_VIEW)
@@ -199,7 +204,7 @@ class CreatorActivity : AppCompatActivity() {
                             str?.close()
                         }
 
-                        val encoder = ExperimentalApngEncoder(this@CreatorActivity, out, maxWidth, maxHeight, items.size)
+                        val encoder = ExperimentalApngEncoder(out, maxWidth, maxHeight, items.size, compressionLevel = 9)
                         items.forEach { uri ->
                             println("delay : ${uri.second.toFloat()}ms")
                             val str = contentResolver.openInputStream(uri.first) ?: return@forEach
@@ -314,7 +319,7 @@ class CreatorActivity : AppCompatActivity() {
                             if (BuildConfig.DEBUG)
                                 Log.i(TAG, "MaxWidth : $maxWidth; MaxHeight : $maxHeight")
 
-                            val encoder = ExperimentalApngEncoder(this@CreatorActivity, out, maxWidth, maxHeight, items.size)
+                            val encoder = ExperimentalApngEncoder(out, maxWidth, maxHeight, items.size, compressionLevel = 9)
                             items.forEach { uri ->
                                 // println("delay : ${adapter?.delay?.get(i)?.toFloat() ?: 1000f}ms")
                                 val str =
