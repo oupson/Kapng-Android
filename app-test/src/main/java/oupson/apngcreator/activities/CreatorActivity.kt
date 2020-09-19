@@ -145,7 +145,6 @@ class CreatorActivity : AppCompatActivity() {
                                         else
                                             btm,
                                         delay = uri.second.toFloat(),
-                                        usePngEncoder = true,
                                         disposeOp = Utils.Companion.DisposeOp.APNG_DISPOSE_OP_NONE
                                     )
                                     //input.close()
@@ -153,7 +152,6 @@ class CreatorActivity : AppCompatActivity() {
                                     encoder.writeFrame(
                                         str,
                                         delay = uri.second.toFloat(),
-                                        usePngEncoder = true
                                     )
                                 }
                                 str.close()
