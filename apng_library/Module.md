@@ -8,7 +8,7 @@ Contain things related to chunk parsing.
 
 # Package oupson.apng.decoder
 Contain class for decode APNG.
-a
+
 # Package oupson.apng.encoder
 Contain class for encoding APNG.
 

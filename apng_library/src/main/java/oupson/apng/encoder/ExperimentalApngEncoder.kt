@@ -3,7 +3,7 @@ package oupson.apng.encoder
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Log
-import oupson.apng.exceptions.InvalidFrameSize
+import oupson.apng.exceptions.InvalidFrameSizeException
 import oupson.apng.utils.Utils
 import java.io.ByteArrayOutputStream
 import java.io.IOException
@@ -165,14 +165,13 @@ class ExperimentalApngEncoder(
      * @param blendOp See [Utils.BlendOp].
      * @param disposeOp See [Utils.DisposeOp].
      * @throws NullPointerException If the bitmap failed to be decoded
-     * @throws InvalidFrameSize If the frame size is bigger than the animation size, or the first frame size is not equal to the animation size.
+     * @throws InvalidFrameSizeException If the frame size is bigger than the animation size, or the first frame size is not equal to the animation size.
      * @throws IOException If something failed when writing into the output stream.
      */
     @JvmOverloads
     @Throws(
         NullPointerException::class,
-        InvalidFrameSize::class,
-        InvalidFrameSize::class,
+        InvalidFrameSizeException::class,
         IOException::class
     )
     fun writeFrame(
@@ -197,11 +196,11 @@ class ExperimentalApngEncoder(
      * @param yOffsets The offset of the top bound of the frame in the animation.
      * @param blendOp See [Utils.BlendOp].
      * @param disposeOp See [Utils.DisposeOp].
-     * @throws InvalidFrameSize If the frame size is bigger than the animation size, or the first frame size is not equal to the animation size.
+     * @throws InvalidFrameSizeException If the frame size is bigger than the animation size, or the first frame size is not equal to the animation size.
      * @throws IOException If something failed when writing into the output stream.
      */
     @JvmOverloads
-    @Throws(InvalidFrameSize::class, IOException::class)
+    @Throws(InvalidFrameSizeException::class, IOException::class)
     fun writeFrame(
         btm: Bitmap,
         delay: Float = 1000f,
@@ -212,15 +211,15 @@ class ExperimentalApngEncoder(
     ) {
         if (currentFrame == 0) {
             if (btm.width != width)
-                throw InvalidFrameSize("Width of first frame must be equal to width of APNG. (${btm.width} != $width)")
+                throw InvalidFrameSizeException("Width of first frame must be equal to width of APNG. (${btm.width} != $width)")
             if (btm.height != height)
-                throw InvalidFrameSize("Height of first frame must be equal to height of APNG. (${btm.height} != $height)")
+                throw InvalidFrameSizeException("Height of first frame must be equal to height of APNG. (${btm.height} != $height)")
         }
 
         if (btm.width > width)
-            throw InvalidFrameSize("Frame width must be inferior or equal at the animation width")
+            throw InvalidFrameSizeException("Frame width must be inferior or equal at the animation width")
         else if (btm.height > height)
-            throw InvalidFrameSize("Frame height must be inferior or equal at the animation height")
+            throw InvalidFrameSizeException("Frame height must be inferior or equal at the animation height")
 
         writeFCTL(btm, delay, disposeOp, blendOp, xOffsets, yOffsets)
         writeImageData(btm)

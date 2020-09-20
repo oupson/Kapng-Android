@@ -3,8 +3,8 @@ package oupson.apng
 import android.graphics.BitmapFactory
 import oupson.apng.chunks.IHDR
 import oupson.apng.chunks.fcTL
-import oupson.apng.exceptions.BadApng
-import oupson.apng.exceptions.BadCRC
+import oupson.apng.exceptions.BadApngException
+import oupson.apng.exceptions.BadCRCException
 import oupson.apng.exceptions.NotApngException
 import oupson.apng.exceptions.NotPngException
 import oupson.apng.utils.Utils
@@ -18,6 +18,7 @@ import java.util.*
 import java.util.zip.CRC32
 
 // TODO REWRITE
+@Deprecated("Deprecated, Use ApngEncoder and ApngDecoder instead", level = DeprecationLevel.WARNING)
 class APNGDisassembler {
     private var png: ArrayList<Byte>? = null
     private var cover: ArrayList<Byte>? = null
@@ -163,9 +164,9 @@ class APNGDisassembler {
                         val height = fcTL.pngHeight
 
                         if (xOffset + width > maxWidth) {
-                            throw BadApng("`yOffset` + `height` must be <= `IHDR` height")
+                            throw BadApngException("`yOffset` + `height` must be <= `IHDR` height")
                         } else if (yOffset + height > maxHeight) {
-                            throw BadApng("`yOffset` + `height` must be <= `IHDR` height")
+                            throw BadApngException("`yOffset` + `height` must be <= `IHDR` height")
                         }
 
                         png?.addAll(pngSignature.asList())
@@ -315,7 +316,7 @@ class APNGDisassembler {
                     isApng = true
                 }
             }
-        } else throw BadCRC()
+        } else throw BadCRCException()
     }
 
     /**

@@ -26,6 +26,7 @@ import java.net.URL
  * Class to play APNG
  * For better performance but lesser features using [oupson.apng.decoder.ApngDecoder] is strongly recommended.
  */
+@Deprecated("Deprecated, Use ApngEncoder and ApngDecoder instead", level = DeprecationLevel.WARNING)
 class ApngAnimator(private val context: Context?) {
     companion object {
         /**

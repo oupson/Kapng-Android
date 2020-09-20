@@ -33,6 +33,7 @@ class ApngEncoder(
 
     // TODO ADD SUPPORT FOR FIRST FRAME NOT IN ANIM
     // TODO OPTIMISE APNG
+    @Suppress("unused")
     @JvmOverloads
     fun writeFrame(
         inputStream: InputStream,
@@ -119,6 +120,7 @@ class ApngEncoder(
         }*/
     }
 
+    @Suppress("unused")
     fun writeEnd() {
         // Add IEND body length : 0
         outputStream.write(Utils.to4BytesArray(0))

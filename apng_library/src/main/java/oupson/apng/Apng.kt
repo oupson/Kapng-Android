@@ -24,6 +24,7 @@ import java.util.zip.CRC32
  * If you want to create an APNG, use ApngEncoder instead
  */
 @Suppress("unused")
+@Deprecated("Deprecated, Use ApngEncoder and ApngDecoder instead", level = DeprecationLevel.WARNING)
 class Apng {
     @Suppress("MemberVisibilityCanBePrivate")
     var maxWidth : Int? = null

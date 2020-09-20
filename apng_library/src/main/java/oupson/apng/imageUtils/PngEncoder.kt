@@ -137,6 +137,7 @@ class PngEncoder {
         return newArray
     }
 
+    @Suppress("unused")
     fun release() {
         image?.recycle()
         image = null

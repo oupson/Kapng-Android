@@ -20,8 +20,8 @@ import oupson.apng.Loader
 import oupson.apng.chunks.IHDR
 import oupson.apng.chunks.fcTL
 import oupson.apng.decoder.ApngDecoder.Companion.decodeApng
-import oupson.apng.exceptions.BadApng
-import oupson.apng.exceptions.BadCRC
+import oupson.apng.exceptions.BadApngException
+import oupson.apng.exceptions.BadCRCException
 import oupson.apng.utils.Utils
 import oupson.apng.utils.Utils.Companion.isPng
 import java.io.*
@@ -152,9 +152,9 @@ class ApngDecoder {
                                     val height = fcTL.pngHeight
 
                                     if (xOffset + width > maxWidth) {
-                                        throw BadApng("`xOffset` + `width` must be <= `IHDR` width")
+                                        throw BadApngException("`xOffset` + `width` must be <= `IHDR` width")
                                     } else if (yOffset + height > maxHeight) {
-                                        throw BadApng("`yOffset` + `height` must be <= `IHDR` height")
+                                        throw BadApngException("`yOffset` + `height` must be <= `IHDR` height")
                                     }
 
                                     png.addAll(Utils.pngSignature.asList())
@@ -468,7 +468,7 @@ class ApngDecoder {
                                 isApng = true
                             }
                         }
-                    } else throw BadCRC()
+                    } else throw BadCRCException()
                 } while (byteRead != -1)
                 inputStream.close()
                 return drawable
