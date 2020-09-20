@@ -23,10 +23,7 @@ class ExperimentalApngEncoder(
     private val outputStream: OutputStream,
     private val width: Int,
     private val height: Int,
-    numberOfFrames: Int,
-    private val encodeAlpha: Boolean = true,
-    filter: Int = 0,
-    compressionLevel: Int = 0
+    numberOfFrames: Int
 ) {
     companion object {
         private const val TAG = "ExperimentalApngEncoder"
@@ -66,7 +63,10 @@ class ExperimentalApngEncoder(
     private var compressionLevel: Int = 0
 
     /** The filter type.  */
-    private var filter: Int = 0
+    private var filter: Int = FILTER_NONE
+
+    /** If the alpha channel must be encoded    */
+    private var encodeAlpha : Boolean = true
 
     /** The prior row.  */
     private var priorRow: ByteArray? = null
@@ -74,19 +74,70 @@ class ExperimentalApngEncoder(
     /** The left bytes.  */
     private var leftBytes: ByteArray? = null
 
+    /** Number of loop of the animation, zero to infinite **/
+    private var repetitionCount : Int = 0
+
     init {
-        this.filter = FILTER_NONE
-        if (filter <= FILTER_LAST) {
-            this.filter = filter
-        }
-
-        if (compressionLevel in 0..9) {
-            this.compressionLevel = compressionLevel
-        }
-
         outputStream.write(Utils.pngSignature)
         writeHeader()
         writeACTL(numberOfFrames)
+    }
+
+    /**
+     * Set if the alpha channel must be encoded.
+     * @param encodeAlpha If the alpha channel must be encoded.
+     * @return [ExperimentalApngEncoder] for chaining.
+     */
+    @Suppress("unused")
+    fun encodeAlpha(encodeAlpha : Boolean) : ExperimentalApngEncoder {
+        this.encodeAlpha = encodeAlpha
+        return this
+    }
+
+    /**
+     * Set the filter.
+     * @param filter The filter.
+     * Values :
+     * - [FILTER_NONE]
+     * - [FILTER_SUB]
+     * - [FILTER_UP]
+     * - [FILTER_LAST]
+     * @return [ExperimentalApngEncoder] for chaining.
+     */
+    @Suppress("unused")
+    fun filter(filter : Int) : ExperimentalApngEncoder {
+        if (filter <= FILTER_LAST) {
+            this.filter = filter
+        } else {
+            Log.e(TAG, "Invalid filter")
+        }
+        return this
+    }
+
+    /**
+     * Set the repetition count.
+     * @param repetitionCount The number of repetition, zero for infinite.
+     * @return [ExperimentalApngEncoder] for chaining.
+     */
+    @Suppress("unused")
+    fun repetitionCount(repetitionCount : Int) : ExperimentalApngEncoder{
+        this.repetitionCount = repetitionCount
+        return this
+    }
+
+    /**
+     * Set the compression level
+     * @param compressionLevel A integer between 0 and 9 (not include)
+     * @return [ExperimentalApngEncoder] for chaining
+     */
+    fun compressionLevel(compressionLevel : Int) : ExperimentalApngEncoder {
+        if (compressionLevel in 0..9) {
+            this.compressionLevel = compressionLevel
+        } else {
+            Log.e(TAG, "Invalid compression level : $compressionLevel, expected a number in range 0..9")
+        }
+
+        return this
     }
 
     @JvmOverloads
@@ -120,7 +171,11 @@ class ExperimentalApngEncoder(
                 throw Exception("Height of first frame must be equal to height of APNG. (${btm.height} != $height)")
         }
 
-        // TODO CHECK IF btm IS BIGGER THANT THE APNG
+        // TODO PROPER EXCEPTION
+        if (btm.width > width)
+            throw Exception("Frame width must be inferior or equal at the animation width")
+        else if (btm.height > height)
+            throw Exception("Frame height must be inferior or equal at the animation height")
 
         writeFCTL(btm, delay, disposeOp, blendOp, xOffsets, yOffsets)
         writeImageData(btm)
@@ -193,7 +248,7 @@ class ExperimentalApngEncoder(
         actl.addAll(Utils.to4Bytes(num).asList())
 
         // Number of repeat, 0 to infinite
-        actl.addAll(Utils.to4Bytes(0).asList())
+        actl.addAll(Utils.to4Bytes(repetitionCount).asList())
         outputStream.write(actl.toByteArray())
 
         // generate crc

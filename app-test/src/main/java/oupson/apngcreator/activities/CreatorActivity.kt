@@ -122,7 +122,12 @@ class CreatorActivity : AppCompatActivity() {
                         if (BuildConfig.DEBUG)
                             Log.i(TAG, "MaxWidth : $maxWidth; MaxHeight : $maxHeight")
 
-                        val encoder = ExperimentalApngEncoder(out, maxWidth, maxHeight, items.size, compressionLevel = 9)
+                        val encoder = ExperimentalApngEncoder(
+                            out,
+                            maxWidth,
+                            maxHeight,
+                            items.size
+                        ).compressionLevel(9)
                         items.forEachIndexed { i, uri ->
                             if (BuildConfig.DEBUG)
                                 Log.v(TAG, "Encoding frame $i")
@@ -155,7 +160,7 @@ class CreatorActivity : AppCompatActivity() {
                                     )
                                 }
                                 str.close()
-                            } catch (e : Exception) {
+                            } catch (e: Exception) {
                                 Log.e(TAG, "Error when creating apng", e)
                             }
                         }
@@ -164,7 +169,7 @@ class CreatorActivity : AppCompatActivity() {
                         out.close()
 
                         if (BuildConfig.DEBUG)
-                            Log.v(TAG, "${f.length() / 1000}ko")
+                            Log.v(TAG, "Animation size is ${f.length() / 1000}ko")
 
                         withContext(Dispatchers.Main) {
                             val intent = Intent(Intent.ACTION_VIEW)
@@ -202,7 +207,12 @@ class CreatorActivity : AppCompatActivity() {
                             str?.close()
                         }
 
-                        val encoder = ExperimentalApngEncoder(out, maxWidth, maxHeight, items.size, compressionLevel = 9)
+                        val encoder = ExperimentalApngEncoder(
+                            out,
+                            maxWidth,
+                            maxHeight,
+                            items.size
+                        ).compressionLevel(9)
                         items.forEach { uri ->
                             println("delay : ${uri.second.toFloat()}ms")
                             val str = contentResolver.openInputStream(uri.first) ?: return@forEach
@@ -317,7 +327,12 @@ class CreatorActivity : AppCompatActivity() {
                             if (BuildConfig.DEBUG)
                                 Log.i(TAG, "MaxWidth : $maxWidth; MaxHeight : $maxHeight")
 
-                            val encoder = ExperimentalApngEncoder(out, maxWidth, maxHeight, items.size, compressionLevel = 9)
+                            val encoder = ExperimentalApngEncoder(
+                                out,
+                                maxWidth,
+                                maxHeight,
+                                items.size
+                            ).compressionLevel(9)
                             items.forEach { uri ->
                                 // println("delay : ${adapter?.delay?.get(i)?.toFloat() ?: 1000f}ms")
                                 val str =
