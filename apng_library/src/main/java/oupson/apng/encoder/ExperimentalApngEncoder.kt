@@ -3,6 +3,7 @@ package oupson.apng.encoder
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Log
+import oupson.apng.exceptions.InvalidFrameSize
 import oupson.apng.utils.Utils
 import java.io.ByteArrayOutputStream
 import java.io.IOException
@@ -14,16 +15,15 @@ import java.util.zip.DeflaterOutputStream
 import kotlin.math.max
 import kotlin.math.min
 
-// TODO JAVA OVERLOADS
 // TODO ADD SUPPORT FOR FIRST FRAME NOT IN ANIM
 // TODO OPTIMISE APNG
-// TODO OPTIONS SUCH AS NUMBER OF REPETITIONS
 /**
  * A class to write APNG
  * @param outputStream The ouput stream.
  * @param width Width of the animation
  * @param height Height of the animation
  * @param numberOfFrames The number of frame the animation is composed.
+ * @throws IOException If something failed when writing into the output stream.
  *
  * Usage :
  *  - Instantiate the class.
@@ -77,7 +77,7 @@ class ExperimentalApngEncoder(
     private var filter: Int = FILTER_NONE
 
     /** If the alpha channel must be encoded    */
-    private var encodeAlpha : Boolean = true
+    private var encodeAlpha: Boolean = true
 
     /** The prior row.  */
     private var priorRow: ByteArray? = null
@@ -86,7 +86,7 @@ class ExperimentalApngEncoder(
     private var leftBytes: ByteArray? = null
 
     /** Number of loop of the animation, zero to infinite **/
-    private var repetitionCount : Int = 0
+    private var repetitionCount: Int = 0
 
     init {
         outputStream.write(Utils.pngSignature)
@@ -100,7 +100,7 @@ class ExperimentalApngEncoder(
      * @return [ExperimentalApngEncoder] for chaining.
      */
     @Suppress("unused")
-    fun encodeAlpha(encodeAlpha : Boolean) : ExperimentalApngEncoder {
+    fun encodeAlpha(encodeAlpha: Boolean): ExperimentalApngEncoder {
         this.encodeAlpha = encodeAlpha
         return this
     }
@@ -116,7 +116,7 @@ class ExperimentalApngEncoder(
      * @return [ExperimentalApngEncoder] for chaining.
      */
     @Suppress("unused")
-    fun filter(filter : Int) : ExperimentalApngEncoder {
+    fun filter(filter: Int): ExperimentalApngEncoder {
         if (filter <= FILTER_LAST) {
             this.filter = filter
         } else {
@@ -131,7 +131,7 @@ class ExperimentalApngEncoder(
      * @return [ExperimentalApngEncoder] for chaining.
      */
     @Suppress("unused")
-    fun repetitionCount(repetitionCount : Int) : ExperimentalApngEncoder{
+    fun repetitionCount(repetitionCount: Int): ExperimentalApngEncoder {
         this.repetitionCount = repetitionCount
         return this
     }
@@ -141,11 +141,14 @@ class ExperimentalApngEncoder(
      * @param compressionLevel A integer between 0 and 9 (not include)
      * @return [ExperimentalApngEncoder] for chaining
      */
-    fun compressionLevel(compressionLevel : Int) : ExperimentalApngEncoder {
+    fun compressionLevel(compressionLevel: Int): ExperimentalApngEncoder {
         if (compressionLevel in 0..9) {
             this.compressionLevel = compressionLevel
         } else {
-            Log.e(TAG, "Invalid compression level : $compressionLevel, expected a number in range 0..9")
+            Log.e(
+                TAG,
+                "Invalid compression level : $compressionLevel, expected a number in range 0..9"
+            )
         }
 
         return this
@@ -159,8 +162,12 @@ class ExperimentalApngEncoder(
      * @param yOffsets The offset of the top bound of the frame in the animation.
      * @param blendOp See [Utils.BlendOp].
      * @param disposeOp See [Utils.DisposeOp].
+     * @throws NullPointerException If the bitmap failed to be decoded
+     * @throws InvalidFrameSize If the frame size is bigger than the animation size, or the first frame size is not equal to the animation size.
+     * @throws IOException If something failed when writing into the output stream.
      */
     @JvmOverloads
+    @Throws(NullPointerException::class, InvalidFrameSize::class, InvalidFrameSize::class, IOException::class)
     fun writeFrame(
         inputStream: InputStream,
         delay: Float = 1000f,
@@ -169,7 +176,7 @@ class ExperimentalApngEncoder(
         blendOp: Utils.Companion.BlendOp = Utils.Companion.BlendOp.APNG_BLEND_OP_SOURCE,
         disposeOp: Utils.Companion.DisposeOp = Utils.Companion.DisposeOp.APNG_DISPOSE_OP_NONE
     ) {
-        val btm = BitmapFactory.decodeStream(inputStream)
+        val btm = BitmapFactory.decodeStream(inputStream)!!
 
         writeFrame(btm, delay, xOffsets, yOffsets, blendOp, disposeOp)
         btm.recycle()
@@ -183,8 +190,11 @@ class ExperimentalApngEncoder(
      * @param yOffsets The offset of the top bound of the frame in the animation.
      * @param blendOp See [Utils.BlendOp].
      * @param disposeOp See [Utils.DisposeOp].
+     * @throws InvalidFrameSize If the frame size is bigger than the animation size, or the first frame size is not equal to the animation size.
+     * @throws IOException If something failed when writing into the output stream.
      */
     @JvmOverloads
+    @Throws(InvalidFrameSize::class, IOException::class)
     fun writeFrame(
         btm: Bitmap,
         delay: Float = 1000f,
@@ -195,16 +205,15 @@ class ExperimentalApngEncoder(
     ) {
         if (currentFrame == 0) {
             if (btm.width != width)
-                throw Exception("Width of first frame must be equal to width of APNG. (${btm.width} != $width)")
+                throw InvalidFrameSize("Width of first frame must be equal to width of APNG. (${btm.width} != $width)")
             if (btm.height != height)
-                throw Exception("Height of first frame must be equal to height of APNG. (${btm.height} != $height)")
+                throw InvalidFrameSize("Height of first frame must be equal to height of APNG. (${btm.height} != $height)")
         }
 
-        // TODO PROPER EXCEPTION
         if (btm.width > width)
-            throw Exception("Frame width must be inferior or equal at the animation width")
+            throw InvalidFrameSize("Frame width must be inferior or equal at the animation width")
         else if (btm.height > height)
-            throw Exception("Frame height must be inferior or equal at the animation height")
+            throw InvalidFrameSize("Frame height must be inferior or equal at the animation height")
 
         writeFCTL(btm, delay, disposeOp, blendOp, xOffsets, yOffsets)
         writeImageData(btm)
@@ -213,7 +222,9 @@ class ExperimentalApngEncoder(
 
     /**
      * Write the end of the animation.
+     * @throws IOException If something failed when writing into the output stream.
      */
+    @Throws(IOException::class)
     fun writeEnd() {
         // Add IEND body length : 0
         outputStream.write(Utils.to4BytesArray(0))
@@ -228,7 +239,9 @@ class ExperimentalApngEncoder(
 
     /**
      * Write the header into the outputStream.
+     * @throws IOException If something failed when writing into the output stream.
      */
+    @Throws(IOException::class)
     private fun writeHeader() {
         writeInt4(13)
         val header = arrayListOf<Byte>()
@@ -252,7 +265,9 @@ class ExperimentalApngEncoder(
     /**
      * Write a four-byte integer into the outputStream.
      * @param n The four-byte integer to write.
+     * @throws IOException If something failed when writing into the output stream.
      */
+    @Throws(IOException::class)
     private fun writeInt4(n: Int) {
         val temp = byteArrayOf(
             (n shr 24 and 0xff).toByte(),
@@ -266,7 +281,9 @@ class ExperimentalApngEncoder(
     /**
      * Write the animation control chunk into the outputStream.
      * @param num The number of frame the animation contain.
+     * @throws IOException If something failed when writing into the output stream.
      */
+    @Throws(IOException::class)
     private fun writeACTL(num: Int) {
         val actl = ArrayList<Byte>()
 
@@ -291,7 +308,9 @@ class ExperimentalApngEncoder(
 
     /**
      * Write the frame control chunk into the outputStream.
+     * @throws IOException If something failed when writing into the output stream.
      */
+    @Throws(IOException::class)
     private fun writeFCTL(
         btm: Bitmap,
         delay: Float,
@@ -455,7 +474,7 @@ class ExperimentalApngEncoder(
             scrunch.end()
             return true
         } catch (e: IOException) {
-            Log.e(TAG,"Error while writing IDAT/fdAT chunks", e)
+            Log.e(TAG, "Error while writing IDAT/fdAT chunks", e)
             return false
         }
     }

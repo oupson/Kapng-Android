@@ -8,3 +8,5 @@ class NotApngException : Exception()
 class NoFcTL : Exception()
 class BadCRC : Exception()
 class BadApng(override val message: String? = null) : Exception()
+
+class InvalidFrameSize(override val message: String?) : Exception()
