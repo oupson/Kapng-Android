@@ -47,6 +47,7 @@ repositories {
 dokkaHtml.configure {
     dokkaSourceSets {
         named("main") {
+            includes.from("Module.md")
             noAndroidSdkLink.set(false)
         }
     }
