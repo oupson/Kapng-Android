@@ -18,17 +18,19 @@ import kotlin.math.min
 // TODO ADD SUPPORT FOR FIRST FRAME NOT IN ANIM
 // TODO OPTIMISE APNG
 /**
- * A class to write APNG
- * @param outputStream The output stream.
- * @param width Width of the animation
- * @param height Height of the animation
- * @param numberOfFrames The number of frame the animation is composed.
- * @throws IOException If something failed when writing into the output stream.
+ * A class to write APNG.
+ *
+ * IDAT encoding par was taken from [PngEncoder by J. David Eisenberg](http://catcode.com/pngencoder/com/keypoint/PngEncoder.java).
  *
  * Usage :
  *  - Instantiate the class.
  *  - Call [writeFrame].
  *  - Call [writeEnd] at the end of the animation.
+ * @param outputStream The output stream.
+ * @param width Width of the animation
+ * @param height Height of the animation
+ * @param numberOfFrames The number of frame the animation is composed.
+ * @throws IOException If something failed when writing into the output stream.
  */
 class ExperimentalApngEncoder(
     private val outputStream: OutputStream,
