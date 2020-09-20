@@ -19,7 +19,7 @@ import kotlin.math.min
 // TODO OPTIMISE APNG
 /**
  * A class to write APNG
- * @param outputStream The ouput stream.
+ * @param outputStream The output stream.
  * @param width Width of the animation
  * @param height Height of the animation
  * @param numberOfFrames The number of frame the animation is composed.
@@ -167,7 +167,12 @@ class ExperimentalApngEncoder(
      * @throws IOException If something failed when writing into the output stream.
      */
     @JvmOverloads
-    @Throws(NullPointerException::class, InvalidFrameSize::class, InvalidFrameSize::class, IOException::class)
+    @Throws(
+        NullPointerException::class,
+        InvalidFrameSize::class,
+        InvalidFrameSize::class,
+        IOException::class
+    )
     fun writeFrame(
         inputStream: InputStream,
         delay: Float = 1000f,
@@ -356,7 +361,7 @@ class ExperimentalApngEncoder(
     }
 
     /**
-     * Write the image data into the ouputStrea.
+     * Write the image data into the outputStream.
      * This will write one or more PNG "IDAT"/"fdAT" chunks. In order
      * to conserve memory, this method grabs as many rows as will
      * fit into 32K bytes, or the whole image; whichever is less.
