@@ -14,11 +14,22 @@ import java.util.zip.DeflaterOutputStream
 import kotlin.math.max
 import kotlin.math.min
 
-// TODO DOCUMENTATION
 // TODO JAVA OVERLOADS
 // TODO ADD SUPPORT FOR FIRST FRAME NOT IN ANIM
 // TODO OPTIMISE APNG
 // TODO OPTIONS SUCH AS NUMBER OF REPETITIONS
+/**
+ * A class to write APNG
+ * @param outputStream The ouput stream.
+ * @param width Width of the animation
+ * @param height Height of the animation
+ * @param numberOfFrames The number of frame the animation is composed.
+ *
+ * Usage :
+ *  - Instantiate the class.
+ *  - Call [writeFrame].
+ *  - Call [writeEnd] at the end of the animation.
+ */
 class ExperimentalApngEncoder(
     private val outputStream: OutputStream,
     private val width: Int,
@@ -140,6 +151,15 @@ class ExperimentalApngEncoder(
         return this
     }
 
+    /**
+     * Write a frame into the output stream.
+     * @param inputStream An input stream that will be decoded in order to be written in the animation. Not freed.
+     * @param delay A delay in ms.
+     * @param xOffsets The offset of the left bound of the frame in the animation.
+     * @param yOffsets The offset of the top bound of the frame in the animation.
+     * @param blendOp See [Utils.BlendOp].
+     * @param disposeOp See [Utils.DisposeOp].
+     */
     @JvmOverloads
     fun writeFrame(
         inputStream: InputStream,
@@ -155,6 +175,15 @@ class ExperimentalApngEncoder(
         btm.recycle()
     }
 
+    /**
+     * Write a frame into the output stream.
+     * @param btm An bitmap that will be written in the animation.
+     * @param delay A delay in ms.
+     * @param xOffsets The offset of the left bound of the frame in the animation.
+     * @param yOffsets The offset of the top bound of the frame in the animation.
+     * @param blendOp See [Utils.BlendOp].
+     * @param disposeOp See [Utils.DisposeOp].
+     */
     @JvmOverloads
     fun writeFrame(
         btm: Bitmap,
@@ -182,6 +211,9 @@ class ExperimentalApngEncoder(
         currentSeq++
     }
 
+    /**
+     * Write the end of the animation.
+     */
     fun writeEnd() {
         // Add IEND body length : 0
         outputStream.write(Utils.to4BytesArray(0))
