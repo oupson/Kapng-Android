@@ -15,7 +15,6 @@ import java.util.zip.DeflaterOutputStream
 import kotlin.math.max
 import kotlin.math.min
 
-// TODO ADD SUPPORT FOR FIRST FRAME NOT IN ANIM
 // TODO OPTIMISE APNG
 /**
  * A class to write APNG.
@@ -90,6 +89,9 @@ class ExperimentalApngEncoder(
     /** Number of loop of the animation, zero to infinite **/
     private var repetitionCount: Int = 0
 
+    /** If the first frame should be included in the animation  **/
+    private var firstFrameInAnim: Boolean = true
+
     init {
         outputStream.write(Utils.pngSignature)
         writeHeader()
@@ -139,9 +141,9 @@ class ExperimentalApngEncoder(
     }
 
     /**
-     * Set the compression level
-     * @param compressionLevel A integer between 0 and 9 (not include)
-     * @return [ExperimentalApngEncoder] for chaining
+     * Set the compression level.
+     * @param compressionLevel A integer between 0 and 9 (not include).
+     * @return [ExperimentalApngEncoder] for chaining.
      */
     fun compressionLevel(compressionLevel: Int): ExperimentalApngEncoder {
         if (compressionLevel in 0..9) {
@@ -153,6 +155,16 @@ class ExperimentalApngEncoder(
             )
         }
 
+        return this
+    }
+
+    /**
+     * Set if the first frame should be included in the animation.
+     * @param firstFrameInAnim A boolean.
+     * @return [ExperimentalApngEncoder] for chaining.
+     */
+    fun firstFrameInAnim(firstFrameInAnim: Boolean): ExperimentalApngEncoder {
+        this.firstFrameInAnim = firstFrameInAnim
         return this
     }
 
@@ -221,9 +233,10 @@ class ExperimentalApngEncoder(
         else if (btm.height > height)
             throw InvalidFrameSizeException("Frame height must be inferior or equal at the animation height")
 
-        writeFCTL(btm, delay, disposeOp, blendOp, xOffsets, yOffsets)
+        if (firstFrameInAnim || currentFrame != 0)
+            writeFCTL(btm, delay, disposeOp, blendOp, xOffsets, yOffsets)
         writeImageData(btm)
-        currentSeq++
+        currentFrame++
     }
 
     /**

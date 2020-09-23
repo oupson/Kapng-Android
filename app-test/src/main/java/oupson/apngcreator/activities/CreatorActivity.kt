@@ -39,6 +39,7 @@ class CreatorActivity : AppCompatActivity() {
 
     private var items: ArrayList<Pair<Uri, Int>> = ArrayList()
     private var adapter: ImageAdapter? = null
+    private var firstFrameInAnim = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -84,6 +85,7 @@ class CreatorActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.creator_menu, menu)
+        menu?.findItem(R.id.menu_first_frame_in_anim)?.isChecked = true
         return true
     }
 
@@ -128,6 +130,7 @@ class CreatorActivity : AppCompatActivity() {
                             maxHeight,
                             items.size
                         ).compressionLevel(9)
+                            .firstFrameInAnim(firstFrameInAnim)
                         items.forEachIndexed { i, uri ->
                             if (BuildConfig.DEBUG)
                                 Log.v(TAG, "Encoding frame $i")
@@ -213,6 +216,8 @@ class CreatorActivity : AppCompatActivity() {
                             maxHeight,
                             items.size
                         ).compressionLevel(9)
+                            .firstFrameInAnim(firstFrameInAnim)
+
                         items.forEach { uri ->
                             println("delay : ${uri.second.toFloat()}ms")
                             val str = contentResolver.openInputStream(uri.first) ?: return@forEach
@@ -236,6 +241,7 @@ class CreatorActivity : AppCompatActivity() {
                                     )
                                 )
                                 type = "image/png"
+                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                             }
                             startActivity(
                                 Intent.createChooser(
@@ -283,6 +289,11 @@ class CreatorActivity : AppCompatActivity() {
             R.id.menu_clear -> {
                 items.clear()
                 adapter?.notifyDataSetChanged()
+                true
+            }
+            R.id.menu_first_frame_in_anim -> {
+                item.isChecked = !item.isChecked
+                firstFrameInAnim = item.isChecked
                 true
             }
             else -> if (item != null) super.onOptionsItemSelected(item) else true
@@ -333,6 +344,8 @@ class CreatorActivity : AppCompatActivity() {
                                 maxHeight,
                                 items.size
                             ).compressionLevel(9)
+                                .firstFrameInAnim(firstFrameInAnim)
+
                             items.forEach { uri ->
                                 // println("delay : ${adapter?.delay?.get(i)?.toFloat() ?: 1000f}ms")
                                 val str =
