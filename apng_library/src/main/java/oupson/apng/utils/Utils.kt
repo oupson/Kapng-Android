@@ -73,7 +73,7 @@ class Utils {
          * @param disposeOp The DisposeOp
          * @return [Int] An int equivalent to the DisposeOp
          */
-        fun getDisposeOp(disposeOp: DisposeOp): Int {
+        fun getDisposeOp(disposeOp: DisposeOp): Byte {
             return when (disposeOp) {
                 Companion.DisposeOp.APNG_DISPOSE_OP_NONE -> 0
                 Companion.DisposeOp.APNG_DISPOSE_OP_BACKGROUND -> 1
@@ -109,9 +109,9 @@ class Utils {
         /**
          * Get the int equivalent to the BlendOp
          * @param blendOp The BlendOp
-         * @return [Int] An int equivalent to the BlendOp
+         * @return [Byte] An int equivalent to the BlendOp
          */
-        fun getBlendOp(blendOp: BlendOp): Int {
+        fun getBlendOp(blendOp: BlendOp): Byte {
             return when (blendOp) {
                 Companion.BlendOp.APNG_BLEND_OP_SOURCE -> 0
                 Companion.BlendOp.APNG_BLEND_OP_OVER -> 1

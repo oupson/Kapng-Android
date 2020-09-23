@@ -246,9 +246,9 @@ class ExperimentalApngEncoder(
     @Throws(IOException::class)
     fun writeEnd() {
         // Add IEND body length : 0
-        outputStream.write(Utils.to4BytesArray(0))
+        outputStream.write(byteArrayOf(0, 0, 0, 0))
         // Add IEND
-        val iend = byteArrayOf(0x49, 0x45, 0x4E, 0x44)
+        val iend = Utils.IEND
         // Generate crc for IEND
         crc.reset()
         crc.update(iend, 0, iend.size)
@@ -263,20 +263,19 @@ class ExperimentalApngEncoder(
     @Throws(IOException::class)
     private fun writeHeader() {
         writeInt4(13)
-        val header = arrayListOf<Byte>()
-        header.addAll(Utils.IHDR.asList())
-        header.addAll(Utils.to4Bytes(width))
-        header.addAll(Utils.to4Bytes(height))
-        header.add(8) // bit depth
-        header.add(if (encodeAlpha) 6 else 2) // direct model
-        header.add(0) // compression method
-        header.add(0) // filter method
-        header.add(0) // no interlace
+        val header = Utils.IHDR
+            .plus(Utils.to4BytesArray(width))
+            .plus(Utils.to4BytesArray(height))
+            .plus(8) // bit depth
+            .plus(if (encodeAlpha) 6 else 2) // direct model
+            .plus(0) // compression method
+            .plus(0) // filter method
+            .plus(0) // no interlace
         outputStream.write(
-            header.toByteArray()
+            header
         )
         crc.reset()
-        crc.update(header.toByteArray())
+        crc.update(header)
         crcValue = crc.value
         writeInt4(crcValue.toInt())
     }
@@ -304,24 +303,20 @@ class ExperimentalApngEncoder(
      */
     @Throws(IOException::class)
     private fun writeACTL(num: Int) {
-        val actl = ArrayList<Byte>()
-
         // Add length bytes
         outputStream.write(byteArrayOf(0, 0, 0, 0x08))
 
         // Add acTL
-        actl.addAll(byteArrayOf(0x61, 0x63, 0x54, 0x4c).asList())
-
-        // Add number of frames
-        actl.addAll(Utils.to4Bytes(num).asList())
-
-        // Number of repeat, 0 to infinite
-        actl.addAll(Utils.to4Bytes(repetitionCount).asList())
-        outputStream.write(actl.toByteArray())
+        val acTL = byteArrayOf(0x61, 0x63, 0x54, 0x4c)
+            // Add number of frames
+            .plus(Utils.to4BytesArray(num))
+            // Number of repeat, 0 to infinite
+            .plus(Utils.to4BytesArray(repetitionCount))
+        outputStream.write(acTL)
 
         // generate crc
         crc.reset()
-        crc.update(actl.toByteArray(), 0, actl.size)
+        crc.update(acTL, 0, acTL.size)
         outputStream.write(Utils.to4BytesArray(crc.value.toInt()))
     }
 
@@ -338,39 +333,37 @@ class ExperimentalApngEncoder(
         xOffsets: Int,
         yOffsets: Int
     ) {
-        val fcTL = ArrayList<Byte>()
-
         // Add the length of the chunk body
         outputStream.write(byteArrayOf(0x00, 0x00, 0x00, 0x1A))
 
         // Add fcTL
-        fcTL.addAll(Utils.fcTL.asList())
+        val fcTL = Utils.fcTL
+            // Add the frame number
+            .plus(Utils.to4BytesArray(currentSeq++))
 
-        // Add the frame number
-        fcTL.addAll(Utils.to4Bytes(currentSeq++))
+            // Add width and height
+            .plus(Utils.to4BytesArray(btm.width))
+            .plus(Utils.to4BytesArray(btm.height))
 
-        // Add width and height
-        fcTL.addAll(Utils.to4Bytes(btm.width))
-        fcTL.addAll(Utils.to4Bytes(btm.height))
+            // Add offsets
+            .plus(Utils.to4BytesArray(xOffsets))
+            .plus(Utils.to4BytesArray(yOffsets))
 
-        // Add offsets
-        fcTL.addAll(Utils.to4Bytes(xOffsets))
-        fcTL.addAll(Utils.to4Bytes(yOffsets))
+            // Set frame delay
+            // TODO BETTER FRACTION
+            .plus(Utils.to2Bytes(delay.toInt()))
+            .plus(Utils.to2Bytes(1000))
 
-        // Set frame delay
-        fcTL.addAll(Utils.to2Bytes(delay.toInt()).asList())
-        fcTL.addAll(Utils.to2Bytes(1000).asList())
-
-        // Add DisposeOp and BlendOp
-        fcTL.add(Utils.getDisposeOp(disposeOp).toByte())
-        fcTL.add(Utils.getBlendOp(blendOp).toByte())
+            // Add DisposeOp and BlendOp
+            .plus(Utils.getDisposeOp(disposeOp))
+            .plus(Utils.getBlendOp(blendOp))
 
         // Create CRC
         crc.reset()
-        crc.update(fcTL.toByteArray(), 0, fcTL.size)
+        crc.update(fcTL, 0, fcTL.size)
 
         // Write all
-        outputStream.write(fcTL.toByteArray())
+        outputStream.write(fcTL)
         outputStream.write(Utils.to4BytesArray(crc.value.toInt()))
     }
 
@@ -466,24 +459,20 @@ class ExperimentalApngEncoder(
             nCompressed = compressedLines.size
 
             crc.reset()
-            // Add 4 bytes to the length, for the sequence number
+            // Add 4 bytes to the length, for the sequence number, if the current frame is not the first frame (and not an IDAT).
             writeInt4(nCompressed + if (currentFrame == 0) 0 else 4)
 
+            // If the current frame is the first frame, write idat for backward compatibility
             if (currentFrame == 0) {
                 outputStream.write(Utils.IDAT)
                 crc.update(Utils.IDAT)
-            } else {
-                val fdat = ArrayList<Byte>().also { fdat ->
-                    // Add fdat
-                    fdat.addAll(byteArrayOf(0x66, 0x64, 0x41, 0x54).asList())
-                    // Add the sequence number
-                    fdat.addAll(Utils.to4Bytes(currentSeq++).asList())
-                }.toByteArray()
+            } else { // Write a fdAT chunk, containing the current sequence number
+                // Add fdat and sequence number
+                val fdat = Utils.fdAT+ Utils.to4BytesArray(currentSeq++)
 
                 outputStream.write(fdat)
                 crc.update(fdat)
             }
-            //bytePos = writeBytes(compressedLines, nCompressed, bytePos)
             outputStream.write(compressedLines)
             crc.update(compressedLines, 0, nCompressed)
 
