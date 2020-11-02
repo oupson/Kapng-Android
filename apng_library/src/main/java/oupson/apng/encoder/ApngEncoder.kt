@@ -221,8 +221,8 @@ class ApngEncoder(
         fcTL.addAll(Utils.to4Bytes(yOffsets).asList())
 
         // Set frame delay
-        fcTL.addAll(Utils.to2Bytes(delay.toInt()).asList())
-        fcTL.addAll(Utils.to2Bytes(1000).asList())
+        fcTL.addAll(Utils.to2Bytes(delay.toInt().toShort()).asList())
+        fcTL.addAll(Utils.to2Bytes(1000.toShort()).asList())
 
         // Add DisposeOp and BlendOp
         fcTL.add(Utils.getDisposeOp(disposeOp).toByte())

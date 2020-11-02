@@ -1,5 +1,11 @@
 package oupson.apng.utils
 
+import oupson.apng.utils.Utils.Companion.BlendOp.APNG_BLEND_OP_OVER
+import oupson.apng.utils.Utils.Companion.BlendOp.APNG_BLEND_OP_SOURCE
+import oupson.apng.utils.Utils.Companion.DisposeOp.*
+import kotlin.experimental.and
+
+
 class Utils {
     companion object {
         /**
@@ -136,6 +142,7 @@ class Utils {
          * @param i The int
          * @return [Array] 4 Bytes
          */
+        // TODO RENAME
         fun to4Bytes(i: Int): Array<Byte> {
             return arrayOf((i shr 24).toByte(), (i shr 16).toByte(), (i shr 8).toByte(), i.toByte())
         }
@@ -145,6 +152,7 @@ class Utils {
          * @param i The int
          * @return [ByteArray] 4 Bytes
          */
+        // TODO RENAME
         fun to4BytesArray(i: Int): ByteArray {
             return byteArrayOf(
                 (i shr 24).toByte(),
@@ -159,8 +167,14 @@ class Utils {
          * @param i The int
          * @return [ByteArray] 2 Bytes
          */
+        // TODO RENAME
         fun to2Bytes(i: Int): ByteArray {
             return byteArrayOf((i shr 8).toByte(), i /*>> 0*/.toByte())
+        }
+
+        // TODO RENAME
+        fun to2Bytes(s: Short): ByteArray {
+            return byteArrayOf((s.toInt() shr 8 and 0x00FF).toByte(), (s and 0xFF).toByte())
         }
 
         /**
@@ -168,6 +182,7 @@ class Utils {
          * [byteArray] The beginning of the chunk, containing the length
          * [Int] The length of the chunk
          */
+        // TODO REWRITE THIS ... THING
         fun parseLength(byteArray: ByteArray): Int {
             var lengthString = ""
             byteArray.forEach {

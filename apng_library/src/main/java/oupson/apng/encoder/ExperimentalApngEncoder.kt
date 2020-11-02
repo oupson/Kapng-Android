@@ -351,8 +351,8 @@ class ExperimentalApngEncoder(
 
             // Set frame delay
             // TODO BETTER FRACTION
-            .plus(Utils.to2Bytes(delay.toInt()))
-            .plus(Utils.to2Bytes(1000))
+            .plus(Utils.to2Bytes(delay.toInt().toShort()))
+            .plus(Utils.to2Bytes(1000.toShort()))
 
             // Add DisposeOp and BlendOp
             .plus(Utils.getDisposeOp(disposeOp))
