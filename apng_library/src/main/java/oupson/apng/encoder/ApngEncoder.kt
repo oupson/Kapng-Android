@@ -71,10 +71,10 @@ class ApngEncoder(
             }
             var cursor = 8
             while (cursor < byteArray.size) {
-                val chunk = byteArray.copyOfRange(cursor, cursor + Utils.parseLength(byteArray.copyOfRange(cursor, cursor + 4)) + 12)
+                val chunk = byteArray.copyOfRange(cursor, cursor + Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(cursor, cursor + 4).map(Byte::toInt)) + 12)
                 parse(chunk)
 
-                cursor += Utils.parseLength(byteArray.copyOfRange(cursor, cursor + 4)) + 12
+                cursor += Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(cursor, cursor + 4).map(Byte::toInt)) + 12
             }
         }
 

@@ -178,19 +178,25 @@ class Utils {
         }
 
         /**
-         * Parse the length of chunks
-         * [byteArray] The beginning of the chunk, containing the length
-         * [Int] The length of the chunk
+         * Parse an unsigned int
+         * [bytes] The bytes, in big endian order
+         * [Int] The parsed int
          */
-        // TODO REWRITE THIS ... THING
-        fun parseLength(byteArray: ByteArray): Int {
-            var lengthString = ""
-            byteArray.forEach {
-                lengthString += String.format("%02x", it)
-            }
+        // TODO CHECK IF THERE IS NO SHITTY STRING CONVERSION INSTEAD OF USING THIS FUNCTION
+        fun uIntFromBytesBigEndian(bytes: List<Int>): Int =
+            ((bytes[0] and 0xFF) shl 24) or
+                    ((bytes[1] and 0xFF) shl 16) or
+                    ((bytes[2] and 0xFF) shl 8) or
+                    (bytes[3] and 0xFF)
 
-            return lengthString.toLong(16).toInt()
-        }
+        /**
+         * Parse an unsigned short
+         * [bytes] The bytes, in big endian order
+         * [Short] The parsed short
+         */
+        fun uShortFromBytesBigEndian(bytes: List<Int>): Short =
+            (((bytes[1] and 0xFF) shl 8) or
+                    (bytes[0] and 0xFF)).toShort()
 
         val fcTL: ByteArray by lazy { byteArrayOf(0x66, 0x63, 0x54, 0x4c) }
         val IEND: ByteArray by lazy { byteArrayOf(0x49, 0x45, 0x4e, 0x44) }

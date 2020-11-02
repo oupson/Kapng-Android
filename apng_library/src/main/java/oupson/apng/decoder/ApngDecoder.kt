@@ -111,7 +111,7 @@ class ApngDecoder {
 
                     if (byteRead == -1)
                         break
-                    val length = Utils.parseLength(lengthChunk)
+                    val length = Utils.uIntFromBytesBigEndian(lengthChunk.map(Byte::toInt))
 
                     val chunk = ByteArray(length + 8)
                     byteRead = inputStream.read(chunk)
@@ -119,7 +119,7 @@ class ApngDecoder {
                     val byteArray = lengthChunk.plus(chunk)
                     val i = 4
                     val chunkCRC =
-                        Utils.parseLength(byteArray.copyOfRange(byteArray.size - 4, byteArray.size))
+                        Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(byteArray.size - 4, byteArray.size).map(Byte::toInt))
                     val crc = CRC32()
                     crc.update(byteArray.copyOfRange(i, byteArray.size - 4))
                     if (chunkCRC == crc.value.toInt()) {
@@ -400,16 +400,16 @@ class ApngDecoder {
                                     }
                                     // Find the chunk length
                                     val bodySize =
-                                        Utils.parseLength(byteArray.copyOfRange(i - 4, i))
+                                        Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(i - 4, i).map(Byte::toInt))
                                     cover.addAll(byteArray.copyOfRange(i - 4, i).asList())
                                     val body = ArrayList<Byte>()
                                     body.addAll(Utils.IDAT.asList())
                                     // Get image bytes
                                     body.addAll(
-                                        byteArray.copyOfRange(
-                                            i + 4,
+                                        byteArray.slice(
+                                            i + 4..
                                             i + 4 + bodySize
-                                        ).asList()
+                                        )
                                     )
                                     val crC32 = CRC32()
                                     crC32.update(body.toByteArray(), 0, body.size)
@@ -418,7 +418,7 @@ class ApngDecoder {
                                 } else {
                                     // Find the chunk length
                                     val bodySize =
-                                        Utils.parseLength(byteArray.copyOfRange(i - 4, i))
+                                        Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(i - 4, i).map(Byte::toInt))
                                     png.addAll(byteArray.copyOfRange(i - 4, i).asList())
                                     val body = ArrayList<Byte>()
                                     body.addAll(Utils.IDAT.asList())
@@ -437,7 +437,7 @@ class ApngDecoder {
                             }
                             name.contentEquals(Utils.fdAT) -> {
                                 // Find the chunk length
-                                val bodySize = Utils.parseLength(byteArray.copyOfRange(i - 4, i))
+                                val bodySize = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(i - 4, i).map(Byte::toInt))
                                 png?.addAll(Utils.to4Bytes(bodySize - 4).asList())
                                 val body = ArrayList<Byte>()
                                 body.addAll(Utils.IDAT.asList())

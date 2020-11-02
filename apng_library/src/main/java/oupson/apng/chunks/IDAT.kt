@@ -1,6 +1,6 @@
 package oupson.apng.chunks
 
-import oupson.apng.utils.Utils.Companion.parseLength
+import oupson.apng.utils.Utils
 
 class IDAT : Chunk {
     @Suppress("PropertyName")
@@ -16,7 +16,7 @@ class IDAT : Chunk {
         // Find IDAT chunk
         if (byteArray[i] == 0x49.toByte() && byteArray[i + 1] == 0x44.toByte() && byteArray[i + 2] == 0x41.toByte() && byteArray[i + 3] == 0x54.toByte()) {
             // Find the chunk length
-            val bodySize = parseLength(byteArray.copyOfRange(i - 4, i))
+            val bodySize = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(i - 4, i).map(Byte::toInt))
             // Get image bytes
             IDATBody.add(byteArray.copyOfRange(i + 4, i + 4 + bodySize))
         }

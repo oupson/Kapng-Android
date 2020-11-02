@@ -57,9 +57,9 @@ class Frame // Get width and height for image
             // Get width and height for image
             var cursor = 8
             while (cursor < byteArray.size) {
-                val chunk = byteArray.copyOfRange(cursor, cursor + Utils.parseLength(byteArray.copyOfRange(cursor, cursor + 4)) + 12)
+                val chunk = byteArray.copyOfRange(cursor, cursor + Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(cursor, cursor + 4).map(Byte::toInt)) + 12)
                 parseChunk(chunk)
-                cursor += Utils.parseLength(byteArray.copyOfRange(cursor, cursor + 4)) + 12
+                cursor += Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(cursor, cursor + 4).map(Byte::toInt)) + 12
             }
 
             this.delay = delay

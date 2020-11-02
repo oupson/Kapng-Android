@@ -1,6 +1,6 @@
 package oupson.apng.chunks
 
-import oupson.apng.utils.Utils.Companion.parseLength
+import oupson.apng.utils.Utils
 
 class IHDR : Chunk {
     override var body = byteArrayOf()
@@ -16,11 +16,11 @@ class IHDR : Chunk {
             // Find IHDR chunk
             if (byteArray[i] == 0x49.toByte() && byteArray[i + 1] == 0x48.toByte() && byteArray[ i + 2 ] == 0x44.toByte() && byteArray[ i + 3 ] == 0x52.toByte()) {
                 // Get length of the body of the chunk
-                val bodySize = parseLength(byteArray.copyOfRange(i - 4, i))
+                val bodySize = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(i - 4, i).map(Byte::toInt))
                 // Get the width of the png
-                pngWidth = parseLength(byteArray.copyOfRange(i +4, i + 8))
+                pngWidth = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(i +4, i + 8).map(Byte::toInt))
                 // Get the height of the png
-                pngHeight = parseLength(byteArray.copyOfRange(i +8, i +12))
+                pngHeight = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(i +8, i +12).map(Byte::toInt))
                 body = byteArray.copyOfRange(i + 4, i + bodySize + 4)
             }
         }

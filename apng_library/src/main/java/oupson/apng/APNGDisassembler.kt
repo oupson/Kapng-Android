@@ -10,9 +10,9 @@ import oupson.apng.exceptions.NotPngException
 import oupson.apng.utils.Utils
 import oupson.apng.utils.Utils.Companion.isApng
 import oupson.apng.utils.Utils.Companion.isPng
-import oupson.apng.utils.Utils.Companion.parseLength
 import oupson.apng.utils.Utils.Companion.pngSignature
 import oupson.apng.utils.Utils.Companion.to4Bytes
+import oupson.apng.utils.Utils.Companion.uIntFromBytesBigEndian
 import java.io.InputStream
 import java.util.*
 import java.util.zip.CRC32
@@ -47,7 +47,7 @@ class APNGDisassembler {
         if (isApng(byteArray)) {
             var cursor = 8
             while (cursor < byteArray.size) {
-                val length = parseLength(byteArray.copyOfRange(cursor, cursor + 4))
+                val length = uIntFromBytesBigEndian(byteArray.copyOfRange(cursor, cursor + 4).map { it -> it.toInt() })
                 val chunk = byteArray.copyOfRange(cursor, cursor + length + 12)
                 parseChunk(chunk)
                 cursor += length + 12
@@ -80,7 +80,7 @@ class APNGDisassembler {
 
             if (byteRead == -1)
                 break
-            val length = parseLength(lengthChunk)
+            val length = uIntFromBytesBigEndian(lengthChunk.map(Byte::toInt))
 
             val chunk = ByteArray(length + 8)
             byteRead = input.read(chunk)
@@ -133,7 +133,7 @@ class APNGDisassembler {
      */
     private fun parseChunk(byteArray: ByteArray) {
         val i = 4
-        val chunkCRC = parseLength(byteArray.copyOfRange(byteArray.size - 4, byteArray.size))
+        val chunkCRC = uIntFromBytesBigEndian(byteArray.copyOfRange(byteArray.size - 4, byteArray.size).map(Byte::toInt))
         val crc = CRC32()
         crc.update(byteArray.copyOfRange(i, byteArray.size - 4))
         if (chunkCRC == crc.value.toInt()) {
@@ -264,7 +264,7 @@ class APNGDisassembler {
                             cover?.addAll(generateIhdr(ihdr, maxWidth, maxHeight).asList())
                         }
                         // Find the chunk length
-                        val bodySize = parseLength(byteArray.copyOfRange(i - 4, i))
+                        val bodySize = uIntFromBytesBigEndian(byteArray.copyOfRange(i - 4, i).map(Byte::toInt))
                         cover?.addAll(byteArray.copyOfRange(i - 4, i).asList())
                         val body = ArrayList<Byte>()
                         body.addAll(byteArrayOf(0x49, 0x44, 0x41, 0x54).asList())
@@ -276,7 +276,7 @@ class APNGDisassembler {
                         cover?.addAll(to4Bytes(crC32.value.toInt()).asList())
                     } else {
                         // Find the chunk length
-                        val bodySize = parseLength(byteArray.copyOfRange(i - 4, i))
+                        val bodySize = uIntFromBytesBigEndian(byteArray.copyOfRange(i - 4, i).map(Byte::toInt))
                         png?.addAll(byteArray.copyOfRange(i - 4, i).asList())
                         val body = ArrayList<Byte>()
                         body.addAll(byteArrayOf(0x49, 0x44, 0x41, 0x54).asList())
@@ -290,7 +290,7 @@ class APNGDisassembler {
                 }
                 name.contentEquals(Utils.fdAT) -> {
                     // Find the chunk length
-                    val bodySize = parseLength(byteArray.copyOfRange(i - 4, i))
+                    val bodySize = uIntFromBytesBigEndian(byteArray.copyOfRange(i - 4, i).map(Byte::toInt))
                     png?.addAll(to4Bytes(bodySize - 4).asList())
                     val body = ArrayList<Byte>()
                     body.addAll(byteArrayOf(0x49, 0x44, 0x41, 0x54).asList())
