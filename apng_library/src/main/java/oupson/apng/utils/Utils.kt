@@ -195,8 +195,8 @@ class Utils {
          * [Short] The parsed short
          */
         fun uShortFromBytesBigEndian(bytes: List<Int>): Short =
-            (((bytes[1] and 0xFF) shl 8) or
-                    (bytes[0] and 0xFF)).toShort()
+            (((bytes[0] and 0xFF) shl 8) or
+                    (bytes[1] and 0xFF)).toShort()
 
         val fcTL: ByteArray by lazy { byteArrayOf(0x66, 0x63, 0x54, 0x4c) }
         val IEND: ByteArray by lazy { byteArrayOf(0x49, 0x45, 0x4e, 0x44) }
