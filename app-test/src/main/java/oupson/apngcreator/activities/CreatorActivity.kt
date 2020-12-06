@@ -20,7 +20,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import oupson.apng.encoder.ExperimentalApngEncoder
+import oupson.apng.encoder.ApngEncoder
 import oupson.apng.utils.Utils
 import oupson.apngcreator.BuildConfig
 import oupson.apngcreator.R
@@ -124,7 +124,7 @@ class CreatorActivity : AppCompatActivity() {
                         if (BuildConfig.DEBUG)
                             Log.i(TAG, "MaxWidth : $maxWidth; MaxHeight : $maxHeight")
 
-                        val encoder = ExperimentalApngEncoder(
+                        val encoder = ApngEncoder(
                             out,
                             maxWidth,
                             maxHeight,
@@ -210,7 +210,7 @@ class CreatorActivity : AppCompatActivity() {
                             str?.close()
                         }
 
-                        val encoder = ExperimentalApngEncoder(
+                        val encoder = ApngEncoder(
                             out,
                             maxWidth,
                             maxHeight,
@@ -338,7 +338,7 @@ class CreatorActivity : AppCompatActivity() {
                             if (BuildConfig.DEBUG)
                                 Log.i(TAG, "MaxWidth : $maxWidth; MaxHeight : $maxHeight")
 
-                            val encoder = ExperimentalApngEncoder(
+                            val encoder = ApngEncoder(
                                 out,
                                 maxWidth,
                                 maxHeight,

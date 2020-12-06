@@ -2,236 +2,534 @@ package oupson.apng.encoder
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import oupson.apng.chunks.IDAT
-import oupson.apng.imageUtils.PngEncoder
+import android.util.Log
+import oupson.apng.exceptions.InvalidFrameSizeException
 import oupson.apng.utils.Utils
 import java.io.ByteArrayOutputStream
+import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.zip.CRC32
+import java.util.zip.Deflater
+import java.util.zip.DeflaterOutputStream
+import kotlin.math.max
+import kotlin.math.min
 
-// TODO DOCUMENTATION
-// TODO BITMAP ENCODING
-// TODO BUFFER AND BUFFER DEACTIVATION WHEN BITMAP CONFIG DOES NOT CONTAIN AN ALPHA CHANNEL
+// TODO OPTIMISE APNG
+/**
+ * A class to write APNG.
+ *
+ * IDAT encoding par was taken from [PngEncoder by J. David Eisenberg](http://catcode.com/pngencoder/com/keypoint/PngEncoder.java).
+ *
+ * Usage :
+ *  - Instantiate the class.
+ *  - Call [writeFrame].
+ *  - Call [writeEnd] at the end of the animation.
+ * @param outputStream The output stream.
+ * @param width Width of the animation
+ * @param height Height of the animation
+ * @param numberOfFrames The number of frame the animation is composed.
+ * @throws IOException If something failed when writing into the output stream.
+ */
 class ApngEncoder(
     private val outputStream: OutputStream,
-    private val width : Int,
-    private val height : Int,
-    numberOfFrames : Int) {
-    private var frameIndex = 0
-    private var seq = 0
+    private val width: Int,
+    private val height: Int,
+    numberOfFrames: Int
+) {
+    companion object {
+        private const val TAG = "ApngEncoder"
 
-    private val idatName : List<Byte> by lazy {
-        listOf(0x49.toByte(), 0x44.toByte(), 0x41.toByte(), 0x54.toByte())
+        /** Constants for filter (NONE)  */
+        const val FILTER_NONE = 0
+
+        /** Constants for filter (SUB)  */
+        const val FILTER_SUB = 1
+
+        /** Constants for filter (UP)  */
+        const val FILTER_UP = 2
+
+        /** Constants for filter (LAST)  */
+        const val FILTER_LAST = 2
     }
+
+    /** Current Frame.  **/
+    private var currentFrame = 0
+
+    /**
+     * Current sequence of the animation.
+     * @see [https://developer.mozilla.org/en-US/docs/Mozilla/Tech/APNG#Chunk_sequence_numbers](Mozilla documentation.)
+     **/
+    private var currentSeq = 0
+
+    /** CRC.  */
+    private var crc = CRC32()
+
+    /** The CRC value.  */
+    private var crcValue: Long = 0
+
+    /** The bytes-per-pixel.  */
+    private var bytesPerPixel: Int = 0
+
+    /** The compression level.  */
+    private var compressionLevel: Int = 0
+
+    /** The filter type.  */
+    private var filter: Int = FILTER_NONE
+
+    /** If the alpha channel must be encoded    */
+    private var encodeAlpha: Boolean = true
+
+    /** The prior row.  */
+    private var priorRow: ByteArray? = null
+
+    /** The left bytes.  */
+    private var leftBytes: ByteArray? = null
+
+    /** Number of loop of the animation, zero to infinite **/
+    private var repetitionCount: Int = 0
+
+    /** If the first frame should be included in the animation  **/
+    private var firstFrameInAnim: Boolean = true
 
     init {
         outputStream.write(Utils.pngSignature)
-        outputStream.write(generateIhdr())
-        outputStream.write(generateACTL(numberOfFrames))
+        writeHeader()
+        writeACTL(numberOfFrames)
     }
 
-    // TODO ADD SUPPORT FOR FIRST FRAME NOT IN ANIM
-    // TODO OPTIMISE APNG
+    /**
+     * Set if the alpha channel must be encoded.
+     * @param encodeAlpha If the alpha channel must be encoded.
+     * @return [ApngEncoder] for chaining.
+     */
     @Suppress("unused")
+    fun encodeAlpha(encodeAlpha: Boolean): ApngEncoder {
+        this.encodeAlpha = encodeAlpha
+        return this
+    }
+
+    /**
+     * Set the filter.
+     * @param filter The filter.
+     * Values :
+     * - [FILTER_NONE]
+     * - [FILTER_SUB]
+     * - [FILTER_UP]
+     * - [FILTER_LAST]
+     * @return [ApngEncoder] for chaining.
+     */
+    @Suppress("unused")
+    fun filter(filter: Int): ApngEncoder {
+        if (filter <= FILTER_LAST) {
+            this.filter = filter
+        } else {
+            Log.e(TAG, "Invalid filter")
+        }
+        return this
+    }
+
+    /**
+     * Set the repetition count.
+     * @param repetitionCount The number of repetition, zero for infinite.
+     * @return [ApngEncoder] for chaining.
+     */
+    @Suppress("unused")
+    fun repetitionCount(repetitionCount: Int): ApngEncoder {
+        this.repetitionCount = repetitionCount
+        return this
+    }
+
+    /**
+     * Set the compression level.
+     * @param compressionLevel A integer between 0 and 9 (not include).
+     * @return [ApngEncoder] for chaining.
+     */
+    fun compressionLevel(compressionLevel: Int): ApngEncoder {
+        if (compressionLevel in 0..9) {
+            this.compressionLevel = compressionLevel
+        } else {
+            Log.e(
+                TAG,
+                "Invalid compression level : $compressionLevel, expected a number in range 0..9"
+            )
+        }
+
+        return this
+    }
+
+    /**
+     * Set if the first frame should be included in the animation.
+     * @param firstFrameInAnim A boolean.
+     * @return [ApngEncoder] for chaining.
+     */
+    fun firstFrameInAnim(firstFrameInAnim: Boolean): ApngEncoder {
+        this.firstFrameInAnim = firstFrameInAnim
+        return this
+    }
+
+    /**
+     * Write a frame into the output stream.
+     * @param inputStream An input stream that will be decoded in order to be written in the animation. Not freed.
+     * @param delay A delay in ms.
+     * @param xOffsets The offset of the left bound of the frame in the animation.
+     * @param yOffsets The offset of the top bound of the frame in the animation.
+     * @param blendOp See [Utils.BlendOp].
+     * @param disposeOp See [Utils.DisposeOp].
+     * @throws NullPointerException If the bitmap failed to be decoded
+     * @throws InvalidFrameSizeException If the frame size is bigger than the animation size, or the first frame size is not equal to the animation size.
+     * @throws IOException If something failed when writing into the output stream.
+     */
     @JvmOverloads
+    @Throws(
+        NullPointerException::class,
+        InvalidFrameSizeException::class,
+        IOException::class
+    )
     fun writeFrame(
         inputStream: InputStream,
         delay: Float = 1000f,
         xOffsets: Int = 0,
         yOffsets: Int = 0,
         blendOp: Utils.Companion.BlendOp = Utils.Companion.BlendOp.APNG_BLEND_OP_SOURCE,
-        disposeOp: Utils.Companion.DisposeOp = Utils.Companion.DisposeOp.APNG_DISPOSE_OP_NONE,
-        usePngEncoder: Boolean = true
+        disposeOp: Utils.Companion.DisposeOp = Utils.Companion.DisposeOp.APNG_DISPOSE_OP_NONE
     ) {
-        val btm = BitmapFactory.decodeStream(inputStream).let {
-            if (it.config != Bitmap.Config.ARGB_8888)
-                it.copy(Bitmap.Config.ARGB_8888, it.isMutable)
-            else
-                it
-        }
-        inputStream.close()
+        val btm = BitmapFactory.decodeStream(inputStream)!!
 
-        if (frameIndex == 0) {
-            if (btm.width != width)
-                throw Exception("Width of first frame must be equal to width of APNG. (${btm.width} != $width)")
-            if (btm.height != height)
-                throw Exception("Height of first frame must be equal to height of APNG. (${btm.height} != $height)")
-        }
-
-        generateFCTL(btm, delay, disposeOp, blendOp, xOffsets, yOffsets)
-
-        val idat = IDAT().apply {
-            val byteArray = if (usePngEncoder) {
-                PngEncoder().encode(btm, true)
-            } else {
-                val outputStream = ByteArrayOutputStream()
-                btm.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
-                outputStream.toByteArray()
-            }
-            var cursor = 8
-            while (cursor < byteArray.size) {
-                val chunk = byteArray.copyOfRange(cursor, cursor + Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(cursor, cursor + 4).map(Byte::toInt)) + 12)
-                parse(chunk)
-
-                cursor += Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(cursor, cursor + 4).map(Byte::toInt)) + 12
-            }
-        }
-
-        idat.IDATBody.forEach { idatBody ->
-            if (frameIndex == 0) {
-                val idatChunk = ArrayList<Byte>().let { i ->
-                    // Add IDAT
-                    i.addAll(idatName)
-                    // Add chunk body
-                    i.addAll(idatBody.asList())
-                    i.toByteArray()
-                }
-                // Add the chunk body length
-                outputStream.write(Utils.uIntToByteArray(idatBody.size))
-
-                // Generate CRC
-                val crc1 = CRC32()
-                crc1.update(idatChunk, 0, idatChunk.size)
-                outputStream.write(idatChunk)
-                outputStream.write(Utils.uIntToByteArray(crc1.value.toInt()))
-            } else {
-                val fdat = ArrayList<Byte>().let { fdat ->
-                    fdat.addAll(byteArrayOf(0x66, 0x64, 0x41, 0x54).asList())
-                    // Add fdat
-                    fdat.addAll(Utils.uIntToByteArray(seq++).asList())
-                    // Add chunk body
-                    fdat.addAll(idatBody.asList())
-                    fdat.toByteArray()
-                }
-                // Add the chunk body length
-                outputStream.write(Utils.uIntToByteArray(idatBody.size + 4))
-
-                // Generate CRC
-                val crc1 = CRC32()
-                crc1.update(fdat, 0, fdat.size)
-                outputStream.write(fdat)
-                outputStream.write(Utils.uIntToByteArray(crc1.value.toInt()))
-            }
-        }
-        frameIndex++
-        /**if (usePngEncoder) {
-            PngEncoder.release()
-        }*/
+        writeFrame(btm, delay, xOffsets, yOffsets, blendOp, disposeOp)
+        btm.recycle()
     }
 
-    @Suppress("unused")
+    /**
+     * Write a frame into the output stream.
+     * @param btm An bitmap that will be written in the animation.
+     * @param delay A delay in ms.
+     * @param xOffsets The offset of the left bound of the frame in the animation.
+     * @param yOffsets The offset of the top bound of the frame in the animation.
+     * @param blendOp See [Utils.BlendOp].
+     * @param disposeOp See [Utils.DisposeOp].
+     * @throws InvalidFrameSizeException If the frame size is bigger than the animation size, or the first frame size is not equal to the animation size.
+     * @throws IOException If something failed when writing into the output stream.
+     */
+    @JvmOverloads
+    @Throws(InvalidFrameSizeException::class, IOException::class)
+    fun writeFrame(
+        btm: Bitmap,
+        delay: Float = 1000f,
+        xOffsets: Int = 0,
+        yOffsets: Int = 0,
+        blendOp: Utils.Companion.BlendOp = Utils.Companion.BlendOp.APNG_BLEND_OP_SOURCE,
+        disposeOp: Utils.Companion.DisposeOp = Utils.Companion.DisposeOp.APNG_DISPOSE_OP_NONE
+    ) {
+        if (currentFrame == 0) {
+            if (btm.width != width)
+                throw InvalidFrameSizeException("Width of first frame must be equal to width of APNG. (${btm.width} != $width)")
+            if (btm.height != height)
+                throw InvalidFrameSizeException("Height of first frame must be equal to height of APNG. (${btm.height} != $height)")
+        }
+
+        if (btm.width > width)
+            throw InvalidFrameSizeException("Frame width must be inferior or equal at the animation width")
+        else if (btm.height > height)
+            throw InvalidFrameSizeException("Frame height must be inferior or equal at the animation height")
+
+        if (firstFrameInAnim || currentFrame != 0)
+            writeFCTL(btm, delay, disposeOp, blendOp, xOffsets, yOffsets)
+        writeImageData(btm)
+        currentFrame++
+    }
+
+    /**
+     * Write the end of the animation.
+     * @throws IOException If something failed when writing into the output stream.
+     */
+    @Throws(IOException::class)
     fun writeEnd() {
         // Add IEND body length : 0
-        outputStream.write(Utils.uIntToByteArray(0))
+        outputStream.write(byteArrayOf(0, 0, 0, 0))
         // Add IEND
-        val iend = byteArrayOf(0x49, 0x45, 0x4E, 0x44)
+        val iend = Utils.IEND
         // Generate crc for IEND
-        val crC32 = CRC32()
-        crC32.update(iend, 0, iend.size)
+        crc.reset()
+        crc.update(iend, 0, iend.size)
         outputStream.write(iend)
-        outputStream.write(Utils.uIntToByteArray(crC32.value.toInt()))
+        outputStream.write(Utils.uIntToByteArray(crc.value.toInt()))
     }
 
     /**
-     * Generate the IHDR chunks.
-     * @return [ByteArray] The byteArray generated
+     * Write the header into the outputStream.
+     * @throws IOException If something failed when writing into the output stream.
      */
-    private fun generateIhdr(): ByteArray {
-        val ihdr = ArrayList<Byte>()
-
-        // We need a body var to know body length and generate crc
-        val ihdrBody = ArrayList<Byte>()
-
-        /**
-        if (((maxWidth != frames[0].width) && (maxHeight != frames[0].height)) && cover == null) {
-        cover = generateCover(BitmapFactory.decodeByteArray(frames[0].byteArray, 0, frames[0].byteArray.size), maxWidth!!, maxHeight!!)
-        }*/
-
-
-        // Add chunk body length
-        ihdr.addAll(arrayListOf(0x00, 0x00, 0x00, 0x0d))
-        ihdrBody.addAll(arrayListOf(0x49, 0x48, 0x44, 0x52))
-
-        // Add the max width and height
-        ihdrBody.addAll(Utils.uIntToByteArray(width).asList())
-        ihdrBody.addAll(Utils.uIntToByteArray(height).asList())
-
-        ihdrBody.add(8.toByte())
-        ihdrBody.add(6.toByte())
-        ihdrBody.add(0.toByte())
-        ihdrBody.add(0.toByte())
-        ihdrBody.add(0.toByte())
-
-
-        // Generate CRC
-        val crC32 = CRC32()
-        crC32.update(ihdrBody.toByteArray(), 0, ihdrBody.size)
-        ihdr.addAll(ihdrBody)
-        ihdr.addAll(Utils.uIntToByteArray(crC32.value.toInt()).asList())
-        return ihdr.toByteArray()
+    @Throws(IOException::class)
+    private fun writeHeader() {
+        writeInt4(13)
+        val header = Utils.IHDR
+            .plus(Utils.uIntToByteArray(width))
+            .plus(Utils.uIntToByteArray(height))
+            .plus(8) // bit depth
+            .plus(if (encodeAlpha) 6 else 2) // direct model
+            .plus(0) // compression method
+            .plus(0) // filter method
+            .plus(0) // no interlace
+        outputStream.write(
+            header
+        )
+        crc.reset()
+        crc.update(header)
+        crcValue = crc.value
+        writeInt4(crcValue.toInt())
     }
 
     /**
-     * Generate the animation control chunk
-     * @return [ArrayList] The byteArray generated
+     * Write a four-byte integer into the outputStream.
+     * @param n The four-byte integer to write.
+     * @throws IOException If something failed when writing into the output stream.
      */
-    private fun generateACTL(num: Int): ByteArray {
-        val res = ArrayList<Byte>()
-        val actl = ArrayList<Byte>()
+    @Throws(IOException::class)
+    private fun writeInt4(n: Int) {
+        val temp = byteArrayOf(
+            (n shr 24 and 0xff).toByte(),
+            (n shr 16 and 0xff).toByte(),
+            (n shr 8 and 0xff).toByte(),
+            (n and 0xff).toByte()
+        )
+        outputStream.write(temp)
+    }
 
+    /**
+     * Write the animation control chunk into the outputStream.
+     * @param num The number of frame the animation contain.
+     * @throws IOException If something failed when writing into the output stream.
+     */
+    @Throws(IOException::class)
+    private fun writeACTL(num: Int) {
         // Add length bytes
-        res.addAll(arrayListOf(0, 0, 0, 0x08))
+        outputStream.write(byteArrayOf(0, 0, 0, 0x08))
 
         // Add acTL
-        actl.addAll(byteArrayOf(0x61, 0x63, 0x54, 0x4c).asList())
-
-        // Add number of frames
-        actl.addAll(Utils.uIntToByteArray(num).asList())
-
-        // Number of repeat, 0 to infinite
-        actl.addAll(Utils.uIntToByteArray(0).asList())
-        res.addAll(actl)
+        val acTL = byteArrayOf(0x61, 0x63, 0x54, 0x4c)
+            // Add number of frames
+            .plus(Utils.uIntToByteArray(num))
+            // Number of repeat, 0 to infinite
+            .plus(Utils.uIntToByteArray(repetitionCount))
+        outputStream.write(acTL)
 
         // generate crc
-        val crc = CRC32()
-        crc.update(actl.toByteArray(), 0, actl.size)
-        res.addAll(Utils.uIntToByteArray(crc.value.toInt()).asList())
-        return res.toByteArray()
+        crc.reset()
+        crc.update(acTL, 0, acTL.size)
+        outputStream.write(Utils.uIntToByteArray(crc.value.toInt()))
     }
 
-    private fun generateFCTL(btm : Bitmap, delay: Float, disposeOp: Utils.Companion.DisposeOp, blendOp: Utils.Companion.BlendOp, xOffsets: Int, yOffsets: Int) {
-        val fcTL = ArrayList<Byte>()
-
+    /**
+     * Write the frame control chunk into the outputStream.
+     * @throws IOException If something failed when writing into the output stream.
+     */
+    @Throws(IOException::class)
+    private fun writeFCTL(
+        btm: Bitmap,
+        delay: Float,
+        disposeOp: Utils.Companion.DisposeOp,
+        blendOp: Utils.Companion.BlendOp,
+        xOffsets: Int,
+        yOffsets: Int
+    ) {
         // Add the length of the chunk body
         outputStream.write(byteArrayOf(0x00, 0x00, 0x00, 0x1A))
 
         // Add fcTL
-        fcTL.addAll(byteArrayOf(0x66, 0x63, 0x54, 0x4c).asList())
+        val fcTL = Utils.fcTL
+            // Add the frame number
+            .plus(Utils.uIntToByteArray(currentSeq++))
 
-        // Add the frame number
-        fcTL.addAll(Utils.uIntToByteArray(seq++).asList())
+            // Add width and height
+            .plus(Utils.uIntToByteArray(btm.width))
+            .plus(Utils.uIntToByteArray(btm.height))
 
-        // Add width and height
-        fcTL.addAll(Utils.uIntToByteArray(btm.width).asList())
-        fcTL.addAll(Utils.uIntToByteArray(btm.height).asList())
+            // Add offsets
+            .plus(Utils.uIntToByteArray(xOffsets))
+            .plus(Utils.uIntToByteArray(yOffsets))
 
-        // Add offsets
-        fcTL.addAll(Utils.uIntToByteArray(xOffsets).asList())
-        fcTL.addAll(Utils.uIntToByteArray(yOffsets).asList())
+            // Set frame delay
+            // TODO BETTER FRACTION
+            .plus(Utils.uShortToByteArray(delay.toInt().toShort()))
+            .plus(Utils.uShortToByteArray(1000.toShort()))
 
-        // Set frame delay
-        fcTL.addAll(Utils.uShortToByteArray(delay.toInt().toShort()).asList())
-        fcTL.addAll(Utils.uShortToByteArray(1000.toShort()).asList())
-
-        // Add DisposeOp and BlendOp
-        fcTL.add(Utils.getDisposeOp(disposeOp))
-        fcTL.add(Utils.getBlendOp(blendOp))
+            // Add DisposeOp and BlendOp
+            .plus(Utils.getDisposeOp(disposeOp))
+            .plus(Utils.getBlendOp(blendOp))
 
         // Create CRC
-        val crc = CRC32()
-        crc.update(fcTL.toByteArray(), 0, fcTL.size)
-        outputStream.write(fcTL.toByteArray())
+        crc.reset()
+        crc.update(fcTL, 0, fcTL.size)
+
+        // Write all
+        outputStream.write(fcTL)
         outputStream.write(Utils.uIntToByteArray(crc.value.toInt()))
+    }
+
+    /**
+     * Write the image data into the outputStream.
+     * This will write one or more PNG "IDAT"/"fdAT" chunks. In order
+     * to conserve memory, this method grabs as many rows as will
+     * fit into 32K bytes, or the whole image; whichever is less.
+     *
+     *
+     * @return true if no errors; false if error grabbing pixels
+     */
+    private fun writeImageData(image: Bitmap): Boolean {
+        var rowsLeft = height  // number of rows remaining to write
+        var startRow = 0       // starting row to process this time through
+        var nRows: Int              // how many rows to grab at a time
+
+        var scanLines: ByteArray       // the scan lines to be compressed
+        var scanPos: Int            // where we are in the scan lines
+        var startPos: Int           // where this line's actual pixels start (used for filtering)
+
+        val compressedLines: ByteArray // the resultant compressed lines
+        val nCompressed: Int        // how big is the compressed area?
+
+        //int depth;              // color depth ( handle only 8 or 32 )
+
+        bytesPerPixel = if (encodeAlpha) 4 else 3
+
+        val scrunch = Deflater(compressionLevel)
+        val outBytes = ByteArrayOutputStream(1024)
+
+        val compBytes = DeflaterOutputStream(outBytes, scrunch)
+        try {
+            while (rowsLeft > 0) {
+                nRows = min(32767 / (width * (bytesPerPixel + 1)), rowsLeft)
+                nRows = max(nRows, 1)
+
+                val pixels = IntArray(width * nRows)
+
+                //pg = new PixelGrabber(image, 0, startRow, width, nRows, pixels, 0, width);
+                image.getPixels(pixels, 0, width, 0, startRow, width, nRows)
+
+                /*
+                * Create a data chunk. scanLines adds "nRows" for
+                * the filter bytes.
+                */
+                scanLines = ByteArray(width * nRows * bytesPerPixel + nRows)
+
+                if (filter == FILTER_SUB) {
+                    leftBytes = ByteArray(16)
+                }
+                if (filter == FILTER_UP) {
+                    priorRow = ByteArray(width * bytesPerPixel)
+                }
+
+                scanPos = 0
+                startPos = 1
+                for (i in 0 until width * nRows) {
+                    if (i % width == 0) {
+                        scanLines[scanPos++] = filter.toByte()
+                        startPos = scanPos
+                    }
+                    scanLines[scanPos++] = (pixels[i] shr 16 and 0xff).toByte()
+                    scanLines[scanPos++] = (pixels[i] shr 8 and 0xff).toByte()
+                    scanLines[scanPos++] = (pixels[i] and 0xff).toByte()
+                    if (encodeAlpha) {
+                        scanLines[scanPos++] = (pixels[i] shr 24 and 0xff).toByte()
+                    }
+                    if (i % width == width - 1 && filter != FILTER_NONE) {
+                        if (filter == FILTER_SUB) {
+                            filterSub(scanLines, startPos, width)
+                        }
+                        if (filter == FILTER_UP) {
+                            filterUp(scanLines, startPos, width)
+                        }
+                    }
+                }
+
+                /*
+                * Write these lines to the output area
+                */
+                compBytes.write(scanLines, 0, scanPos)
+
+                startRow += nRows
+                rowsLeft -= nRows
+            }
+            compBytes.close()
+
+            /*
+            * Write the compressed bytes
+            */
+            compressedLines = outBytes.toByteArray()
+            nCompressed = compressedLines.size
+
+            crc.reset()
+            // Add 4 bytes to the length, for the sequence number, if the current frame is not the first frame (and not an IDAT).
+            writeInt4(nCompressed + if (currentFrame == 0) 0 else 4)
+
+            // If the current frame is the first frame, write idat for backward compatibility
+            if (currentFrame == 0) {
+                outputStream.write(Utils.IDAT)
+                crc.update(Utils.IDAT)
+            } else { // Write a fdAT chunk, containing the current sequence number
+                // Add fdat and sequence number
+                val fdat = Utils.fdAT+ Utils.uIntToByteArray(currentSeq++)
+
+                outputStream.write(fdat)
+                crc.update(fdat)
+            }
+            outputStream.write(compressedLines)
+            crc.update(compressedLines, 0, nCompressed)
+
+            crcValue = crc.value
+            writeInt4(crcValue.toInt())
+            scrunch.finish()
+            scrunch.end()
+            return true
+        } catch (e: IOException) {
+            Log.e(TAG, "Error while writing IDAT/fdAT chunks", e)
+            return false
+        }
+    }
+
+    /**
+     * Perform "sub" filtering on the given row.
+     * Uses temporary array leftBytes to store the original values
+     * of the previous pixels.  The array is 16 bytes long, which
+     * will easily hold two-byte samples plus two-byte alpha.
+     *
+     * @param pixels The array holding the scan lines being built
+     * @param startPos Starting position within pixels of bytes to be filtered.
+     * @param width Width of a scanline in pixels.
+     */
+    private fun filterSub(pixels: ByteArray, startPos: Int, width: Int) {
+        val offset = bytesPerPixel
+        val actualStart = startPos + offset
+        val nBytes = width * bytesPerPixel
+        var leftInsert = offset
+        var leftExtract = 0
+        var i: Int = actualStart
+        while (i < startPos + nBytes) {
+            leftBytes!![leftInsert] = pixels[i]
+            pixels[i] = ((pixels[i] - leftBytes!![leftExtract]) % 256).toByte()
+            leftInsert = (leftInsert + 1) % 0x0f
+            leftExtract = (leftExtract + 1) % 0x0f
+            i++
+        }
+    }
+
+    /**
+     * Perform "up" filtering on the given row.
+     * Side effect: refills the prior row with current row
+     *
+     * @param pixels The array holding the scan lines being built
+     * @param startPos Starting position within pixels of bytes to be filtered.
+     * @param width Width of a scanline in pixels.
+     */
+    private fun filterUp(pixels: ByteArray, startPos: Int, width: Int) {
+        var i = 0
+        val nBytes: Int = width * bytesPerPixel
+        var currentByte: Byte
+        while (i < nBytes) {
+            currentByte = pixels[startPos + i]
+            pixels[startPos + i] = ((pixels[startPos + i] - priorRow!![i]) % 256).toByte()
+            priorRow!![i] = currentByte
+            i++
+        }
     }
 }
