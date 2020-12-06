@@ -374,7 +374,7 @@ class ApngEncoder(
      * @return [Boolean] true if no errors; false if error grabbing pixels
      */
     private fun writeImageData(image: Bitmap): Boolean {
-        var rowsLeft = height  // number of rows remaining to write
+        var rowsLeft =  image.height  // number of rows remaining to write
         var startRow = 0       // starting row to process this time through
         var nRows: Int              // how many rows to grab at a time
 
@@ -395,31 +395,31 @@ class ApngEncoder(
         val compBytes = DeflaterOutputStream(outBytes, scrunch)
         try {
             while (rowsLeft > 0) {
-                nRows = min(32767 / (width * (bytesPerPixel + 1)), rowsLeft)
+                nRows = min(32767 / ( image.width * (bytesPerPixel + 1)), rowsLeft)
                 nRows = max(nRows, 1)
 
-                val pixels = IntArray(width * nRows)
+                val pixels = IntArray( image.width * nRows)
 
                 //pg = new PixelGrabber(image, 0, startRow, width, nRows, pixels, 0, width);
-                image.getPixels(pixels, 0, width, 0, startRow, width, nRows)
+                image.getPixels(pixels, 0,  image.width, 0, startRow,  image.width, nRows)
 
                 /*
                 * Create a data chunk. scanLines adds "nRows" for
                 * the filter bytes.
                 */
-                scanLines = ByteArray(width * nRows * bytesPerPixel + nRows)
+                scanLines = ByteArray( image.width * nRows * bytesPerPixel + nRows)
 
                 if (filter == FILTER_SUB) {
                     leftBytes = ByteArray(16)
                 }
                 if (filter == FILTER_UP) {
-                    priorRow = ByteArray(width * bytesPerPixel)
+                    priorRow = ByteArray( image.width * bytesPerPixel)
                 }
 
                 scanPos = 0
                 startPos = 1
-                for (i in 0 until width * nRows) {
-                    if (i % width == 0) {
+                for (i in 0 until  image.width * nRows) {
+                    if (i %  image.width == 0) {
                         scanLines[scanPos++] = filter.toByte()
                         startPos = scanPos
                     }
@@ -429,12 +429,12 @@ class ApngEncoder(
                     if (encodeAlpha) {
                         scanLines[scanPos++] = (pixels[i] shr 24 and 0xff).toByte()
                     }
-                    if (i % width == width - 1 && filter != FILTER_NONE) {
+                    if (i %  image.width ==  image.width - 1 && filter != FILTER_NONE) {
                         if (filter == FILTER_SUB) {
-                            filterSub(scanLines, startPos, width)
+                            filterSub(scanLines, startPos,  image.width)
                         }
                         if (filter == FILTER_UP) {
-                            filterUp(scanLines, startPos, width)
+                            filterUp(scanLines, startPos,  image.width)
                         }
                     }
                 }

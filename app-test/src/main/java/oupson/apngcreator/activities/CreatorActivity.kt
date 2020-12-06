@@ -28,6 +28,7 @@ import oupson.apngcreator.adapter.ImageAdapter
 import oupson.apngcreator.dialogs.DelayInputDialog
 import java.io.File
 import java.io.FileOutputStream
+import java.io.OutputStream
 
 
 class CreatorActivity : AppCompatActivity() {
@@ -101,74 +102,7 @@ class CreatorActivity : AppCompatActivity() {
                             }
                         }
                         val out = FileOutputStream(f)
-                        var maxWidth = 0
-                        var maxHeight = 0
-                        items.forEach {
-                            val str = contentResolver.openInputStream(it.first)
-                            if (str == null) {
-                                Log.e(TAG, "Input Stream is null : ${it.first}")
-                                return@forEach
-                            }
-                            val btm = BitmapFactory.decodeStream(str)
-                            if (btm != null) {
-                                if (btm.width > maxWidth)
-                                    maxWidth = btm.width
-                                if (btm.height > maxHeight)
-                                    maxHeight = btm.height
-                            } else {
-                                Log.e(TAG, "Btm is null")
-                            }
-                            str.close()
-                        }
-
-                        if (BuildConfig.DEBUG)
-                            Log.i(TAG, "MaxWidth : $maxWidth; MaxHeight : $maxHeight")
-
-                        val encoder = ApngEncoder(
-                            out,
-                            maxWidth,
-                            maxHeight,
-                            items.size
-                        ).compressionLevel(9)
-                            .firstFrameInAnim(firstFrameInAnim)
-                        items.forEachIndexed { i, uri ->
-                            if (BuildConfig.DEBUG)
-                                Log.v(TAG, "Encoding frame $i")
-                            // println("delay : ${adapter?.delay?.get(i)?.toFloat() ?: 1000f}ms")
-                            try {
-                                val str = contentResolver.openInputStream(uri.first)
-                                    ?: return@forEachIndexed
-                                if (i == 0) {
-                                    val btm =
-                                        BitmapFactory.decodeStream(str) ?: return@forEachIndexed
-                                    str.close()
-                                    encoder.writeFrame(
-                                        if (btm.width != maxWidth && btm.height != maxHeight)
-                                            Bitmap.createScaledBitmap(
-                                                btm,
-                                                maxWidth,
-                                                maxHeight,
-                                                false
-                                            )
-                                        else
-                                            btm,
-                                        delay = uri.second.toFloat(),
-                                        disposeOp = Utils.Companion.DisposeOp.APNG_DISPOSE_OP_NONE
-                                    )
-                                    //input.close()
-                                } else {
-                                    encoder.writeFrame(
-                                        str,
-                                        delay = uri.second.toFloat(),
-                                    )
-                                }
-                                str.close()
-                            } catch (e: Exception) {
-                                Log.e(TAG, "Error when creating apng", e)
-                            }
-                        }
-
-                        encoder.writeEnd()
+                        saveToOutputStream(out)
                         out.close()
 
                         if (BuildConfig.DEBUG)
@@ -198,36 +132,7 @@ class CreatorActivity : AppCompatActivity() {
                             }
                         }
                         val out = FileOutputStream(f)
-                        var maxWidth = 0
-                        var maxHeight = 0
-                        items.forEach {
-                            val str = contentResolver.openInputStream(it.first)
-                            val btm = BitmapFactory.decodeStream(str)
-                            if (btm.width > maxWidth)
-                                maxWidth = btm.width
-                            if (btm.height > maxHeight)
-                                maxHeight = btm.height
-                            str?.close()
-                        }
-
-                        val encoder = ApngEncoder(
-                            out,
-                            maxWidth,
-                            maxHeight,
-                            items.size
-                        ).compressionLevel(9)
-                            .firstFrameInAnim(firstFrameInAnim)
-
-                        items.forEach { uri ->
-                            println("delay : ${uri.second.toFloat()}ms")
-                            val str = contentResolver.openInputStream(uri.first) ?: return@forEach
-                            encoder.writeFrame(
-                                str,
-                                delay = uri.second.toFloat()
-                            )
-                        }
-
-                        encoder.writeEnd()
+                        saveToOutputStream(out)
                         out.close()
 
                         withContext(Dispatchers.Main) {
@@ -300,6 +205,78 @@ class CreatorActivity : AppCompatActivity() {
         }
     }
 
+    private fun saveToOutputStream(outputStream: OutputStream) {
+        var maxWidth = 0
+        var maxHeight = 0
+        items.forEach {
+            val str = contentResolver.openInputStream(it.first)
+            if (str == null) {
+                Log.e(TAG, "Input Stream is null : ${it.first}")
+                return@forEach
+            }
+
+            val btm = BitmapFactory.decodeStream(str)
+            if (btm != null) {
+                if (btm.width > maxWidth)
+                    maxWidth = btm.width
+                if (btm.height > maxHeight)
+                    maxHeight = btm.height
+            } else {
+                Log.e(TAG, "Btm is null")
+            }
+            str.close()
+        }
+
+        if (BuildConfig.DEBUG)
+            Log.i(TAG, "MaxWidth : $maxWidth; MaxHeight : $maxHeight")
+
+        val encoder = ApngEncoder(
+            outputStream,
+            maxWidth,
+            maxHeight,
+            items.size
+        ).compressionLevel(9)
+            .firstFrameInAnim(firstFrameInAnim)
+
+        items.forEachIndexed { i, uri ->
+            if (BuildConfig.DEBUG)
+                Log.v(TAG, "Encoding frame $i")
+
+            try {
+                val str = contentResolver.openInputStream(uri.first)
+                    ?: return@forEachIndexed
+                if (i == 0) {
+                    val btm =
+                        BitmapFactory.decodeStream(str) ?: return@forEachIndexed
+                    str.close()
+                    encoder.writeFrame(
+                        if (btm.width != maxWidth && btm.height != maxHeight)
+                            Bitmap.createScaledBitmap(
+                                btm,
+                                maxWidth,
+                                maxHeight,
+                                false
+                            )
+                        else
+                            btm,
+                        delay = uri.second.toFloat(),
+                        disposeOp = Utils.Companion.DisposeOp.APNG_DISPOSE_OP_NONE
+                    )
+                } else {
+                    encoder.writeFrame(
+                        str,
+                        delay = uri.second.toFloat(),
+                    )
+                }
+                str.close()
+            } catch (e: Exception) {
+                Log.e(TAG, "Error when creating apng", e)
+            }
+        }
+
+        encoder.writeEnd()
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
@@ -321,42 +298,10 @@ class CreatorActivity : AppCompatActivity() {
                     if (data?.data != null) {
                         if (BuildConfig.DEBUG)
                             Log.i(TAG, "Intent data : ${data.data}")
+
                         GlobalScope.launch(Dispatchers.IO) {
                             val out = contentResolver.openOutputStream(data.data!!) ?: return@launch
-                            var maxWidth = 0
-                            var maxHeight = 0
-                            items.forEach {
-                                val str = contentResolver.openInputStream(it.first)
-                                val btm = BitmapFactory.decodeStream(str)
-                                if (btm.width > maxWidth)
-                                    maxWidth = btm.width
-                                if (btm.height > maxHeight)
-                                    maxHeight = btm.height
-                                str?.close()
-                            }
-
-                            if (BuildConfig.DEBUG)
-                                Log.i(TAG, "MaxWidth : $maxWidth; MaxHeight : $maxHeight")
-
-                            val encoder = ApngEncoder(
-                                out,
-                                maxWidth,
-                                maxHeight,
-                                items.size
-                            ).compressionLevel(9)
-                                .firstFrameInAnim(firstFrameInAnim)
-
-                            items.forEach { uri ->
-                                // println("delay : ${adapter?.delay?.get(i)?.toFloat() ?: 1000f}ms")
-                                val str =
-                                    contentResolver.openInputStream(uri.first) ?: return@forEach
-                                encoder.writeFrame(
-                                    str,
-                                    delay = uri.second.toFloat()
-                                )
-                            }
-
-                            encoder.writeEnd()
+                            saveToOutputStream(out)
                             out.close()
 
                             withContext(Dispatchers.Main) {
