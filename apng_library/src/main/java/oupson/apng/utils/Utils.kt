@@ -141,8 +141,7 @@ class Utils {
          * @param i The int
          * @return [Array] 4 Bytes
          */
-        // TODO RENAME
-        fun to4Bytes(i: Int): Array<Byte> {
+        fun uShortToArray(i: Int): Array<Byte> {
             return arrayOf((i shr 24).toByte(), (i shr 16).toByte(), (i shr 8).toByte(), i.toByte())
         }
 
@@ -151,8 +150,7 @@ class Utils {
          * @param i The int
          * @return [ByteArray] 4 Bytes
          */
-        // TODO RENAME
-        fun to4BytesArray(i: Int): ByteArray {
+        fun uIntToByteArray(i: Int): ByteArray {
             return byteArrayOf(
                 (i shr 24).toByte(),
                 (i shr 16).toByte(),
@@ -166,13 +164,16 @@ class Utils {
          * @param i The int
          * @return [ByteArray] 2 Bytes
          */
-        // TODO RENAME
-        fun to2Bytes(i: Int): ByteArray {
+        fun uShortToByteArray(i: Int): ByteArray {
             return byteArrayOf((i shr 8).toByte(), i /*>> 0*/.toByte())
         }
 
-        // TODO RENAME
-        fun to2Bytes(s: Short): ByteArray {
+        /**
+         * Generate a 2 bytes array from a short
+         * @param s The int
+         * @return [ByteArray] 2 Bytes
+         */
+        fun uShortToByteArray(s: Short): ByteArray {
             return byteArrayOf((s.toInt() shr 8 and 0x00FF).toByte(), (s and 0xFF).toByte())
         }
 

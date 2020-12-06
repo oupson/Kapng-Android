@@ -88,30 +88,30 @@ class ApngEncoder(
                     i.toByteArray()
                 }
                 // Add the chunk body length
-                outputStream.write(Utils.to4BytesArray(idatBody.size))
+                outputStream.write(Utils.uIntToByteArray(idatBody.size))
 
                 // Generate CRC
                 val crc1 = CRC32()
                 crc1.update(idatChunk, 0, idatChunk.size)
                 outputStream.write(idatChunk)
-                outputStream.write(Utils.to4BytesArray(crc1.value.toInt()))
+                outputStream.write(Utils.uIntToByteArray(crc1.value.toInt()))
             } else {
                 val fdat = ArrayList<Byte>().let { fdat ->
                     fdat.addAll(byteArrayOf(0x66, 0x64, 0x41, 0x54).asList())
                     // Add fdat
-                    fdat.addAll(Utils.to4Bytes(seq++).asList())
+                    fdat.addAll(Utils.uIntToByteArray(seq++).asList())
                     // Add chunk body
                     fdat.addAll(idatBody.asList())
                     fdat.toByteArray()
                 }
                 // Add the chunk body length
-                outputStream.write(Utils.to4BytesArray(idatBody.size + 4))
+                outputStream.write(Utils.uIntToByteArray(idatBody.size + 4))
 
                 // Generate CRC
                 val crc1 = CRC32()
                 crc1.update(fdat, 0, fdat.size)
                 outputStream.write(fdat)
-                outputStream.write(Utils.to4BytesArray(crc1.value.toInt()))
+                outputStream.write(Utils.uIntToByteArray(crc1.value.toInt()))
             }
         }
         frameIndex++
@@ -123,14 +123,14 @@ class ApngEncoder(
     @Suppress("unused")
     fun writeEnd() {
         // Add IEND body length : 0
-        outputStream.write(Utils.to4BytesArray(0))
+        outputStream.write(Utils.uIntToByteArray(0))
         // Add IEND
         val iend = byteArrayOf(0x49, 0x45, 0x4E, 0x44)
         // Generate crc for IEND
         val crC32 = CRC32()
         crC32.update(iend, 0, iend.size)
         outputStream.write(iend)
-        outputStream.write(Utils.to4BytesArray(crC32.value.toInt()))
+        outputStream.write(Utils.uIntToByteArray(crC32.value.toInt()))
     }
 
     /**
@@ -154,8 +154,8 @@ class ApngEncoder(
         ihdrBody.addAll(arrayListOf(0x49, 0x48, 0x44, 0x52))
 
         // Add the max width and height
-        ihdrBody.addAll(Utils.to4Bytes(width).asList())
-        ihdrBody.addAll(Utils.to4Bytes(height).asList())
+        ihdrBody.addAll(Utils.uIntToByteArray(width).asList())
+        ihdrBody.addAll(Utils.uIntToByteArray(height).asList())
 
         ihdrBody.add(8.toByte())
         ihdrBody.add(6.toByte())
@@ -168,7 +168,7 @@ class ApngEncoder(
         val crC32 = CRC32()
         crC32.update(ihdrBody.toByteArray(), 0, ihdrBody.size)
         ihdr.addAll(ihdrBody)
-        ihdr.addAll(Utils.to4Bytes(crC32.value.toInt()).asList())
+        ihdr.addAll(Utils.uIntToByteArray(crC32.value.toInt()).asList())
         return ihdr.toByteArray()
     }
 
@@ -187,16 +187,16 @@ class ApngEncoder(
         actl.addAll(byteArrayOf(0x61, 0x63, 0x54, 0x4c).asList())
 
         // Add number of frames
-        actl.addAll(Utils.to4Bytes(num).asList())
+        actl.addAll(Utils.uIntToByteArray(num).asList())
 
         // Number of repeat, 0 to infinite
-        actl.addAll(Utils.to4Bytes(0).asList())
+        actl.addAll(Utils.uIntToByteArray(0).asList())
         res.addAll(actl)
 
         // generate crc
         val crc = CRC32()
         crc.update(actl.toByteArray(), 0, actl.size)
-        res.addAll(Utils.to4Bytes(crc.value.toInt()).asList())
+        res.addAll(Utils.uIntToByteArray(crc.value.toInt()).asList())
         return res.toByteArray()
     }
 
@@ -210,28 +210,28 @@ class ApngEncoder(
         fcTL.addAll(byteArrayOf(0x66, 0x63, 0x54, 0x4c).asList())
 
         // Add the frame number
-        fcTL.addAll(Utils.to4Bytes(seq++).asList())
+        fcTL.addAll(Utils.uIntToByteArray(seq++).asList())
 
         // Add width and height
-        fcTL.addAll(Utils.to4Bytes(btm.width).asList())
-        fcTL.addAll(Utils.to4Bytes(btm.height).asList())
+        fcTL.addAll(Utils.uIntToByteArray(btm.width).asList())
+        fcTL.addAll(Utils.uIntToByteArray(btm.height).asList())
 
         // Add offsets
-        fcTL.addAll(Utils.to4Bytes(xOffsets).asList())
-        fcTL.addAll(Utils.to4Bytes(yOffsets).asList())
+        fcTL.addAll(Utils.uIntToByteArray(xOffsets).asList())
+        fcTL.addAll(Utils.uIntToByteArray(yOffsets).asList())
 
         // Set frame delay
-        fcTL.addAll(Utils.to2Bytes(delay.toInt().toShort()).asList())
-        fcTL.addAll(Utils.to2Bytes(1000.toShort()).asList())
+        fcTL.addAll(Utils.uShortToByteArray(delay.toInt().toShort()).asList())
+        fcTL.addAll(Utils.uShortToByteArray(1000.toShort()).asList())
 
         // Add DisposeOp and BlendOp
-        fcTL.add(Utils.getDisposeOp(disposeOp).toByte())
-        fcTL.add(Utils.getBlendOp(blendOp).toByte())
+        fcTL.add(Utils.getDisposeOp(disposeOp))
+        fcTL.add(Utils.getBlendOp(blendOp))
 
         // Create CRC
         val crc = CRC32()
         crc.update(fcTL.toByteArray(), 0, fcTL.size)
         outputStream.write(fcTL.toByteArray())
-        outputStream.write(Utils.to4BytesArray(crc.value.toInt()))
+        outputStream.write(Utils.uIntToByteArray(crc.value.toInt()))
     }
 }
