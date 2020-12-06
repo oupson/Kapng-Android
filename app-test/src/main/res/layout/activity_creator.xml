@@ -18,6 +18,7 @@
             android:clickable="true"
             android:focusable="true"
             app:tint="#fff"
+            android:contentDescription="@string/add_frame"
             app:backgroundTint="@color/secondary"
             app:layout_anchor="@id/creatorBottomAppBar"
             app:layout_anchorGravity="bottom|right|end"

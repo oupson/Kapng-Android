@@ -222,16 +222,12 @@ class ApngEncoder(
         disposeOp: Utils.Companion.DisposeOp = Utils.Companion.DisposeOp.APNG_DISPOSE_OP_NONE
     ) {
         if (currentFrame == 0) {
-            if (btm.width != width)
-                throw InvalidFrameSizeException("Width of first frame must be equal to width of APNG. (${btm.width} != $width)")
-            if (btm.height != height)
-                throw InvalidFrameSizeException("Height of first frame must be equal to height of APNG. (${btm.height} != $height)")
+            if (btm.width != width || btm.height != height)
+                throw InvalidFrameSizeException(btm.width, btm.height, width, height, currentFrame == 0)
         }
 
-        if (btm.width > width)
-            throw InvalidFrameSizeException("Frame width must be inferior or equal at the animation width")
-        else if (btm.height > height)
-            throw InvalidFrameSizeException("Frame height must be inferior or equal at the animation height")
+        if (btm.width > width || btm.height > height)
+            throw InvalidFrameSizeException(btm.width, btm.height, width, height, currentFrame == 0)
 
         if (firstFrameInAnim || currentFrame != 0)
             writeFCTL(btm, delay, disposeOp, blendOp, xOffsets, yOffsets)
@@ -373,8 +369,9 @@ class ApngEncoder(
      * to conserve memory, this method grabs as many rows as will
      * fit into 32K bytes, or the whole image; whichever is less.
      *
+     * @param image The frame to encode
      *
-     * @return true if no errors; false if error grabbing pixels
+     * @return [Boolean] true if no errors; false if error grabbing pixels
      */
     private fun writeImageData(image: Bitmap): Boolean {
         var rowsLeft = height  // number of rows remaining to write

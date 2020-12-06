@@ -23,6 +23,7 @@
                 android:layout_height="wrap_content"
                 android:src="@drawable/ic_create_white_24dp"
                 android:text="@string/create"
+                android:contentDescription="@string/create_animation"
                 app:tint="@android:color/white"
                 app:backgroundTint="@color/secondary"
                 app:layout_anchor="@id/bottomAppBar"

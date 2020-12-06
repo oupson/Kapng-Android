@@ -17,6 +17,8 @@
     <string name="done">Done</string>
     <string name="clear">Clear</string>
     <string name="menu_first_frame_in_anim">First frame in animation</string>
+    <string name="add_frame">Add a frame to the animation</string>
+    <string name="create_animation">Create an animation</string>
 
     <string name="open">open</string>
     <string name="close">close</string>

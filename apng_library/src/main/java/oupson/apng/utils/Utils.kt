@@ -24,11 +24,10 @@ class Utils {
          * @param byteArray APNG
          * @return True if is an APNG
          */
-        // TODO OPTIMISE
+        @Deprecated("Will be removed with ApngAnimator and APNGDisassembler")
         fun isApng(byteArray: ByteArray): Boolean {
             if (!isPng(byteArray)) return false
             try {
-                val acTL = byteArrayOf(0x61, 0x63, 0x54, 0x4c)
                 for (i in 8 until byteArray.size) {
                     val it = byteArray.copyOfRange(i, i + 4)
                     // if byteArray contain acTL
