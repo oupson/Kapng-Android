@@ -54,8 +54,8 @@ class fcTL : Chunk {
             xOffset = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(i + 16, i + 20).map(Byte::toInt))
             yOffset = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(i + 20, i + 24).map(Byte::toInt))
             body = byteArray.copyOfRange(i + 4, i + bodySize + 4)
-            blendOp = getBlendOp(String.format("%02x", byteArray[33]).toLong(16).toInt())
-            disposeOp = getDisposeOp(String.format("%02x", byteArray[32]).toLong(16).toInt())
+            blendOp = getBlendOp(byteArray[33].toInt())
+            disposeOp = getDisposeOp(byteArray[32].toInt())
         }
     }
 }

@@ -181,7 +181,6 @@ class Utils {
          * [bytes] The bytes, in big endian order
          * [Int] The parsed int
          */
-        // TODO CHECK IF THERE IS NO SHITTY STRING CONVERSION INSTEAD OF USING THIS FUNCTION
         fun uIntFromBytesBigEndian(bytes: List<Int>): Int =
             ((bytes[0] and 0xFF) shl 24) or
                     ((bytes[1] and 0xFF) shl 16) or
