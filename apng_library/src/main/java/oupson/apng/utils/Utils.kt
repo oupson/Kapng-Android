@@ -13,7 +13,6 @@ class Utils {
          * @return [Boolean] True if is a png
          */
         fun isPng(byteArray: ByteArray): Boolean {
-            // return byteArray.copyOfRange(0, 8).contentToString() == pngSignature.contentToString()
             return if (byteArray.size == 8)
                 byteArray.contentEquals(pngSignature)
             else
@@ -25,11 +24,11 @@ class Utils {
          * @param byteArray APNG
          * @return True if is an APNG
          */
+        // TODO OPTIMISE
         fun isApng(byteArray: ByteArray): Boolean {
             if (!isPng(byteArray)) return false
             try {
                 val acTL = byteArrayOf(0x61, 0x63, 0x54, 0x4c)
-                @Suppress("LocalVariableName") val IDAT = byteArrayOf(0x49, 0x44, 0x41, 0x54)
                 for (i in 8 until byteArray.size) {
                     val it = byteArray.copyOfRange(i, i + 4)
                     // if byteArray contain acTL
@@ -81,9 +80,9 @@ class Utils {
          */
         fun getDisposeOp(disposeOp: DisposeOp): Byte {
             return when (disposeOp) {
-                Companion.DisposeOp.APNG_DISPOSE_OP_NONE -> 0
-                Companion.DisposeOp.APNG_DISPOSE_OP_BACKGROUND -> 1
-                Companion.DisposeOp.APNG_DISPOSE_OP_PREVIOUS -> 2
+                APNG_DISPOSE_OP_NONE -> 0
+                APNG_DISPOSE_OP_BACKGROUND -> 1
+                APNG_DISPOSE_OP_PREVIOUS -> 2
             }
         }
 
@@ -94,10 +93,10 @@ class Utils {
          */
         fun getDisposeOp(int: Int): DisposeOp {
             return when (int) {
-                0 -> DisposeOp.APNG_DISPOSE_OP_NONE
-                1 -> DisposeOp.APNG_DISPOSE_OP_BACKGROUND
-                2 -> DisposeOp.APNG_DISPOSE_OP_PREVIOUS
-                else -> DisposeOp.APNG_DISPOSE_OP_NONE
+                0 -> APNG_DISPOSE_OP_NONE
+                1 -> APNG_DISPOSE_OP_BACKGROUND
+                2 -> APNG_DISPOSE_OP_PREVIOUS
+                else -> APNG_DISPOSE_OP_NONE
             }
         }
 
@@ -119,8 +118,8 @@ class Utils {
          */
         fun getBlendOp(blendOp: BlendOp): Byte {
             return when (blendOp) {
-                Companion.BlendOp.APNG_BLEND_OP_SOURCE -> 0
-                Companion.BlendOp.APNG_BLEND_OP_OVER -> 1
+                APNG_BLEND_OP_SOURCE -> 0
+                APNG_BLEND_OP_OVER -> 1
             }
         }
 
@@ -131,9 +130,9 @@ class Utils {
          */
         fun getBlendOp(int: Int): BlendOp {
             return when (int) {
-                0 -> BlendOp.APNG_BLEND_OP_SOURCE
-                1 -> BlendOp.APNG_BLEND_OP_OVER
-                else -> BlendOp.APNG_BLEND_OP_SOURCE
+                0 -> APNG_BLEND_OP_SOURCE
+                1 -> APNG_BLEND_OP_OVER
+                else -> APNG_BLEND_OP_SOURCE
             }
         }
 
@@ -192,11 +191,12 @@ class Utils {
         /**
          * Parse an unsigned short
          * [bytes] The bytes, in big endian order
-         * [Short] The parsed short
+         * [Int] The parsed short
+         * Because UShort is still experiment, this return an int
          */
-        fun uShortFromBytesBigEndian(bytes: List<Int>): Short =
+        fun uShortFromBytesBigEndian(bytes: List<Int>): Int =
             (((bytes[0] and 0xFF) shl 8) or
-                    (bytes[1] and 0xFF)).toShort()
+                    (bytes[1] and 0xFF))
 
         val fcTL: ByteArray by lazy { byteArrayOf(0x66, 0x63, 0x54, 0x4c) }
         val IEND: ByteArray by lazy { byteArrayOf(0x49, 0x45, 0x4e, 0x44) }
