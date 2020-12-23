@@ -10,9 +10,9 @@ import java.nio.ByteBuffer
 class UtilsUnitTest {
     @Test
     fun encode_disposeOp()  {
-        assertEquals(Utils.encodeDisposeOp(Utils.Companion.DisposeOp.APNG_DISPOSE_OP_NONE), 0.toByte())
-        assertEquals(Utils.encodeDisposeOp(Utils.Companion.DisposeOp.APNG_DISPOSE_OP_BACKGROUND), 1.toByte())
-        assertEquals(Utils.encodeDisposeOp(Utils.Companion.DisposeOp.APNG_DISPOSE_OP_PREVIOUS), 2.toByte())
+        assertEquals(Utils.encodeDisposeOp(Utils.Companion.DisposeOp.APNG_DISPOSE_OP_NONE), 0)
+        assertEquals(Utils.encodeDisposeOp(Utils.Companion.DisposeOp.APNG_DISPOSE_OP_BACKGROUND), 1)
+        assertEquals(Utils.encodeDisposeOp(Utils.Companion.DisposeOp.APNG_DISPOSE_OP_PREVIOUS), 2)
     }
 
     @Test
@@ -24,8 +24,8 @@ class UtilsUnitTest {
 
     @Test
     fun encode_blendOp()  {
-        assertEquals(Utils.encodeBlendOp(Utils.Companion.BlendOp.APNG_BLEND_OP_SOURCE), 0.toByte())
-        assertEquals(Utils.encodeBlendOp(Utils.Companion.BlendOp.APNG_BLEND_OP_OVER), 1.toByte())
+        assertEquals(Utils.encodeBlendOp(Utils.Companion.BlendOp.APNG_BLEND_OP_SOURCE), 0)
+        assertEquals(Utils.encodeBlendOp(Utils.Companion.BlendOp.APNG_BLEND_OP_OVER), 1)
     }
 
     @Test

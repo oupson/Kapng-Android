@@ -122,8 +122,8 @@ class Apng {
             fcTL.addAll(Utils.uShortToArray(1000).asList())
 
             // Add DisposeOp and BlendOp
-            fcTL.add(encodeDisposeOp(frames[0].disposeOp))
-            fcTL.add(encodeBlendOp(frames[0].blendOp))
+            fcTL.add(encodeDisposeOp(frames[0].disposeOp).toByte())
+            fcTL.add(encodeBlendOp(frames[0].blendOp).toByte())
 
             // Create CRC
             val crc = CRC32()
@@ -191,8 +191,8 @@ class Apng {
             fcTL.addAll(Utils.uShortToArray(1000).asList())
 
             // Add DisposeOp and BlendOp
-            fcTL.add(encodeDisposeOp(frames[0].disposeOp))
-            fcTL.add(encodeBlendOp(frames[0].blendOp))
+            fcTL.add(encodeDisposeOp(frames[0].disposeOp).toByte())
+            fcTL.add(encodeBlendOp(frames[0].blendOp).toByte())
 
             // Generate CRC
             val crc = CRC32()
@@ -245,8 +245,8 @@ class Apng {
             fcTL.addAll(Utils.uShortToArray(frames[i].delay.toInt()).asList())
             fcTL.addAll(Utils.uShortToArray(1000).asList())
 
-            fcTL.add(encodeDisposeOp(frames[i].disposeOp))
-            fcTL.add(encodeBlendOp(frames[i].blendOp))
+            fcTL.add(encodeDisposeOp(frames[i].disposeOp).toByte())
+            fcTL.add(encodeBlendOp(frames[i].blendOp).toByte())
 
             val crc = CRC32()
             crc.update(fcTL.toByteArray(), 0, fcTL.size)

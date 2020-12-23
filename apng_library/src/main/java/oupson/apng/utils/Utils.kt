@@ -77,7 +77,7 @@ class Utils {
          * @param disposeOp The DisposeOp
          * @return [Int] An int equivalent to the DisposeOp
          */
-        fun encodeDisposeOp(disposeOp: DisposeOp): Byte {
+        fun encodeDisposeOp(disposeOp: DisposeOp): Int {
             return when (disposeOp) {
                 APNG_DISPOSE_OP_NONE -> 0
                 APNG_DISPOSE_OP_BACKGROUND -> 1
@@ -115,7 +115,7 @@ class Utils {
          * @param blendOp The BlendOp
          * @return [Byte] An int equivalent to the BlendOp
          */
-        fun encodeBlendOp(blendOp: BlendOp): Byte {
+        fun encodeBlendOp(blendOp: BlendOp): Int {
             return when (blendOp) {
                 APNG_BLEND_OP_SOURCE -> 0
                 APNG_BLEND_OP_OVER -> 1
