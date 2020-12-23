@@ -9,8 +9,8 @@ import oupson.apng.imageUtils.BitmapDiffCalculator
 import oupson.apng.imageUtils.PngEncoder
 import oupson.apng.imageUtils.PnnQuantizer
 import oupson.apng.utils.Utils
-import oupson.apng.utils.Utils.Companion.getBlendOp
-import oupson.apng.utils.Utils.Companion.getDisposeOp
+import oupson.apng.utils.Utils.Companion.encodeBlendOp
+import oupson.apng.utils.Utils.Companion.encodeDisposeOp
 import oupson.apng.utils.Utils.Companion.pngSignature
 import java.io.File
 import java.util.zip.CRC32
@@ -122,8 +122,8 @@ class Apng {
             fcTL.addAll(Utils.uShortToArray(1000).asList())
 
             // Add DisposeOp and BlendOp
-            fcTL.add(getDisposeOp(frames[0].disposeOp))
-            fcTL.add(getBlendOp(frames[0].blendOp))
+            fcTL.add(encodeDisposeOp(frames[0].disposeOp))
+            fcTL.add(encodeBlendOp(frames[0].blendOp))
 
             // Create CRC
             val crc = CRC32()
@@ -191,8 +191,8 @@ class Apng {
             fcTL.addAll(Utils.uShortToArray(1000).asList())
 
             // Add DisposeOp and BlendOp
-            fcTL.add(getDisposeOp(frames[0].disposeOp))
-            fcTL.add(getBlendOp(frames[0].blendOp))
+            fcTL.add(encodeDisposeOp(frames[0].disposeOp))
+            fcTL.add(encodeBlendOp(frames[0].blendOp))
 
             // Generate CRC
             val crc = CRC32()
@@ -245,8 +245,8 @@ class Apng {
             fcTL.addAll(Utils.uShortToArray(frames[i].delay.toInt()).asList())
             fcTL.addAll(Utils.uShortToArray(1000).asList())
 
-            fcTL.add(getDisposeOp(frames[i].disposeOp))
-            fcTL.add(getBlendOp(frames[i].blendOp))
+            fcTL.add(encodeDisposeOp(frames[i].disposeOp))
+            fcTL.add(encodeBlendOp(frames[i].blendOp))
 
             val crc = CRC32()
             crc.update(fcTL.toByteArray(), 0, fcTL.size)

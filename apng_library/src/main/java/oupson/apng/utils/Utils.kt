@@ -77,7 +77,7 @@ class Utils {
          * @param disposeOp The DisposeOp
          * @return [Int] An int equivalent to the DisposeOp
          */
-        fun getDisposeOp(disposeOp: DisposeOp): Byte {
+        fun encodeDisposeOp(disposeOp: DisposeOp): Byte {
             return when (disposeOp) {
                 APNG_DISPOSE_OP_NONE -> 0
                 APNG_DISPOSE_OP_BACKGROUND -> 1
@@ -90,7 +90,7 @@ class Utils {
          * @param int Int of the DisposeOp
          * @return [DisposeOp] A DisposeOp
          */
-        fun getDisposeOp(int: Int): DisposeOp {
+        fun decodeDisposeOp(int: Int): DisposeOp {
             return when (int) {
                 0 -> APNG_DISPOSE_OP_NONE
                 1 -> APNG_DISPOSE_OP_BACKGROUND
@@ -115,7 +115,7 @@ class Utils {
          * @param blendOp The BlendOp
          * @return [Byte] An int equivalent to the BlendOp
          */
-        fun getBlendOp(blendOp: BlendOp): Byte {
+        fun encodeBlendOp(blendOp: BlendOp): Byte {
             return when (blendOp) {
                 APNG_BLEND_OP_SOURCE -> 0
                 APNG_BLEND_OP_OVER -> 1
@@ -127,7 +127,7 @@ class Utils {
          * @param int Int of the BlendOp
          * @return [BlendOp] A BlendOp
          */
-        fun getBlendOp(int: Int): BlendOp {
+        fun decodeBlendOp(int: Int): BlendOp {
             return when (int) {
                 0 -> APNG_BLEND_OP_SOURCE
                 1 -> APNG_BLEND_OP_OVER

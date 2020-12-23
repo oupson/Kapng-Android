@@ -351,8 +351,8 @@ class ApngEncoder(
             .plus(Utils.uShortToByteArray(1000.toShort()))
 
             // Add DisposeOp and BlendOp
-            .plus(Utils.getDisposeOp(disposeOp))
-            .plus(Utils.getBlendOp(blendOp))
+            .plus(Utils.encodeDisposeOp(disposeOp))
+            .plus(Utils.encodeBlendOp(blendOp))
 
         // Create CRC
         crc.reset()

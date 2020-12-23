@@ -1,8 +1,8 @@
 package oupson.apng.chunks
 
 import oupson.apng.utils.Utils
-import oupson.apng.utils.Utils.Companion.getBlendOp
-import oupson.apng.utils.Utils.Companion.getDisposeOp
+import oupson.apng.utils.Utils.Companion.decodeBlendOp
+import oupson.apng.utils.Utils.Companion.decodeDisposeOp
 
 @Suppress("ClassName")
 class fcTL : Chunk {
@@ -54,8 +54,8 @@ class fcTL : Chunk {
             xOffset = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(i + 16, i + 20).map(Byte::toInt))
             yOffset = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(i + 20, i + 24).map(Byte::toInt))
             body = byteArray.copyOfRange(i + 4, i + bodySize + 4)
-            blendOp = getBlendOp(byteArray[33].toInt())
-            disposeOp = getDisposeOp(byteArray[32].toInt())
+            blendOp = decodeBlendOp(byteArray[33].toInt())
+            disposeOp = decodeDisposeOp(byteArray[32].toInt())
         }
     }
 }
