@@ -26,5 +26,8 @@ class InvalidFrameSizeException(animationWidth : Int, animationHeight : Int, fra
             "Unknown problem"
         }
     }
+}
 
+class BadFrameDiffSize(firstFrameWidth : Int, firstFrameHeight : Int, secondFrameWidth : Int, secondFrameHeight : Int) : Exception() {
+    override val message: String = "${firstFrameWidth}x${firstFrameHeight} must be smaller than ${secondFrameWidth}x${secondFrameHeight}"
 }

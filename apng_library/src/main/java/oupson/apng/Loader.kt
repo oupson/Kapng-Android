@@ -8,7 +8,6 @@ import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 
-// TODO DOCUMENTATION (MAYBE WIKI) FOR THE CACHE
 class Loader {
     companion object {
         /**

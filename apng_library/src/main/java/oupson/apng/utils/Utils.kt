@@ -2,6 +2,7 @@ package oupson.apng.utils
 
 import android.graphics.Bitmap
 import android.graphics.Color
+import oupson.apng.exceptions.BadFrameDiffSize
 import oupson.apng.utils.Utils.Companion.BlendOp.APNG_BLEND_OP_OVER
 import oupson.apng.utils.Utils.Companion.BlendOp.APNG_BLEND_OP_SOURCE
 import oupson.apng.utils.Utils.Companion.DisposeOp.*
@@ -224,12 +225,13 @@ class Utils {
          * @param secondBitmap A [Bitmap], a second bitmap
          * @return [DiffResult], the difference between the second and the first bitmap
          */
+        @Throws(BadFrameDiffSize::class)
         fun getDiffBitmap(firstBitmap : Bitmap, secondBitmap : Bitmap) : DiffResult {
             if (firstBitmap.width < secondBitmap.width || firstBitmap.height < secondBitmap.height) {
-                TODO("EXCEPTION BAD IMAGE SIZE")
+                throw BadFrameDiffSize(firstBitmap.width, firstBitmap.height, firstBitmap.width, firstBitmap.height)
             }
 
-            var resultBtm = Bitmap.createBitmap(secondBitmap.width, secondBitmap.height, Bitmap.Config.ARGB_8888)
+            val resultBtm = Bitmap.createBitmap(secondBitmap.width, secondBitmap.height, Bitmap.Config.ARGB_8888)
 
             var offsetX = resultBtm.width + 1
             var offsetY = resultBtm.height + 1
@@ -269,9 +271,9 @@ class Utils {
             val newHeight = lastY - offsetY
 
             // Resize bitmap
-            resultBtm = Bitmap.createBitmap(resultBtm, offsetX, offsetY, newWidth, newHeight)
+            val resizedResultBtm = Bitmap.createBitmap(resultBtm, offsetX, offsetY, newWidth, newHeight)
 
-            return DiffResult(resultBtm, offsetX, offsetY, blendOp)
+            return DiffResult(resizedResultBtm, offsetX, offsetY, blendOp)
         }
 
         /**

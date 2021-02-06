@@ -16,7 +16,7 @@ import java.io.File
 import java.util.zip.CRC32
 
 
-// TODO CREATE A BETTER CLASS
+// TODO REMOVE
 /**
  * Create an APNG file
  * If you want to create an APNG, use ApngEncoder instead

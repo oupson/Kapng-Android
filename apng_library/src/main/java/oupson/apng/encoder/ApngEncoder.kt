@@ -245,12 +245,30 @@ class ApngEncoder(
                 throw InvalidFrameSizeException(btm.width, btm.height, width, height, currentFrame == 0)
         }
 
+        var frameBtm = btm
+        var frameXOffsets = xOffsets
+        var frameYOffsets = yOffsets
+        var frameBlendOp = blendOp
+
+        if (currentFrame !=  0 || (currentFrame == 0 && firstFrameInAnim)) {
+                if (bitmapBuffer == null && optimise) {
+                    bitmapBuffer = btm.copy(btm.config, false)
+                } else if (optimise) {
+                    val diff = Utils.getDiffBitmap(bitmapBuffer!!, btm)
+                    frameBtm = diff.bitmap
+                    frameXOffsets = diff.offsetX
+                    frameYOffsets = diff.offsetY
+                    frameBlendOp = diff.blendOp
+                    bitmapBuffer = btm.copy(btm.config, false)
+                }
+            }
+
         if (btm.width > width || btm.height > height)
             throw InvalidFrameSizeException(btm.width, btm.height, width, height, currentFrame == 0)
 
         if (firstFrameInAnim || currentFrame != 0)
-            writeFCTL(btm, delay, disposeOp, blendOp, xOffsets, yOffsets)
-        writeImageData(btm)
+            writeFCTL(frameBtm, delay, disposeOp, frameBlendOp, frameXOffsets, frameYOffsets)
+        writeImageData(frameBtm)
         currentFrame++
     }
 

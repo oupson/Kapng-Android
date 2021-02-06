@@ -19,8 +19,7 @@ import oupson.apng.utils.Utils.Companion.isPng
 import java.io.File
 import java.net.URL
 
-// TODO REWRITE WITH CALLBACKS
-// TODO REWRITE
+// TODO REMOVE
 
 /**
  * Class to play APNG
