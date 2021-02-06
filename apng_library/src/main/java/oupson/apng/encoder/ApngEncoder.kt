@@ -284,7 +284,13 @@ class ApngEncoder(
     ) {
         if (currentFrame == 0) {
             if (btm.width != width || btm.height != height)
-                throw InvalidFrameSizeException(btm.width, btm.height, width, height, currentFrame == 0)
+                throw InvalidFrameSizeException(
+                    btm.width,
+                    btm.height,
+                    width,
+                    height,
+                    currentFrame == 0
+                )
         }
 
         var frameBtm = btm
@@ -292,21 +298,21 @@ class ApngEncoder(
         var frameYOffsets = yOffsets
         var frameBlendOp = blendOp
 
-        if (currentFrame !=  0 || (currentFrame == 0 && firstFrameInAnim)) {
-                if (bitmapBuffer == null && optimise) {
-                    bitmapBuffer = btm.copy(btm.config, false)
-                } else if (optimise) {
-                    val diff = Utils.getDiffBitmap(bitmapBuffer!!, btm)
-                    frameBtm = diff.bitmap
-                    frameXOffsets = diff.offsetX
-                    frameYOffsets = diff.offsetY
-                    frameBlendOp = diff.blendOp
-                    bitmapBuffer = btm.copy(btm.config, false)
-                }
+        if (optimise && currentFrame != 0 || (currentFrame == 0 && firstFrameInAnim)) {
+            if (bitmapBuffer == null) {
+                bitmapBuffer = btm.copy(btm.config, false)
+            } else {
+                val diff = Utils.getDiffBitmap(bitmapBuffer!!, btm)
+                frameBtm = diff.bitmap
+                frameXOffsets = diff.offsetX
+                frameYOffsets = diff.offsetY
+                frameBlendOp = diff.blendOp
+                bitmapBuffer = btm.copy(btm.config, false)
             }
+        }
 
-        if (btm.width > width || btm.height > height)
-            throw InvalidFrameSizeException(btm.width, btm.height, width, height, currentFrame == 0)
+        if (frameBtm.width > width || frameBtm.height > height)
+            throw InvalidFrameSizeException(frameBtm.width, frameBtm.height, width, height, currentFrame == 0)
 
         if (firstFrameInAnim || currentFrame != 0)
             writeFCTL(frameBtm, delay, disposeOp, frameBlendOp, frameXOffsets, frameYOffsets)
