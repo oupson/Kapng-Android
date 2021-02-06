@@ -1,7 +1,7 @@
 package oupson.apng.chunks
 
 import oupson.apng.utils.Utils
-
+@Deprecated("Deprecated", level = DeprecationLevel.WARNING)
 class IDAT : Chunk {
     @Suppress("PropertyName")
     var IDATBody: ArrayList<ByteArray> = ArrayList()
