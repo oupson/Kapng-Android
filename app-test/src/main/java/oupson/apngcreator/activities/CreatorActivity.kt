@@ -1,6 +1,7 @@
 package oupson.apngcreator.activities
 
 import android.app.Activity
+import android.content.ClipData
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -29,6 +30,8 @@ import oupson.apngcreator.dialogs.DelayInputDialog
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
+import java.util.*
+import kotlin.collections.ArrayList
 
 
 class CreatorActivity : AppCompatActivity() {
@@ -95,7 +98,8 @@ class CreatorActivity : AppCompatActivity() {
             R.id.menu_create_apng -> {
                 if (items.size > 0) {
                     GlobalScope.launch(Dispatchers.IO) {
-                        val f = File(filesDir, "images/apng.png").apply {
+                        val randomFileName = UUID.randomUUID().toString()
+                        val f = File(filesDir, "images/$randomFileName.png").apply {
                             if (!exists()) {
                                 parentFile?.mkdirs()
                                 createNewFile()
@@ -125,7 +129,8 @@ class CreatorActivity : AppCompatActivity() {
             R.id.menu_share_apng -> {
                 if (items.size > 0) {
                     GlobalScope.launch(Dispatchers.IO) {
-                        val f = File(filesDir, "images/apng.png").apply {
+                        val randomFileName = UUID.randomUUID().toString()
+                        val f = File(filesDir, "images/$randomFileName.png").apply {
                             if (!exists()) {
                                 parentFile?.mkdirs()
                                 println(createNewFile())
@@ -138,13 +143,16 @@ class CreatorActivity : AppCompatActivity() {
                         withContext(Dispatchers.Main) {
                             val intent = Intent().apply {
                                 action = Intent.ACTION_SEND
-                                putExtra(
-                                    Intent.EXTRA_STREAM, FileProvider.getUriForFile(
-                                        this@CreatorActivity,
-                                        "${BuildConfig.APPLICATION_ID}.provider",
-                                        f
-                                    )
+                                val uri = FileProvider.getUriForFile(
+                                    this@CreatorActivity,
+                                    "${BuildConfig.APPLICATION_ID}.provider",
+                                    f
                                 )
+                                putExtra(
+                                    Intent.EXTRA_STREAM, uri
+                                )
+
+                                clipData = ClipData.newUri(contentResolver, "Generated APNG", uri)
                                 type = "image/png"
                                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                             }
@@ -318,6 +326,14 @@ class CreatorActivity : AppCompatActivity() {
         }
     }
 
+    override fun onStop() {
+        super.onStop()
+
+        val deleteResult = File(filesDir, "images").deleteRecursively()
+        if (BuildConfig.DEBUG)
+            Log.v(TAG, "Deleted images dir : $deleteResult")
+    }
+
     // TODO MOVE TOP AND BOTTOM
     inner class SwipeToDeleteCallback(private val adapter: ImageAdapter) :
         ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
@@ -337,4 +353,6 @@ class CreatorActivity : AppCompatActivity() {
 
         override fun isItemViewSwipeEnabled() = true
     }
+
+
 }

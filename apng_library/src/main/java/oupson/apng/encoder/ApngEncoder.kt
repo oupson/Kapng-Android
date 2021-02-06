@@ -210,7 +210,7 @@ class ApngEncoder(
      * Get if the first frame will be included in the animation.
      * @return [Boolean] True if the first frame will be included in the animation.
      */
-    @SuppressWarnings("unused")
+    @Suppress("unused")
     fun isFirstFrameInAnim() : Boolean {
         return this.firstFrameInAnim
     }
