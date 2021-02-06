@@ -92,6 +92,9 @@ class ApngEncoder(
     /** If the first frame should be included in the animation  **/
     private var firstFrameInAnim: Boolean = true
 
+    // TODO DOC + CODE
+    private var optimise : Boolean = true
+
     init {
         outputStream.write(Utils.pngSignature)
         writeHeader()
@@ -166,6 +169,19 @@ class ApngEncoder(
     fun firstFrameInAnim(firstFrameInAnim: Boolean): ApngEncoder {
         this.firstFrameInAnim = firstFrameInAnim
         return this
+    }
+
+    /**
+     *
+     */
+    // TODO DOC
+    fun setOptimiseApng(optimise : Boolean) {
+        this.optimise = optimise
+    }
+
+    // TODO DOC
+    fun getOptimiseApng() : Boolean {
+        return this.optimise
     }
 
     /**

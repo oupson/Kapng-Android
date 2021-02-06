@@ -6,7 +6,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import oupson.apng.utils.Utils
 
-// TODO Work on this class
+@Deprecated("")
 class BitmapDiffCalculator(firstBitmap: Bitmap, secondBitmap : Bitmap) {
     val res : Bitmap
     var xOffset : Int = 0
