@@ -18,8 +18,6 @@ import java.io.ByteArrayOutputStream
 
 
 class ApngEncoderInstrumentedTest {
-    // TODO TEST IF OPTIMISED ANIMATIONS AND NON-OPTIMISED ANIMATIONS ARE THE SAME
-
     @Test
     fun testDiffBunny() {
         val context = InstrumentationRegistry.getInstrumentation().context

@@ -109,7 +109,6 @@ class ApngEncoder(
      * @param encodeAlpha If the alpha channel must be encoded.
      * @return [ApngEncoder] for chaining.
      */
-    @Suppress("unused")
     fun setEncodeAlpha(encodeAlpha: Boolean): ApngEncoder {
         if (optimise && !encodeAlpha)
             throw BadParameterException("If encodeAlpha is false, then optimise must be false")
@@ -135,12 +134,12 @@ class ApngEncoder(
      * - [FILTER_LAST]
      * @return [ApngEncoder] for chaining.
      */
-    @Suppress("unused")
+    @Throws(BadParameterException::class)
     fun setFilter(filter: Int): ApngEncoder {
         if (filter <= FILTER_LAST) {
             this.filter = filter
         } else {
-            Log.e(TAG, "Invalid filter")
+            throw BadParameterException("Invalid filter value")
         }
         return this
     }
@@ -168,6 +167,7 @@ class ApngEncoder(
      * Get the repetition count.
      * @return An [Int], the number of repetition, zero for infinite.
      */
+    @Suppress("unused")
     fun getRepetitionCount() : Int {
         return this.repetitionCount
     }
@@ -177,17 +177,23 @@ class ApngEncoder(
      * @param compressionLevel A integer between 0 and 9 (not include).
      * @return [ApngEncoder] for chaining.
      */
+    @Throws(BadParameterException::class)
     fun setCompressionLevel(compressionLevel: Int): ApngEncoder {
         if (compressionLevel in 0..9) {
             this.compressionLevel = compressionLevel
         } else {
-            Log.e(
-                TAG,
-                "Invalid compression level : $compressionLevel, expected a number in range 0..9"
-            )
+            throw BadParameterException("Invalid compression level : $compressionLevel, expected a number in range 0..9")
         }
 
         return this
+    }
+
+    /**
+     * Get compression level.
+     * @return [Int] the compression level, an integer in between 0 and 9
+     */
+    fun getCompressionLevel() : Int {
+        return this.compressionLevel
     }
 
     /**
@@ -204,6 +210,7 @@ class ApngEncoder(
      * Get if the first frame will be included in the animation.
      * @return [Boolean] True if the first frame will be included in the animation.
      */
+    @SuppressWarnings("unused")
     fun isFirstFrameInAnim() : Boolean {
         return this.firstFrameInAnim
     }

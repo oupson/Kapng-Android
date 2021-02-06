@@ -3,7 +3,6 @@ package oupson.apng.chunks
 /**
  * An interface for the png chunks
  */
-@Deprecated("Deprecated", level = DeprecationLevel.WARNING)
 interface Chunk {
     var body : ByteArray
 

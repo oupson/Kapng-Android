@@ -2,7 +2,6 @@ package oupson.apng.chunks
 
 import oupson.apng.utils.Utils
 
-@Deprecated("Deprecated", level = DeprecationLevel.WARNING)
 class IHDR : Chunk {
     override var body = byteArrayOf()
     var pngWidth = -1
