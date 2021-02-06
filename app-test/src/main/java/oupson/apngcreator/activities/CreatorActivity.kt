@@ -12,6 +12,7 @@ import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
+import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -33,7 +34,6 @@ import java.io.OutputStream
 import java.util.*
 import kotlin.collections.ArrayList
 
-
 class CreatorActivity : AppCompatActivity() {
     companion object {
         private const val PICK_IMAGE = 1
@@ -41,9 +41,11 @@ class CreatorActivity : AppCompatActivity() {
         private const val TAG = "CreatorActivity"
     }
 
-    private var items: ArrayList<Pair<Uri, Int>> = ArrayList()
+    private var items: ArrayList<Triple<Uri, Int, Long>> = ArrayList()
     private var adapter: ImageAdapter? = null
     private var firstFrameInAnim = true
+
+    private var nextImageId : Long= 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,9 +64,15 @@ class CreatorActivity : AppCompatActivity() {
         }
 
         adapter = ImageAdapter(this, items)
+        adapter?.setHasStableIds(true)
 
         imageRecyclerView.layoutManager = LinearLayoutManager(this)
         imageRecyclerView.setHasFixedSize(true)
+        imageRecyclerView.itemAnimator = object : DefaultItemAnimator() {
+            override fun canReuseUpdatedViewHolder(viewHolder: RecyclerView.ViewHolder): Boolean {
+                return true
+            }
+        }
         imageRecyclerView.setItemViewCacheSize(20)
         if (adapter != null)
             ItemTouchHelper(SwipeToDeleteCallback(adapter!!)).attachToRecyclerView(imageRecyclerView)
@@ -73,7 +81,7 @@ class CreatorActivity : AppCompatActivity() {
             DelayInputDialog(object : DelayInputDialog.InputSenderDialogListener {
                 override fun onOK(number: Int?) {
                     if (number != null) {
-                        items[position] = Pair(items[position].first, number)
+                        items[position] = Triple(items[position].first, number, items[position].third)
                         adapter?.notifyDataSetChanged()
                     }
                 }
@@ -152,7 +160,7 @@ class CreatorActivity : AppCompatActivity() {
                                     Intent.EXTRA_STREAM, uri
                                 )
 
-                                clipData = ClipData.newUri(contentResolver, "Generated APNG", uri)
+                                clipData = ClipData.newUri(contentResolver, getString(R.string.share), uri)
                                 type = "image/png"
                                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                             }
@@ -190,7 +198,7 @@ class CreatorActivity : AppCompatActivity() {
                         override fun onOK(number: Int?) {
                             if (number != null) {
                                 for (i in 0 until items.size) {
-                                    items[i] = Pair(items[i].first, number)
+                                    items[i] = Triple(items[i].first, number, items[i].third)
                                 }
                                 adapter?.notifyDataSetChanged()
                             }
@@ -292,11 +300,11 @@ class CreatorActivity : AppCompatActivity() {
                 if (resultCode == Activity.RESULT_OK) {
                     if (data?.clipData != null) {
                         for (i in 0 until data.clipData!!.itemCount) {
-                            items.add(Pair(data.clipData!!.getItemAt(i).uri, 1000))
+                            items.add(Triple(data.clipData!!.getItemAt(i).uri, 1000, nextImageId++))
                         }
                         adapter?.notifyDataSetChanged()
                     } else if (data?.data != null) {
-                        items.add(Pair(data.data!!, 1000))
+                        items.add(Triple(data.data!!, 1000, nextImageId++))
                         adapter?.notifyDataSetChanged()
                     }
                 }
@@ -334,15 +342,22 @@ class CreatorActivity : AppCompatActivity() {
             Log.v(TAG, "Deleted images dir : $deleteResult")
     }
 
-    // TODO MOVE TOP AND BOTTOM
     inner class SwipeToDeleteCallback(private val adapter: ImageAdapter) :
-        ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
+        ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or ItemTouchHelper.DOWN, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
         override fun onMove(
             recyclerView: RecyclerView,
             viewHolder: RecyclerView.ViewHolder,
             target: RecyclerView.ViewHolder
         ): Boolean {
-            return false
+            val fromPos = viewHolder.adapterPosition
+            val toPos = target.adapterPosition
+
+            Collections.swap(items, fromPos, toPos)
+
+            adapter.notifyItemMoved(fromPos, toPos)
+            adapter.notifyItemChanged(fromPos)
+            adapter.notifyItemChanged(toPos)
+            return true
         }
 
         override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
@@ -353,6 +368,4 @@ class CreatorActivity : AppCompatActivity() {
 
         override fun isItemViewSwipeEnabled() = true
     }
-
-
 }

@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import oupson.apngcreator.R
 
-class ImageAdapter(private val context : Context, private val list : List<Pair<Uri, Int>>) : RecyclerView.Adapter<ImageAdapter.ImageHolder>() {
+class ImageAdapter(private val context : Context, private val list : List<Triple<Uri, Int, Long>>) : RecyclerView.Adapter<ImageAdapter.ImageHolder>() {
     inner class ImageHolder(view : View) : RecyclerView.ViewHolder(view) {
         val imageView : ImageView? = view.findViewById(R.id.listImageView)
         val textDelay : TextView? = view.findViewById(R.id.textDelay)
@@ -34,13 +34,14 @@ class ImageAdapter(private val context : Context, private val list : List<Pair<U
     override fun onBindViewHolder(holder: ImageHolder, position: Int) {
         holder.itemView.setOnClickListener { clickListener?.invoke(position) }
         holder.textDelay?.text = String.format("%dms", list[position].second)
-        holder.positionTextView?.text = String.format("# %d", position + 1)
+        holder.positionTextView?.text = String.format("# %03d", holder.adapterPosition + 1)
         holder.nameTextView?.text = list[position].first.path?.substringAfterLast("/")
         GlobalScope.launch(Dispatchers.IO) {
             val inputStream = context.contentResolver.openInputStream(list[position].first)
-            val btm = BitmapFactory.decodeStream(inputStream, null, BitmapFactory.Options().apply {
-                inPreferredConfig = Bitmap.Config.RGB_565
-            })
+            val btm =
+                BitmapFactory.decodeStream(inputStream, null, BitmapFactory.Options().apply {
+                    inPreferredConfig = Bitmap.Config.RGB_565
+                })
             inputStream?.close()
             withContext(Dispatchers.Main) {
                 holder.imageView?.setImageBitmap(btm)
@@ -50,4 +51,5 @@ class ImageAdapter(private val context : Context, private val list : List<Pair<U
 
     override fun getItemCount(): Int = list.count()
 
+    override fun getItemId(position: Int): Long = list[position].third
 }
