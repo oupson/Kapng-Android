@@ -12,15 +12,26 @@ import oupson.apng.utils.Utils
 
 class ApngEncoderInstrumentedTest {
     @Test
-    fun testDiff() { // TODO BLEND / DISPOSE OP
+    fun testDiffBunny() { // TODO BLEND / DISPOSE OP
         val context = InstrumentationRegistry.getInstrumentation().context
 
-        val frame1 = getFrame(context, "bunny/frame_apngframe01.png")
-        val frame2 = getFrame(context, "bunny/frame_apngframe02.png")
+        val bunnyFrame1 = getFrame(context, "bunny/frame_apngframe01.png")
+        val bunnyFrame2 = getFrame(context, "bunny/frame_apngframe02.png")
 
-        val diff = Utils.getDiffBitmap(frame1, frame2)
+        val diffBunny1to2 = Utils.getDiffBitmap(bunnyFrame1, bunnyFrame2)
 
-        assertTrue(isSimilar(frame1, frame2, diff))
+        assertTrue(isSimilar(bunnyFrame1, bunnyFrame2, diffBunny1to2))
+    }
+
+    @Test
+    fun testDiffBall() {
+        val context = InstrumentationRegistry.getInstrumentation().context
+        val ballFrame1 = getFrame(context, "ball/apngframe01.png")
+        val ballFrame2 = getFrame(context, "ball/apngframe02.png")
+
+        val diffBall1to2 = Utils.getDiffBitmap(ballFrame1, ballFrame2)
+
+        assertTrue(isSimilar(ballFrame1, ballFrame2, diffBall1to2)) // TODO FIX THIS WITH BLEND OP / DISPOSE OP
     }
 
     private fun isSimilar(buffer : Bitmap, frame : Bitmap, diff : Triple<Bitmap, Int, Int>) : Boolean {
