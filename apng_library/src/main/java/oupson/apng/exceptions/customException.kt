@@ -28,6 +28,6 @@ class InvalidFrameSizeException(animationWidth : Int, animationHeight : Int, fra
     }
 }
 
-class BadFrameDiffSize(firstFrameWidth : Int, firstFrameHeight : Int, secondFrameWidth : Int, secondFrameHeight : Int) : Exception() {
-    override val message: String = "${firstFrameWidth}x${firstFrameHeight} must be smaller than ${secondFrameWidth}x${secondFrameHeight}"
+class BadBitmapsDiffSize(firstBitmapWidth : Int, firstBitmapHeight : Int, secondBitmapWidth : Int, secondBitmapHeight : Int) : Exception() {
+    override val message: String = "${firstBitmapWidth}x${firstBitmapHeight} must be bigger than or equal to ${secondBitmapWidth}x${secondBitmapHeight}"
 }

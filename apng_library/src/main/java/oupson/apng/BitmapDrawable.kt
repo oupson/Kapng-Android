@@ -6,6 +6,7 @@ import android.graphics.ColorFilter
 import android.graphics.PixelFormat
 import android.graphics.drawable.Drawable
 
+@Deprecated("Deprecated, Use ApngEncoder and ApngDecoder instead", level = DeprecationLevel.WARNING)
 internal class BitmapDrawable(private val bitmap: Bitmap) : Drawable() {
 
     override fun draw(canvas: Canvas) {

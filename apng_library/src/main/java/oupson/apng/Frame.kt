@@ -19,6 +19,7 @@ import oupson.apng.utils.Utils.Companion.isPng
  * @param maxWidth The max width of the APNG
  * @param maxHeight The max height of the APNG
  */
+@Deprecated("Deprecated, Use ApngEncoder and ApngDecoder instead", level = DeprecationLevel.WARNING)
 class Frame // Get width and height for image
     (
     byteArray: ByteArray,

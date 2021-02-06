@@ -2,7 +2,7 @@ package oupson.apng.utils
 
 import android.graphics.Bitmap
 import android.graphics.Color
-import oupson.apng.exceptions.BadFrameDiffSize
+import oupson.apng.exceptions.BadBitmapsDiffSize
 import oupson.apng.utils.Utils.Companion.BlendOp.APNG_BLEND_OP_OVER
 import oupson.apng.utils.Utils.Companion.BlendOp.APNG_BLEND_OP_SOURCE
 import oupson.apng.utils.Utils.Companion.DisposeOp.*
@@ -225,10 +225,10 @@ class Utils {
          * @param secondBitmap A [Bitmap], a second bitmap
          * @return [DiffResult], the difference between the second and the first bitmap
          */
-        @Throws(BadFrameDiffSize::class)
+        @Throws(BadBitmapsDiffSize::class)
         fun getDiffBitmap(firstBitmap : Bitmap, secondBitmap : Bitmap) : DiffResult {
             if (firstBitmap.width < secondBitmap.width || firstBitmap.height < secondBitmap.height) {
-                throw BadFrameDiffSize(firstBitmap.width, firstBitmap.height, firstBitmap.width, firstBitmap.height)
+                throw BadBitmapsDiffSize(firstBitmap.width, firstBitmap.height, firstBitmap.width, firstBitmap.height)
             }
 
             val resultBtm = Bitmap.createBitmap(secondBitmap.width, secondBitmap.height, Bitmap.Config.ARGB_8888)
