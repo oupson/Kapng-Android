@@ -208,16 +208,28 @@ class Utils {
         val IHDR: ByteArray by lazy { byteArrayOf(0x49, 0x48, 0x44, 0x52) }
         val acTL: ByteArray by lazy { byteArrayOf(0x61, 0x63, 0x54, 0x4c) }
 
+
         /**
-         *
+         * A class that contain the difference between two bitmaps
+         * @property bitmap A resized [Bitmap] that contain the difference between two bitmaps
+         * @property offsetX the x offset
+         * @property offsetY the y offset
+         * @property blendOp a [BlendOp]
          */
-        // TODO DOC
-        fun getDiffBitmap(bitmapBuffer : Bitmap, btm : Bitmap) : Triple<Bitmap, Int, Int> { // TODO BLEND / DISPOSE OP
-            if (bitmapBuffer.width < btm.width || bitmapBuffer.height < btm.height) {
+        data class DiffResult(val bitmap: Bitmap, val offsetX : Int, val offsetY : Int, val blendOp: BlendOp)
+
+        /**
+         * Get the difference between two bitmaps
+         * @param firstBitmap A [Bitmap], the first bitmap
+         * @param secondBitmap A [Bitmap], a second bitmap
+         * @return [DiffResult], the difference between the second and the first bitmap
+         */
+        fun getDiffBitmap(firstBitmap : Bitmap, secondBitmap : Bitmap) : DiffResult {
+            if (firstBitmap.width < secondBitmap.width || firstBitmap.height < secondBitmap.height) {
                 TODO("EXCEPTION BAD IMAGE SIZE")
             }
 
-            var resultBtm = Bitmap.createBitmap(btm.width, btm.height, Bitmap.Config.ARGB_8888)
+            var resultBtm = Bitmap.createBitmap(secondBitmap.width, secondBitmap.height, Bitmap.Config.ARGB_8888)
 
             var offsetX = resultBtm.width + 1
             var offsetY = resultBtm.height + 1
@@ -225,12 +237,19 @@ class Utils {
             var lastX = 0
             var lastY = 0
 
-            for (y in 0 until btm.height) {
-                for (x in 0 until btm.width) {
-                    if (bitmapBuffer.getPixel(x, y) == btm.getPixel(x, y)) {
-                        resultBtm.setPixel(x, y, Color.TRANSPARENT)
-                    } else {
-                        resultBtm.setPixel(x, y, btm.getPixel(x, y))
+            // Find if the image contain transparent pixels, if true, then transparent pixels must replace the pixels in the buffer
+            val blendOp = if(containTransparency(secondBitmap)) APNG_BLEND_OP_SOURCE else APNG_BLEND_OP_OVER
+
+            for (y in 0 until secondBitmap.height) {
+                for (x in 0 until secondBitmap.width) {
+                    val btmPixel = secondBitmap.getPixel(x, y)
+                    if (firstBitmap.getPixel(x, y) == btmPixel) { // Similar pixels could be forgotten
+                        if (blendOp == APNG_BLEND_OP_OVER)
+                            resultBtm.setPixel(x, y, Color.TRANSPARENT)
+                        else
+                            resultBtm.setPixel(x, y, firstBitmap.getPixel(x, y))
+                    } else { // Otherwise, track image bounds
+                        resultBtm.setPixel(x, y, btmPixel)
                         if (x < offsetX)
                             offsetX = x
                         if (y < offsetY)
@@ -249,9 +268,33 @@ class Utils {
             val newWidth = lastX - offsetX
             val newHeight = lastY - offsetY
 
+            // Resize bitmap
             resultBtm = Bitmap.createBitmap(resultBtm, offsetX, offsetY, newWidth, newHeight)
 
-            return Triple(resultBtm, offsetX, offsetY)
+            return DiffResult(resultBtm, offsetX, offsetY, blendOp)
+        }
+
+        /**
+         * This function return true if the bitmap contain transparent pixels
+         * @param btm A [Bitmap]
+         * @return [Boolean] true if if the bitmap contain transparent pixels
+         */
+        fun containTransparency(btm : Bitmap) : Boolean {
+            var result = false
+            var y = 0
+            var x = 0
+            while (y < btm.height && !result) {
+                if  (btm.getPixel(x, y) == Color.TRANSPARENT) {
+                    result = true
+                }
+
+                x++
+                if (x == btm.width) {
+                    x = 0
+                    y++
+                }
+            }
+            return result
         }
     }
 }

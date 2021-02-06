@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import androidx.test.platform.app.InstrumentationRegistry
+import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
 import org.junit.Test
 import oupson.apng.utils.Utils
@@ -12,7 +13,7 @@ import oupson.apng.utils.Utils
 
 class ApngEncoderInstrumentedTest {
     @Test
-    fun testDiffBunny() { // TODO BLEND / DISPOSE OP
+    fun testDiffBunny() {
         val context = InstrumentationRegistry.getInstrumentation().context
 
         val bunnyFrame1 = getFrame(context, "bunny/frame_apngframe01.png")
@@ -31,17 +32,28 @@ class ApngEncoderInstrumentedTest {
 
         val diffBall1to2 = Utils.getDiffBitmap(ballFrame1, ballFrame2)
 
-        assertTrue(isSimilar(ballFrame1, ballFrame2, diffBall1to2)) // TODO FIX THIS WITH BLEND OP / DISPOSE OP
+        assertTrue(isSimilar(ballFrame1, ballFrame2, diffBall1to2))
     }
 
-    private fun isSimilar(buffer : Bitmap, frame : Bitmap, diff : Triple<Bitmap, Int, Int>) : Boolean {
+    @Test
+    fun containTransparency() {
+        val context = InstrumentationRegistry.getInstrumentation().context
+
+        val bunnyFrame1 = getFrame(context, "bunny/frame_apngframe01.png")
+        assertFalse(Utils.containTransparency(bunnyFrame1))
+
+        val ballFrame1 = getFrame(context, "ball/apngframe01.png")
+        assertTrue(Utils.containTransparency(ballFrame1))
+    }
+
+    private fun isSimilar(buffer : Bitmap, frame : Bitmap, diff : Utils.Companion.DiffResult) : Boolean {
         val btm = buffer.copy(Bitmap.Config.ARGB_8888, true)
 
-        for (y in 0 until diff.first.height) {
-            for (x in 0 until diff.first.width) {
-                val p = diff.first.getPixel(x, y)
-                if (p != Color.TRANSPARENT)
-                    btm.setPixel(diff.second + x, diff.third + y, p)
+        for (y in 0 until diff.bitmap.height) {
+            for (x in 0 until diff.bitmap.width) {
+                val p = diff.bitmap.getPixel(x, y)
+                if (p != Color.TRANSPARENT || p == Color.TRANSPARENT && diff.blendOp == Utils.Companion.BlendOp.APNG_BLEND_OP_SOURCE)
+                    btm.setPixel(diff.offsetX + x, diff.offsetY + y, p)
             }
         }
 

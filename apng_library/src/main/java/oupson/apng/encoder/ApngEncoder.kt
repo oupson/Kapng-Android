@@ -553,6 +553,4 @@ class ApngEncoder(
             i++
         }
     }
-
-
 }
