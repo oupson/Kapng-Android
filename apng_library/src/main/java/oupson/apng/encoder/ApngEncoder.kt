@@ -92,10 +92,10 @@ class ApngEncoder(
     /** If the first frame should be included in the animation  **/
     private var firstFrameInAnim: Boolean = true
 
-    // TODO DOC + CODE
+    /** Specify if the encoder will use features such as BlendOp */
     private var optimise : Boolean = true
 
-    // TODO DOC + CODE
+    /** Used if the animation must be optimised */
     private var bitmapBuffer : Bitmap? = null
 
     init {
@@ -111,6 +111,7 @@ class ApngEncoder(
      */
     @Suppress("unused")
     fun encodeAlpha(encodeAlpha: Boolean): ApngEncoder {
+        // TODO ERROR IF OPTIMISE IS SET
         this.encodeAlpha = encodeAlpha
         return this
     }
@@ -175,14 +176,19 @@ class ApngEncoder(
     }
 
     /**
-     *
+     * Set if the animation must be optimised (true by default)
+     * If set, then the encoder will use features such as Blend Op to reduce the size of the animation
+     * @param optimise If the animation must be optimised
      */
-    // TODO DOC
     fun setOptimiseApng(optimise : Boolean) {
+        // TODO ERROR IF USE TRANSPARENCY IS FALSE
         this.optimise = optimise
     }
 
-    // TODO DOC
+    /**
+     * Return true if the encoder will use features such as Blend Op to reduce the size of the animation
+     * @return A [Boolean]
+     */
     fun getOptimiseApng() : Boolean {
         return this.optimise
     }
