@@ -235,8 +235,8 @@ class CreatorActivity : AppCompatActivity() {
             maxWidth,
             maxHeight,
             items.size
-        ).compressionLevel(9)
-            .firstFrameInAnim(firstFrameInAnim)
+        ).setCompressionLevel(9)
+            .setIsFirstFrameInAnim(firstFrameInAnim)
 
         items.forEachIndexed { i, uri ->
             if (BuildConfig.DEBUG)

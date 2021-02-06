@@ -3,6 +3,7 @@ package oupson.apng.encoder
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Log
+import oupson.apng.exceptions.BadParameterException
 import oupson.apng.exceptions.InvalidFrameSizeException
 import oupson.apng.utils.Utils
 import java.io.ByteArrayOutputStream
@@ -15,7 +16,6 @@ import java.util.zip.DeflaterOutputStream
 import kotlin.math.max
 import kotlin.math.min
 
-// TODO OPTIMISE APNG
 /**
  * A class to write APNG.
  *
@@ -110,10 +110,19 @@ class ApngEncoder(
      * @return [ApngEncoder] for chaining.
      */
     @Suppress("unused")
-    fun encodeAlpha(encodeAlpha: Boolean): ApngEncoder {
-        // TODO ERROR IF OPTIMISE IS SET
+    fun setEncodeAlpha(encodeAlpha: Boolean): ApngEncoder {
+        if (optimise && !encodeAlpha)
+            throw BadParameterException("If encodeAlpha is false, then optimise must be false")
         this.encodeAlpha = encodeAlpha
         return this
+    }
+
+    /**
+     * Return true if the alpha is encoded.
+     * @return [Boolean] the value.
+     */
+    fun isAlphaEncoded(): Boolean {
+        return encodeAlpha
     }
 
     /**
@@ -127,7 +136,7 @@ class ApngEncoder(
      * @return [ApngEncoder] for chaining.
      */
     @Suppress("unused")
-    fun filter(filter: Int): ApngEncoder {
+    fun setFilter(filter: Int): ApngEncoder {
         if (filter <= FILTER_LAST) {
             this.filter = filter
         } else {
@@ -137,14 +146,30 @@ class ApngEncoder(
     }
 
     /**
+     * Return the filter.
+     * @return An [Int] corresponding to the value.
+     */
+    fun getFilter(): Int {
+        return filter
+    }
+
+    /**
      * Set the repetition count.
      * @param repetitionCount The number of repetition, zero for infinite.
      * @return [ApngEncoder] for chaining.
      */
     @Suppress("unused")
-    fun repetitionCount(repetitionCount: Int): ApngEncoder {
+    fun setRepetitionCount(repetitionCount: Int): ApngEncoder {
         this.repetitionCount = repetitionCount
         return this
+    }
+
+    /**
+     * Get the repetition count.
+     * @return An [Int], the number of repetition, zero for infinite.
+     */
+    fun getRepetitionCount() : Int {
+        return this.repetitionCount
     }
 
     /**
@@ -152,7 +177,7 @@ class ApngEncoder(
      * @param compressionLevel A integer between 0 and 9 (not include).
      * @return [ApngEncoder] for chaining.
      */
-    fun compressionLevel(compressionLevel: Int): ApngEncoder {
+    fun setCompressionLevel(compressionLevel: Int): ApngEncoder {
         if (compressionLevel in 0..9) {
             this.compressionLevel = compressionLevel
         } else {
@@ -166,30 +191,41 @@ class ApngEncoder(
     }
 
     /**
-     * Set if the first frame should be included in the animation.
+     * Set if the first frame will be included in the animation.
      * @param firstFrameInAnim A boolean.
      * @return [ApngEncoder] for chaining.
      */
-    fun firstFrameInAnim(firstFrameInAnim: Boolean): ApngEncoder {
+    fun setIsFirstFrameInAnim(firstFrameInAnim: Boolean): ApngEncoder {
         this.firstFrameInAnim = firstFrameInAnim
         return this
+    }
+
+    /**
+     * Get if the first frame will be included in the animation.
+     * @return [Boolean] True if the first frame will be included in the animation.
+     */
+    fun isFirstFrameInAnim() : Boolean {
+        return this.firstFrameInAnim
     }
 
     /**
      * Set if the animation must be optimised (true by default)
      * If set, then the encoder will use features such as Blend Op to reduce the size of the animation
      * @param optimise If the animation must be optimised
+     * @return [ApngEncoder] for chaining.
      */
-    fun setOptimiseApng(optimise : Boolean) {
-        // TODO ERROR IF USE TRANSPARENCY IS FALSE
+    fun setOptimiseApng(optimise : Boolean) : ApngEncoder {
+        if (optimise && !encodeAlpha)
+            throw BadParameterException("If optimise is set to true, then encodeAlpha must be true")
         this.optimise = optimise
+        return this
     }
 
     /**
      * Return true if the encoder will use features such as Blend Op to reduce the size of the animation
      * @return A [Boolean]
      */
-    fun getOptimiseApng() : Boolean {
+    fun isOptimisingApng() : Boolean {
         return this.optimise
     }
 
