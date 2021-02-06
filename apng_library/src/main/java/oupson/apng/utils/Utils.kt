@@ -1,5 +1,7 @@
 package oupson.apng.utils
 
+import android.graphics.Bitmap
+import android.graphics.Color
 import oupson.apng.utils.Utils.Companion.BlendOp.APNG_BLEND_OP_OVER
 import oupson.apng.utils.Utils.Companion.BlendOp.APNG_BLEND_OP_SOURCE
 import oupson.apng.utils.Utils.Companion.DisposeOp.*
@@ -205,5 +207,51 @@ class Utils {
         val tnrs: ByteArray by lazy { byteArrayOf(0x74, 0x52, 0x4e, 0x53) }
         val IHDR: ByteArray by lazy { byteArrayOf(0x49, 0x48, 0x44, 0x52) }
         val acTL: ByteArray by lazy { byteArrayOf(0x61, 0x63, 0x54, 0x4c) }
+
+        /**
+         *
+         */
+        // TODO DOC
+        fun getDiffBitmap(bitmapBuffer : Bitmap, btm : Bitmap) : Triple<Bitmap, Int, Int> { // TODO BLEND / DISPOSE OP
+            if (bitmapBuffer.width < btm.width || bitmapBuffer.height < btm.height) {
+                TODO("EXCEPTION BAD IMAGE SIZE")
+            }
+
+            var resultBtm = Bitmap.createBitmap(btm.width, btm.height, Bitmap.Config.ARGB_8888)
+
+            var offsetX = resultBtm.width + 1
+            var offsetY = resultBtm.height + 1
+
+            var lastX = 0
+            var lastY = 0
+
+            for (y in 0 until btm.height) {
+                for (x in 0 until btm.width) {
+                    if (bitmapBuffer.getPixel(x, y) == btm.getPixel(x, y)) {
+                        resultBtm.setPixel(x, y, Color.TRANSPARENT)
+                    } else {
+                        resultBtm.setPixel(x, y, btm.getPixel(x, y))
+                        if (x < offsetX)
+                            offsetX = x
+                        if (y < offsetY)
+                            offsetY = y
+                        if (x > lastX)
+                            lastX = x
+                        if (y > lastY)
+                            lastY = y
+                    }
+                }
+            }
+
+            lastX++
+            lastY++
+
+            val newWidth = lastX - offsetX
+            val newHeight = lastY - offsetY
+
+            resultBtm = Bitmap.createBitmap(resultBtm, offsetX, offsetY, newWidth, newHeight)
+
+            return Triple(resultBtm, offsetX, offsetY)
+        }
     }
 }

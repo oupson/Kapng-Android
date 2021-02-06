@@ -7,7 +7,7 @@ import android.graphics.Color
 import androidx.test.platform.app.InstrumentationRegistry
 import junit.framework.TestCase.assertTrue
 import org.junit.Test
-import oupson.apng.encoder.ApngEncoder
+import oupson.apng.utils.Utils
 
 
 class ApngEncoderInstrumentedTest {
@@ -18,7 +18,7 @@ class ApngEncoderInstrumentedTest {
         val frame1 = getFrame(context, "bunny/frame_apngframe01.png")
         val frame2 = getFrame(context, "bunny/frame_apngframe02.png")
 
-        val diff = ApngEncoder.getDiffBitmap(frame1, frame2)
+        val diff = Utils.getDiffBitmap(frame1, frame2)
 
         assertTrue(isSimilar(frame1, frame2, diff))
     }

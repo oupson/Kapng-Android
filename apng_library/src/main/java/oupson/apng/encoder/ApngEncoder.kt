@@ -2,7 +2,6 @@ package oupson.apng.encoder
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Color
 import android.util.Log
 import oupson.apng.exceptions.InvalidFrameSizeException
 import oupson.apng.utils.Utils
@@ -52,51 +51,6 @@ class ApngEncoder(
 
         /** Constants for filter (LAST)  */
         const val FILTER_LAST = 2
-
-        /**
-         *
-         */
-        fun getDiffBitmap(bitmapBuffer : Bitmap, btm : Bitmap) : Triple<Bitmap, Int, Int> { // TODO BLEND / DISPOSE OP
-            if (bitmapBuffer.width < btm.width || bitmapBuffer.height < btm.height) {
-                TODO("EXCEPTION BAD IMAGE SIZE")
-            }
-
-            var resultBtm = Bitmap.createBitmap(btm.width, btm.height, Bitmap.Config.ARGB_8888)
-
-            var offsetX = resultBtm.width + 1
-            var offsetY = resultBtm.height + 1
-
-            var lastX = 0
-            var lastY = 0
-
-            for (y in 0 until btm.height) {
-                for (x in 0 until btm.width) {
-                    if (bitmapBuffer.getPixel(x, y) == btm.getPixel(x, y)) {
-                        resultBtm.setPixel(x, y, Color.TRANSPARENT)
-                    } else {
-                        resultBtm.setPixel(x, y, btm.getPixel(x, y))
-                        if (x < offsetX)
-                            offsetX = x
-                        if (y < offsetY)
-                            offsetY = y
-                        if (x > lastX)
-                            lastX = x
-                        if (y > lastY)
-                            lastY = y
-                    }
-                }
-            }
-
-            lastX++
-            lastY++
-
-            val newWidth = lastX - offsetX
-            val newHeight = lastY - offsetY
-
-            resultBtm = Bitmap.createBitmap(resultBtm, offsetX, offsetY, newWidth, newHeight)
-
-            return Triple(resultBtm, offsetX, offsetY)
-        }
     }
 
     /** Current Frame.  **/
