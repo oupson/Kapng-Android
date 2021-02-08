@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.DefaultItemAnimator
@@ -44,6 +45,7 @@ class CreatorActivity : AppCompatActivity() {
     private var items: ArrayList<Triple<Uri, Int, Long>> = ArrayList()
     private var adapter: ImageAdapter? = null
     private var firstFrameInAnim = true
+    private var optimise = true
 
     private var nextImageId : Long= 0
 
@@ -81,7 +83,11 @@ class CreatorActivity : AppCompatActivity() {
             DelayInputDialog(object : DelayInputDialog.InputSenderDialogListener {
                 override fun onOK(number: Int?) {
                     if (number != null) {
-                        items[position] = Triple(items[position].first, number, items[position].third)
+                        items[position] = Triple(
+                            items[position].first,
+                            number,
+                            items[position].third
+                        )
                         adapter?.notifyDataSetChanged()
                     }
                 }
@@ -98,6 +104,7 @@ class CreatorActivity : AppCompatActivity() {
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.creator_menu, menu)
         menu?.findItem(R.id.menu_first_frame_in_anim)?.isChecked = true
+        menu?.findItem(R.id.menu_optimise)?.isChecked = true
         return true
     }
 
@@ -118,9 +125,18 @@ class CreatorActivity : AppCompatActivity() {
                         out.close()
 
                         if (BuildConfig.DEBUG)
-                            Log.v(TAG, "Animation size is ${f.length() / 1000}ko")
+                            Log.v(TAG, "File size is ${f.length() / 1000}kB")
 
                         withContext(Dispatchers.Main) {
+                            Toast
+                                .makeText(
+                                    this@CreatorActivity, getString(
+                                        R.string.file_size_kB,
+                                        f.length() / 1000
+                                    ), Toast.LENGTH_SHORT
+                                )
+                                .show()
+
                             val intent = Intent(Intent.ACTION_VIEW)
                             intent.data = FileProvider.getUriForFile(
                                 this@CreatorActivity,
@@ -149,6 +165,15 @@ class CreatorActivity : AppCompatActivity() {
                         out.close()
 
                         withContext(Dispatchers.Main) {
+                            Toast
+                                .makeText(
+                                    this@CreatorActivity, getString(
+                                        R.string.file_size_kB,
+                                        f.length() / 1000
+                                    ), Toast.LENGTH_SHORT
+                                )
+                                .show()
+
                             val intent = Intent().apply {
                                 action = Intent.ACTION_SEND
                                 val uri = FileProvider.getUriForFile(
@@ -160,7 +185,11 @@ class CreatorActivity : AppCompatActivity() {
                                     Intent.EXTRA_STREAM, uri
                                 )
 
-                                clipData = ClipData.newUri(contentResolver, getString(R.string.share), uri)
+                                clipData = ClipData.newUri(
+                                    contentResolver,
+                                    getString(R.string.share),
+                                    uri
+                                )
                                 type = "image/png"
                                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                             }
@@ -217,6 +246,11 @@ class CreatorActivity : AppCompatActivity() {
                 firstFrameInAnim = item.isChecked
                 true
             }
+            R.id.menu_optimise -> {
+                item.isChecked = !item.isChecked
+                optimise = item.isChecked
+                true
+            }
             else -> if (item != null) super.onOptionsItemSelected(item) else true
         }
     }
@@ -231,20 +265,19 @@ class CreatorActivity : AppCompatActivity() {
                 return@forEach
             }
 
-            val btm = BitmapFactory.decodeStream(str)
-            if (btm != null) {
-                if (btm.width > maxWidth)
-                    maxWidth = btm.width
-                if (btm.height > maxHeight)
-                    maxHeight = btm.height
-            } else {
-                Log.e(TAG, "Btm is null")
-            }
+            val options = BitmapFactory.Options()
+            options.inJustDecodeBounds = true
+
+            BitmapFactory.decodeStream(str, null, options)
+            if (options.outWidth > maxWidth)
+                maxWidth = options.outWidth
+            if (options.outHeight > maxHeight)
+                maxHeight = options.outHeight
             str.close()
         }
 
         if (BuildConfig.DEBUG)
-            Log.i(TAG, "MaxWidth : $maxWidth; MaxHeight : $maxHeight")
+            Log.d(TAG, "MaxWidth : $maxWidth; MaxHeight : $maxHeight")
 
         val encoder = ApngEncoder(
             outputStream,
@@ -253,6 +286,7 @@ class CreatorActivity : AppCompatActivity() {
             items.size
         ).setCompressionLevel(9)
             .setIsFirstFrameInAnim(firstFrameInAnim)
+            .setOptimiseApng(optimise)
 
         items.forEachIndexed { i, uri ->
             if (BuildConfig.DEBUG)
@@ -263,21 +297,22 @@ class CreatorActivity : AppCompatActivity() {
                     ?: return@forEachIndexed
                 if (i == 0) {
                     val btm =
-                        BitmapFactory.decodeStream(str) ?: return@forEachIndexed
-                    str.close()
-                    encoder.writeFrame(
-                        if (btm.width != maxWidth && btm.height != maxHeight)
-                            Bitmap.createScaledBitmap(
+                        BitmapFactory.decodeStream(str)
+                    if (btm != null) {
+                        encoder.writeFrame(
+                            if (btm.width != maxWidth && btm.height != maxHeight)
+                                Bitmap.createScaledBitmap(
+                                    btm,
+                                    maxWidth,
+                                    maxHeight,
+                                    false
+                                )
+                            else
                                 btm,
-                                maxWidth,
-                                maxHeight,
-                                false
-                            )
-                        else
-                            btm,
-                        delay = uri.second.toFloat(),
-                        disposeOp = Utils.Companion.DisposeOp.APNG_DISPOSE_OP_NONE
-                    )
+                            delay = uri.second.toFloat(),
+                            disposeOp = Utils.Companion.DisposeOp.APNG_DISPOSE_OP_NONE
+                        )
+                    }
                 } else {
                     encoder.writeFrame(
                         str,
@@ -343,7 +378,10 @@ class CreatorActivity : AppCompatActivity() {
     }
 
     inner class SwipeToDeleteCallback(private val adapter: ImageAdapter) :
-        ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or ItemTouchHelper.DOWN, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
+        ItemTouchHelper.SimpleCallback(
+            ItemTouchHelper.UP or ItemTouchHelper.DOWN,
+            ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
+        ) {
         override fun onMove(
             recyclerView: RecyclerView,
             viewHolder: RecyclerView.ViewHolder,

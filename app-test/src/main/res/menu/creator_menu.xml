@@ -40,4 +40,9 @@
             android:checkable="true"
             android:title="@string/menu_first_frame_in_anim"
             app:showAsAction="never|withText" />
+    <item
+            android:id="@+id/menu_optimise"
+            android:checkable="true"
+            android:title="@string/menu_optimise"
+            app:showAsAction="never|withText" />
 </menu>

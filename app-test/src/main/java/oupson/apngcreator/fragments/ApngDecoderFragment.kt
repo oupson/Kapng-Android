@@ -44,8 +44,7 @@ class ApngDecoderFragment : Fragment() {
                     }
 
                     override fun onError(error: Exception) {
-                        if (BuildConfig.DEBUG)
-                            Log.e(TAG, "onError : $error")
+                        Log.e(TAG, "onError : $error")
                     }
                 })
         }

@@ -11,7 +11,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import kotlinx.android.synthetic.main.activity_viewer.*
 import oupson.apng.decoder.ApngDecoder
-import oupson.apngcreator.BuildConfig
 import oupson.apngcreator.R
 
 class ViewerActivity : AppCompatActivity() {
@@ -44,8 +43,7 @@ class ViewerActivity : AppCompatActivity() {
         ApngDecoder.decodeApngAsyncInto(this, uri, viewerImageView, callback = object : ApngDecoder.Callback {
             override fun onSuccess(drawable: Drawable) {}
             override fun onError(error: Exception) {
-                if (BuildConfig.DEBUG)
-                    Log.e("ViewerActivity", "Error when loading file", error)
+                Log.e("ViewerActivity", "Error when loading file", error)
             }
         })
     }
