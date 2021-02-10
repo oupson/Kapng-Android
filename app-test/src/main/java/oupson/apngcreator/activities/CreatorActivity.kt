@@ -375,7 +375,7 @@ class CreatorActivity : AppCompatActivity() {
             }
         }
 
-        runCatching {
+        runCatching { // TODO
             encoder.writeEnd()
         }
 

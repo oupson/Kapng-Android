@@ -406,10 +406,10 @@ class ApngDecoder {
                                     body.addAll(Utils.IDAT.asList())
                                     // Get image bytes
                                     body.addAll(
-                                        byteArray.slice(
-                                            i + 4..
+                                        byteArray.copyOfRange(
+                                            i + 4,
                                             i + 4 + bodySize
-                                        )
+                                        ).asList()
                                     )
                                     val crC32 = CRC32()
                                     crC32.update(body.toByteArray(), 0, body.size)
