@@ -25,6 +25,8 @@
             app:srcCompat="@drawable/ic_add_black_24dp"
             tools:ignore="VectorDrawableCompat" />
 
+
+
     <com.google.android.material.bottomappbar.BottomAppBar
             android:id="@+id/creatorBottomAppBar"
             style="@style/Widget.MaterialComponents.BottomAppBar.Colored"

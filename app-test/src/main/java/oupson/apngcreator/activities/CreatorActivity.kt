@@ -1,17 +1,22 @@
 package oupson.apngcreator.activities
 
 import android.app.Activity
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.ClipData
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -40,6 +45,8 @@ class CreatorActivity : AppCompatActivity() {
         private const val PICK_IMAGE = 1
         private const val WRITE_REQUEST_CODE = 2
         private const val TAG = "CreatorActivity"
+
+        private const val CREATION_CHANNEL_ID = "${BuildConfig.APPLICATION_ID}.notifications_channels.create"
     }
 
     private var items: ArrayList<Triple<Uri, Int, Long>> = ArrayList()
@@ -99,6 +106,20 @@ class CreatorActivity : AppCompatActivity() {
         setSupportActionBar(creatorBottomAppBar)
         imageRecyclerView.adapter = adapter
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // Create the NotificationChannel
+            val name = getString(R.string.create_notification_channel_name)
+            val descriptionText = getString(R.string.create_notification_channel_description)
+            val importance = NotificationManager.IMPORTANCE_LOW
+            val mChannel = NotificationChannel(CREATION_CHANNEL_ID, name, importance)
+            mChannel.description = descriptionText
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this
+            val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(mChannel)
+        }
+
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -112,6 +133,13 @@ class CreatorActivity : AppCompatActivity() {
         return when (item?.itemId) {
             R.id.menu_create_apng -> {
                 if (items.size > 0) {
+                    val builder = NotificationCompat.Builder(this, CREATION_CHANNEL_ID).apply {
+                        setContentTitle(getString(R.string.create_notification_title))
+                        setContentText(this@CreatorActivity.resources.getQuantityString(R.plurals.create_notification_description, 0, 0, items.size))
+                        setSmallIcon(R.drawable.ic_create_white_24dp)
+                        priority = NotificationCompat.PRIORITY_LOW
+                    }
+
                     GlobalScope.launch(Dispatchers.IO) {
                         val randomFileName = UUID.randomUUID().toString()
                         val f = File(filesDir, "images/$randomFileName.png").apply {
@@ -121,7 +149,7 @@ class CreatorActivity : AppCompatActivity() {
                             }
                         }
                         val out = FileOutputStream(f)
-                        saveToOutputStream(out)
+                        saveToOutputStream(items.map { Pair(it.first, it.second) }, out, builder = builder)
                         out.close()
 
                         if (BuildConfig.DEBUG)
@@ -152,6 +180,12 @@ class CreatorActivity : AppCompatActivity() {
             }
             R.id.menu_share_apng -> {
                 if (items.size > 0) {
+                    val builder = NotificationCompat.Builder(this, CREATION_CHANNEL_ID).apply {
+                        setContentTitle(getString(R.string.create_notification_title))
+                        setContentText(this@CreatorActivity.resources.getQuantityString(R.plurals.create_notification_description, 0, 0, items.size))
+                        setSmallIcon(R.drawable.ic_create_white_24dp)
+                        priority = NotificationCompat.PRIORITY_LOW
+                    }
                     GlobalScope.launch(Dispatchers.IO) {
                         val randomFileName = UUID.randomUUID().toString()
                         val f = File(filesDir, "images/$randomFileName.png").apply {
@@ -161,7 +195,7 @@ class CreatorActivity : AppCompatActivity() {
                             }
                         }
                         val out = FileOutputStream(f)
-                        saveToOutputStream(out)
+                        saveToOutputStream(items.map { Pair(it.first, it.second) }, out, builder = builder)
                         out.close()
 
                         withContext(Dispatchers.Main) {
@@ -255,10 +289,18 @@ class CreatorActivity : AppCompatActivity() {
         }
     }
 
-    private fun saveToOutputStream(outputStream: OutputStream) {
+    private suspend fun saveToOutputStream(files : Collection<Pair<Uri, Int>>, outputStream: OutputStream, builder : NotificationCompat.Builder? = null) {
         var maxWidth = 0
         var maxHeight = 0
-        items.forEach {
+        var notificationManagerCompat: NotificationManagerCompat?
+        if (builder != null) {
+            withContext(Dispatchers.Main) {
+                notificationManagerCompat = NotificationManagerCompat.from(this@CreatorActivity)
+                builder.setProgress(files.size, 0, false)
+                notificationManagerCompat?.notify(1, builder.build())
+            }
+        }
+        files.forEach {
             val str = contentResolver.openInputStream(it.first)
             if (str == null) {
                 Log.e(TAG, "Input Stream is null : ${it.first}")
@@ -289,6 +331,14 @@ class CreatorActivity : AppCompatActivity() {
             .setOptimiseApng(optimise)
 
         items.forEachIndexed { i, uri ->
+            if (builder != null) {
+                withContext(Dispatchers.Main) {
+                    notificationManagerCompat = NotificationManagerCompat.from(this@CreatorActivity)
+                    builder.setProgress(files.size, i+1, false)
+                        .setContentText(this@CreatorActivity.resources.getQuantityString(R.plurals.create_notification_description, i +1, i + 1, files.size))
+                    notificationManagerCompat?.notify(1, builder.build())
+                }
+            }
             if (BuildConfig.DEBUG)
                 Log.v(TAG, "Encoding frame $i")
 
@@ -325,7 +375,19 @@ class CreatorActivity : AppCompatActivity() {
             }
         }
 
-        encoder.writeEnd()
+        runCatching {
+            encoder.writeEnd()
+        }
+
+        if (builder != null) {
+            withContext(Dispatchers.Main) {
+                notificationManagerCompat = NotificationManagerCompat.from(this@CreatorActivity)
+                builder.setProgress(0, 0, false)
+                    .setContentText(getString(R.string.create_notification_description_end))
+                notificationManagerCompat?.notify(1, builder.build())
+            }
+        }
+
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -350,9 +412,16 @@ class CreatorActivity : AppCompatActivity() {
                         if (BuildConfig.DEBUG)
                             Log.i(TAG, "Intent data : ${data.data}")
 
+                        val builder = NotificationCompat.Builder(this, CREATION_CHANNEL_ID).apply {
+                            setContentTitle(getString(R.string.create_notification_title))
+                            setContentText(this@CreatorActivity.resources.getQuantityString(R.plurals.create_notification_description, 0, 0, items.size))
+                            setSmallIcon(R.drawable.ic_create_white_24dp)
+                            priority = NotificationCompat.PRIORITY_LOW
+                        }
                         GlobalScope.launch(Dispatchers.IO) {
+
                             val out = contentResolver.openOutputStream(data.data!!) ?: return@launch
-                            saveToOutputStream(out)
+                            saveToOutputStream(items.map { Pair(it.first, it.second) }, out, builder = builder)
                             out.close()
 
                             withContext(Dispatchers.Main) {

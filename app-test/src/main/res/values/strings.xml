@@ -20,6 +20,14 @@
     <string name="menu_optimise">Optimise animation</string>
     <string name="add_frame">Add a frame to the animation</string>
     <string name="create_animation">Create an animation</string>
+    <string name="create_notification_channel_name">Creation notifications</string>
+    <string name="create_notification_channel_description">A channel used to send update about creation process</string>
+    <string name="create_notification_title">Exporting animation</string>
+    <plurals name="create_notification_description">
+        <item quantity="one">Exporting frame %1$d out of %2$d</item>
+        <item quantity="other">Exporting frames %1$d out of %2$d</item>
+    </plurals>
+    <string name="create_notification_description_end">Exporting complete</string>
 
     <string name="file_size_kB">File size is %1$d kB</string>
 
