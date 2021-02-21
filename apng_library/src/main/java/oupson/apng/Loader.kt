@@ -17,6 +17,7 @@ class Loader {
          * @throws IOException thrown when retrieving the file.
          * @throws Exception when returned code of the [HttpURLConnection] is not 200 (OK).
          */
+        @Suppress("BlockingMethodInNonBlockingContext") // RELATED TO ERROR.
         @Throws(IOException::class, Exception::class)
         suspend fun load(url: URL): ByteArray =
             withContext(Dispatchers.IO) {

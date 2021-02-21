@@ -28,13 +28,23 @@ class ViewerActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        if (ContextCompat.checkSelfPermission(applicationContext, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,
-                    arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                    2)
-        } else {
-            load()
+
+
+        if (intent.data != null) {
+            if (intent.data!!.scheme == "file" && ContextCompat.checkSelfPermission(
+                    applicationContext,
+                    Manifest.permission.READ_EXTERNAL_STORAGE
+                )
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
+                    2
+                )
+            } else {
+                load()
+            }
         }
     }
 

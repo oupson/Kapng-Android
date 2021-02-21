@@ -3,8 +3,8 @@
           xmlns:tools="http://schemas.android.com/tools"
           package="oupson.apngcreator">
 
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
             android:fullBackupContent="false"
@@ -32,7 +32,7 @@
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <category android:name="android.intent.category.DEFAULT"/>
 
-                <data android:mimeType="image/png"/>
+                <data android:mimeType="image/*"/>
             </intent-filter>
         </activity>
         <activity

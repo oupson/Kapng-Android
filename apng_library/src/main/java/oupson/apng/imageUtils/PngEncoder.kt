@@ -12,6 +12,7 @@ import kotlin.math.min
 /**
  * Taken from http://catcode.com/pngencoder/com/keypoint/PngEncoder.java
  */
+@Deprecated("It now integrated in ApngEncoder and will be removed after the 1.10 release")
 class PngEncoder {
     companion object {
         /** Constants for filter (NONE)  */

@@ -571,7 +571,7 @@ class ApngDecoder {
          * @param config Configuration applied to the bitmap added to the animation. Please note that the frame is decoded in ARGB_8888 and converted after, for the buffer.
          * @return [AnimationDrawable] if successful and an [AnimatedImageDrawable] if the image decoded is not an APNG but a gif.
          */
-        @Suppress("unused")
+        @Suppress("unused", "BlockingMethodInNonBlockingContext")
         @JvmStatic
         suspend fun decodeApng(
             context: Context,

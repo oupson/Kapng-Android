@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Random;
 
 @SuppressWarnings("WeakerAccess")
+@Deprecated()
 public class PnnQuantizer {
     private final short SHORT_MAX = Short.MAX_VALUE;
     private final char BYTE_MAX = -Byte.MIN_VALUE + Byte.MAX_VALUE;
@@ -31,7 +32,6 @@ public class PnnQuantizer {
     @SuppressLint("UseSparseArrays")
     private final HashMap<Integer, short[]> closestMap = new HashMap();
 
-    @SuppressWarnings("unused")
     public PnnQuantizer(String fname) {
         fromBitmap(fname);
     }
