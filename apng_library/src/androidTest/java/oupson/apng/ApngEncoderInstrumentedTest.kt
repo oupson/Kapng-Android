@@ -76,7 +76,14 @@ class ApngEncoderInstrumentedTest {
 
         optimisedInputStream.close()
 
-
+        for (i in 0 until optimisedApng.numberOfFrames) {
+            assertTrue(
+                isBitmapSimilar(
+                    list[i],
+                    (optimisedApng.getFrame(i) as BitmapDrawable).bitmap
+                )
+            )
+        }
 
         val nonOptimisedOutputStream = ByteArrayOutputStream()
 
@@ -132,7 +139,14 @@ class ApngEncoderInstrumentedTest {
 
         optimisedInputStream.close()
 
-
+        for (i in 0 until optimisedApng.numberOfFrames) {
+            assertTrue(
+                isBitmapSimilar(
+                    list[i],
+                    (optimisedApng.getFrame(i) as BitmapDrawable).bitmap
+                )
+            )
+        }
 
         val nonOptimisedOutputStream = ByteArrayOutputStream()
 
