@@ -17,8 +17,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import oupson.apng.BuildConfig
 import oupson.apng.Loader
-import oupson.apng.chunks.IHDR
-import oupson.apng.chunks.fcTL
 import oupson.apng.decoder.ApngDecoder.Companion.decodeApng
 import oupson.apng.exceptions.BadApngException
 import oupson.apng.exceptions.BadCRCException
@@ -95,8 +93,9 @@ class ApngDecoder {
                 var blendOp: Utils.Companion.BlendOp = Utils.Companion.BlendOp.APNG_BLEND_OP_SOURCE
                 var disposeOp: Utils.Companion.DisposeOp =
                     Utils.Companion.DisposeOp.APNG_DISPOSE_OP_NONE
-                // TODO REMOVE
-                val ihdr = IHDR()
+
+                var ihdrOfApng = ByteArray(0)
+
                 var isApng = false
 
                 val drawable = AnimationDrawable().apply {
@@ -142,17 +141,33 @@ class ApngDecoder {
                                         )*/ // TODO
                                     }
                                     png = ArrayList()
-                                    val fcTL = fcTL()
 
-                                    // TODO REMOVE FCTL CLASS
-                                    fcTL.parse(byteArray)
-                                    delay = fcTL.delay
-                                    yOffset = fcTL.yOffset
-                                    xOffset = fcTL.xOffset
-                                    blendOp = fcTL.blendOp
-                                    disposeOp = fcTL.disposeOp
-                                    val width = fcTL.pngWidth
-                                    val height = fcTL.pngHeight
+                                    // PARSE FCTL
+                                    // Get the width of the png
+                                    val width = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(i + 8, i + 12).map(Byte::toInt))
+                                    // Get the height of the png
+                                    val height = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(i + 12, i + 16).map(Byte::toInt))
+                                    /*
+                                         * The `delay_num` and `delay_den` parameters together specify a fraction indicating the time to display the current frame, in seconds.
+                                         * If the the value of the numerator is 0 the decoder should render the next frame as quickly as possible, though viewers may impose a reasonable lower bound.
+                                         */
+                                    // Get delay numerator
+                                    val delayNum = Utils.uShortFromBytesBigEndian(byteArray.copyOfRange(i + 24, i + 26).map(Byte::toInt)).toFloat()
+                                    // Get delay denominator
+                                    var delayDen = Utils.uShortFromBytesBigEndian(byteArray.copyOfRange(i + 26, i + 28).map(Byte::toInt)).toFloat()
+
+                                    // If the denominator is 0, it is to be treated as if it were 100 (that is, `delay_num` then specifies 1/100ths of a second).
+                                    if (delayDen == 0f) {
+                                        delayDen = 100f
+                                    }
+
+                                    delay = (delayNum / delayDen * 1000)
+
+                                    // Get x and y offsets
+                                    xOffset = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(i + 16, i + 20).map(Byte::toInt))
+                                    yOffset = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(i + 20, i + 24).map(Byte::toInt))
+                                    blendOp = Utils.decodeBlendOp(byteArray[33].toInt())
+                                    disposeOp = Utils.decodeDisposeOp(byteArray[32].toInt())
 
                                     if (xOffset + width > maxWidth) {
                                         throw BadApngException("`xOffset` + `width` must be <= `IHDR` width")
@@ -163,7 +178,7 @@ class ApngDecoder {
                                     png.addAll(Utils.pngSignature.asList())
                                     png.addAll(
                                         generateIhdr(
-                                            ihdr,
+                                            ihdrOfApng,
                                             width,
                                             height
                                         ).asList()
@@ -259,19 +274,39 @@ class ApngDecoder {
 
 
                                     png = ArrayList()
-                                    val fcTL = fcTL()
-                                    fcTL.parse(byteArray)
-                                    delay = fcTL.delay
-                                    yOffset = fcTL.yOffset
-                                    xOffset = fcTL.xOffset
-                                    blendOp = fcTL.blendOp
-                                    disposeOp = fcTL.disposeOp
-                                    val width = fcTL.pngWidth
-                                    val height = fcTL.pngHeight
+
+                                    // PARSE FCTL
+                                    // Get the width of the png
+                                    val width = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(i + 8, i + 12).map(Byte::toInt))
+                                    // Get the height of the png
+                                    val height = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(i + 12, i + 16).map(Byte::toInt))
+                                    /*
+                                         * The `delay_num` and `delay_den` parameters together specify a fraction indicating the time to display the current frame, in seconds.
+                                         * If the the value of the numerator is 0 the decoder should render the next frame as quickly as possible, though viewers may impose a reasonable lower bound.
+                                         */
+                                    // Get delay numerator
+                                    val delayNum = Utils.uShortFromBytesBigEndian(byteArray.copyOfRange(i + 24, i + 26).map(Byte::toInt)).toFloat()
+                                    // Get delay denominator
+                                    var delayDen = Utils.uShortFromBytesBigEndian(byteArray.copyOfRange(i + 26, i + 28).map(Byte::toInt)).toFloat()
+
+                                    // If the denominator is 0, it is to be treated as if it were 100 (that is, `delay_num` then specifies 1/100ths of a second).
+                                    if (delayDen == 0f) {
+                                        delayDen = 100f
+                                    }
+
+                                    delay = (delayNum / delayDen * 1000)
+
+                                    // Get x and y offsets
+                                    xOffset = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(i + 16, i + 20).map(Byte::toInt))
+                                    yOffset = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(i + 20, i + 24).map(Byte::toInt))
+                                    blendOp = Utils.decodeBlendOp(byteArray[33].toInt())
+                                    disposeOp = Utils.decodeDisposeOp(byteArray[32].toInt())
+
+
                                     png.addAll(Utils.pngSignature.asList())
                                     png.addAll(
                                         generateIhdr(
-                                            ihdr,
+                                            ihdrOfApng,
                                             width,
                                             height
                                         ).asList()
@@ -395,7 +430,7 @@ class ApngDecoder {
                                         cover.addAll(Utils.pngSignature.asList())
                                         cover.addAll(
                                             generateIhdr(
-                                                ihdr,
+                                                ihdrOfApng,
                                                 maxWidth,
                                                 maxHeight
                                             ).asList()
@@ -458,9 +493,14 @@ class ApngDecoder {
                                 tnrs = byteArray
                             }
                             name.contentEquals(Utils.IHDR) -> {
-                                ihdr.parse(byteArray)
-                                maxWidth = ihdr.pngWidth
-                                maxHeight = ihdr.pngHeight
+                                // Get length of the body of the chunk
+                                val bodySize = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(i - 4, i).map(Byte::toInt))
+                                // Get the width of the png
+                                maxWidth = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(i +4, i + 8).map(Byte::toInt))
+                                // Get the height of the png
+                                maxHeight = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(i +8, i +12).map(Byte::toInt))
+                                ihdrOfApng = byteArray.copyOfRange(i + 4, i + bodySize + 4)
+
                                 buffer = Bitmap.createBitmap(
                                     maxWidth,
                                     maxHeight,
@@ -854,13 +894,12 @@ class ApngDecoder {
          * @param height The height of the frame.
          * @return [ByteArray] The generated IHDR.
          */
-        // TODO REMOVE IHDR
-        private fun generateIhdr(ihdrOfApng: IHDR, width: Int, height: Int): ByteArray {
+        private fun generateIhdr(ihdrOfApng: ByteArray, width: Int, height: Int): ByteArray {
             val ihdr = ArrayList<Byte>()
             // We need a body var to know body length and generate crc
             val ihdrBody = ArrayList<Byte>()
             // Add chunk body length
-            ihdr.addAll(Utils.uIntToByteArray(ihdrOfApng.body.size).asList())
+            ihdr.addAll(Utils.uIntToByteArray(ihdrOfApng.size).asList())
             // Add IHDR
             ihdrBody.addAll(
                 arrayOf(
@@ -875,7 +914,7 @@ class ApngDecoder {
             ihdrBody.addAll(Utils.uIntToByteArray(height).asList())
             // Add complicated stuff like depth color ...
             // If you want correct png you need same parameters. Good solution is to create new png.
-            ihdrBody.addAll(ihdrOfApng.body.copyOfRange(8, 13).asList())
+            ihdrBody.addAll(ihdrOfApng.copyOfRange(8, 13).asList())
             // Generate CRC
             val crC32 = CRC32()
             crC32.update(ihdrBody.toByteArray(), 0, ihdrBody.size)

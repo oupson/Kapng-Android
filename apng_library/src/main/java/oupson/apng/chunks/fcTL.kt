@@ -5,7 +5,7 @@ import oupson.apng.utils.Utils.Companion.decodeBlendOp
 import oupson.apng.utils.Utils.Companion.decodeDisposeOp
 
 @Suppress("ClassName")
-// TODO REMOVE
+@Deprecated("Deprecated, Use ApngEncoder and ApngDecoder instead", level = DeprecationLevel.WARNING)
 class fcTL : Chunk {
     override var body : ByteArray = byteArrayOf()
 
