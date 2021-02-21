@@ -438,8 +438,8 @@ class CreatorActivity : AppCompatActivity() {
         }
     }
 
-    override fun onStop() {
-        super.onStop()
+    override fun onDestroy() {
+        super.onDestroy()
 
         val deleteResult = File(filesDir, "images").deleteRecursively()
         if (BuildConfig.DEBUG)
