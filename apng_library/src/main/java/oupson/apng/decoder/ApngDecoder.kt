@@ -95,6 +95,7 @@ class ApngDecoder {
                 var blendOp: Utils.Companion.BlendOp = Utils.Companion.BlendOp.APNG_BLEND_OP_SOURCE
                 var disposeOp: Utils.Companion.DisposeOp =
                     Utils.Companion.DisposeOp.APNG_DISPOSE_OP_NONE
+                // TODO REMOVE
                 val ihdr = IHDR()
                 var isApng = false
 
@@ -142,6 +143,8 @@ class ApngDecoder {
                                     }
                                     png = ArrayList()
                                     val fcTL = fcTL()
+
+                                    // TODO REMOVE FCTL CLASS
                                     fcTL.parse(byteArray)
                                     delay = fcTL.delay
                                     yOffset = fcTL.yOffset
@@ -851,6 +854,7 @@ class ApngDecoder {
          * @param height The height of the frame.
          * @return [ByteArray] The generated IHDR.
          */
+        // TODO REMOVE IHDR
         private fun generateIhdr(ihdrOfApng: IHDR, width: Int, height: Int): ByteArray {
             val ihdr = ArrayList<Byte>()
             // We need a body var to know body length and generate crc

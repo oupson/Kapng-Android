@@ -217,7 +217,12 @@ class Utils {
          * @property offsetY the y offset
          * @property blendOp a [BlendOp]
          */
-        data class DiffResult(val bitmap: Bitmap, val offsetX : Int, val offsetY : Int, val blendOp: BlendOp)
+        data class DiffResult(
+            val bitmap: Bitmap,
+            val offsetX: Int,
+            val offsetY: Int,
+            val blendOp: BlendOp
+        )
 
         /**
          * Get the difference between two bitmaps
@@ -226,12 +231,21 @@ class Utils {
          * @return [DiffResult], the difference between the second and the first bitmap
          */
         @Throws(BadBitmapsDiffSize::class)
-        fun getDiffBitmap(firstBitmap : Bitmap, secondBitmap : Bitmap) : DiffResult {
+        fun getDiffBitmap(firstBitmap: Bitmap, secondBitmap: Bitmap): DiffResult {
             if (firstBitmap.width < secondBitmap.width || firstBitmap.height < secondBitmap.height) {
-                throw BadBitmapsDiffSize(firstBitmap.width, firstBitmap.height, firstBitmap.width, firstBitmap.height)
+                throw BadBitmapsDiffSize(
+                    firstBitmap.width,
+                    firstBitmap.height,
+                    firstBitmap.width,
+                    firstBitmap.height
+                )
             }
 
-            val resultBtm = Bitmap.createBitmap(secondBitmap.width, secondBitmap.height, Bitmap.Config.ARGB_8888)
+            val resultBtm = Bitmap.createBitmap(
+                secondBitmap.width,
+                secondBitmap.height,
+                Bitmap.Config.ARGB_8888
+            )
 
             var offsetX = resultBtm.width + 1
             var offsetY = resultBtm.height + 1
@@ -240,12 +254,17 @@ class Utils {
             var lastY = 0
 
             // Find if the image contain transparent pixels, if true, then transparent pixels must replace the pixels in the buffer
-            val blendOp = if(containTransparency(secondBitmap)) APNG_BLEND_OP_SOURCE else APNG_BLEND_OP_OVER
+            val blendOp =
+                if (containTransparency(secondBitmap)) APNG_BLEND_OP_SOURCE else APNG_BLEND_OP_OVER
 
             for (y in 0 until secondBitmap.height) {
                 for (x in 0 until secondBitmap.width) {
                     val btmPixel = secondBitmap.getPixel(x, y)
-                    if (firstBitmap.getPixel(x, y) == btmPixel) { // Similar pixels could be forgotten
+                    if (firstBitmap.getPixel(
+                            x,
+                            y
+                        ) == btmPixel
+                    ) { // Similar pixels could be forgotten
                         if (blendOp == APNG_BLEND_OP_OVER)
                             resultBtm.setPixel(x, y, Color.TRANSPARENT)
                         else
@@ -271,7 +290,8 @@ class Utils {
             val newHeight = lastY - offsetY
 
             // Resize bitmap
-            val resizedResultBtm = Bitmap.createBitmap(resultBtm, offsetX, offsetY, newWidth, newHeight)
+            val resizedResultBtm =
+                Bitmap.createBitmap(resultBtm, offsetX, offsetY, newWidth, newHeight)
 
             return DiffResult(resizedResultBtm, offsetX, offsetY, blendOp)
         }
@@ -281,12 +301,12 @@ class Utils {
          * @param btm A [Bitmap]
          * @return [Boolean] true if if the bitmap contain transparent pixels
          */
-        fun containTransparency(btm : Bitmap) : Boolean {
+        fun containTransparency(btm: Bitmap): Boolean {
             var result = false
             var y = 0
             var x = 0
             while (y < btm.height && !result) {
-                if  (btm.getPixel(x, y) == Color.TRANSPARENT) {
+                if (btm.getPixel(x, y) == Color.TRANSPARENT) {
                     result = true
                 }
 

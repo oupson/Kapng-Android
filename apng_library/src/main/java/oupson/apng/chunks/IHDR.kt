@@ -2,6 +2,7 @@ package oupson.apng.chunks
 
 import oupson.apng.utils.Utils
 
+// TODO REMOVE
 class IHDR : Chunk {
     override var body = byteArrayOf()
     var pngWidth = -1

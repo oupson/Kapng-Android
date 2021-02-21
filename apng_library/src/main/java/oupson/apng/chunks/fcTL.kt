@@ -5,6 +5,7 @@ import oupson.apng.utils.Utils.Companion.decodeBlendOp
 import oupson.apng.utils.Utils.Companion.decodeDisposeOp
 
 @Suppress("ClassName")
+// TODO REMOVE
 class fcTL : Chunk {
     override var body : ByteArray = byteArrayOf()
 
