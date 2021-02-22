@@ -1,4 +1,4 @@
-package oupson.apng
+package oupson.apng.utils
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

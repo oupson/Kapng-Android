@@ -1,6 +1,8 @@
 package oupson.apngcreator.fragments
 
 
+import android.graphics.drawable.AnimationDrawable
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -11,8 +13,8 @@ import android.widget.ImageView
 import android.widget.SeekBar
 import androidx.fragment.app.Fragment
 import com.squareup.picasso.Picasso
-import oupson.apng.ApngAnimator
-import oupson.apng.ApngAnimator.Companion.loadApng
+import kotlinx.android.synthetic.main.activity_creator.*
+import oupson.apng.decoder.ApngDecoder
 import oupson.apngcreator.BuildConfig
 import oupson.apngcreator.R
 
@@ -33,7 +35,11 @@ class KotlinFragment : Fragment() {
 
     private var speedSeekBar : SeekBar? = null
 
-    private var animator : ApngAnimator? = null
+    //private var animator : ApngAnimator? = null
+    private var animation : AnimationDrawable? = null
+    private var durations : IntArray? = null
+
+    private var frameIndex = 0
 
     private val imageUrls = arrayListOf(
         "http://oupson.oupsman.fr/apng/bigApng.png",
@@ -71,11 +77,34 @@ class KotlinFragment : Fragment() {
             Log.v(TAG, "onResume()")
 
         playButton?.setOnClickListener {
-            animator?.play()
+            animation?.start()
         }
 
         pauseButton?.setOnClickListener {
-            animator?.pause()
+            animation = animation?.let { animation ->
+                val res = AnimationDrawable()
+                animation.stop()
+                val currentFrame = animation.current
+
+                frameLoop@ for (i in 0 until animation.numberOfFrames) {
+                    val checkFrame = animation.getFrame(i)
+                    if (checkFrame === currentFrame) {
+                        frameIndex = i
+                        for (k in frameIndex until animation.numberOfFrames) {
+                            val frame: Drawable = animation.getFrame(k)
+                            res.addFrame(frame, animation.getDuration(i))
+                        }
+                        for (k in 0 until frameIndex) {
+                            val frame: Drawable = animation.getFrame(k)
+                            res.addFrame(frame, animation.getDuration(i))
+                        }
+                        apngImageView?.setImageDrawable(res)
+                        animation.invalidateSelf()
+                        break@frameLoop
+                    }
+                }
+                res
+            }
         }
 
         speedSeekBar?.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -88,23 +117,42 @@ class KotlinFragment : Fragment() {
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                if (seekBar != null)
-                    animator?.speed = seekBar.progress.toFloat() / 100f
+                if (seekBar != null && durations != null) {
+                    val speed = seekBar.progress.toFloat() / 100f
+                    animation = animation?.let { animation ->
+                        val res = AnimationDrawable()
+                        animation.stop()
+
+                        for (i in 0 until animation.numberOfFrames) {
+                            res.addFrame(animation.getFrame(i), (durations!![i].toFloat() / speed).toInt())
+                        }
+
+                        apngImageView?.setImageDrawable(res)
+                        animation.invalidateSelf()
+                        res.start()
+                        res
+                    }
+                }
             }
         })
 
-        if (animator == null) {
-            try {
-                animator = apngImageView?.loadApng(imageUrls[selected])?.apply {
-                    onLoaded {
-                        setOnFrameChangeLister {
-                            // Log.v("app-test", "onLoop")
+        if (animation == null) {
+            ApngDecoder.decodeApngAsyncInto(
+                this.context!!,
+                imageUrls[selected],
+                apngImageView!!,
+                callback = object : ApngDecoder.Callback {
+                    override fun onSuccess(drawable: Drawable) {
+                        animation = (drawable as? AnimationDrawable)
+                        durations = IntArray(animation?.numberOfFrames ?: 0) { i ->
+                            animation?.getDuration(i) ?: 0
                         }
                     }
-                }
-            } catch (e : Exception) {
-                Log.e(TAG, "Error : $e")
-            }
+
+                    override fun onError(error: Exception) {
+                        Log.e(TAG, "Error : $error")
+                    }
+                })
         }
 
         Picasso.get().load(imageUrls[selected]).into(normalImageView)
@@ -115,7 +163,7 @@ class KotlinFragment : Fragment() {
         if (BuildConfig.DEBUG)
             Log.v(TAG, "onPause()")
 
-        animator = null
+        animation = null
         normalImageView?.setImageDrawable(null)
         apngImageView?.setImageDrawable(null)
 

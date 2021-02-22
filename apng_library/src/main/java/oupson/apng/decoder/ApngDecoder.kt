@@ -16,10 +16,10 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import oupson.apng.BuildConfig
-import oupson.apng.Loader
 import oupson.apng.decoder.ApngDecoder.Companion.decodeApng
 import oupson.apng.exceptions.BadApngException
 import oupson.apng.exceptions.BadCRCException
+import oupson.apng.utils.Loader
 import oupson.apng.utils.Utils
 import oupson.apng.utils.Utils.Companion.isPng
 import java.io.*
