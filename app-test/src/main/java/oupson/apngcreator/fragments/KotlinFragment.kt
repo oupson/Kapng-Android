@@ -149,7 +149,7 @@ class KotlinFragment : Fragment() {
                     }
 
                     override fun onError(error: Exception) {
-                        Log.e(TAG, "Error : $error")
+                        Log.e(TAG, "Error when decoding apng", error)
                     }
                 })
         }

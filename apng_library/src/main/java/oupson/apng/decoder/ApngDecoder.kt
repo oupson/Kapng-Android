@@ -860,32 +860,32 @@ class ApngDecoder {
          * @return [ByteArray] The generated IHDR.
          */
         private fun generateIhdr(ihdrOfApng: ByteArray, width: Int, height: Int): ByteArray {
-            val ihdr = ArrayList<Byte>()
-            // We need a body var to know body length and generate crc
-            val ihdrBody = ArrayList<Byte>()
+            val ihdr = ByteArray(0xD + 4 + 4 + 4) // 0xD (IHDR body length) + 4 (0x0, 0x0, 0x0, 0xD : the chunk length) + 4 : IHDR + 4 : CRC
+
             // Add chunk body length
-            ihdr.addAll(Utils.uIntToByteArray(ihdrOfApng.size).asList())
+            System.arraycopy(Utils.uIntToByteArray(0xD), 0, ihdr, 0, 4)
+
+            // We need a body var to know body length and generate crc
+            val ihdrBody = ByteArray(0xD + 4) // 0xD (IHDR body length) + 4 : IHDR
+
             // Add IHDR
-            ihdrBody.addAll(
-                arrayOf(
-                    0x49.toByte(),
-                    0x48.toByte(),
-                    0x44.toByte(),
-                    0x52.toByte()
-                )
-            )
+            System.arraycopy(Utils.IHDR, 0, ihdrBody, 0, 4)
+
             // Add the max width and height
-            ihdrBody.addAll(Utils.uIntToByteArray(width).asList())
-            ihdrBody.addAll(Utils.uIntToByteArray(height).asList())
+            System.arraycopy(Utils.uIntToByteArray(width), 0, ihdrBody, 4, 4)
+            System.arraycopy(Utils.uIntToByteArray(height), 0, ihdrBody, 8, 4)
+
             // Add complicated stuff like depth color ...
-            // If you want correct png you need same parameters. Good solution is to create new png.
-            ihdrBody.addAll(ihdrOfApng.copyOfRange(8, 13).asList())
+            // If you want correct png you need same parameters.
+            System.arraycopy(ihdrOfApng, 8, ihdrBody, 12, 5)
+
             // Generate CRC
             val crC32 = CRC32()
-            crC32.update(ihdrBody.toByteArray(), 0, ihdrBody.size)
-            ihdr.addAll(ihdrBody)
-            ihdr.addAll(Utils.uIntToByteArray(crC32.value.toInt()).asList())
-            return ihdr.toByteArray()
+            crC32.update(ihdrBody, 0, 0xD + 4)
+
+            System.arraycopy(ihdrBody, 0, ihdr, 4, 0xD + 4)
+            System.arraycopy(Utils.uIntToByteArray(crC32.value.toInt()), 0, ihdr, 0xD + 4 + 4, 4)
+            return ihdr
         }
     }
 }
