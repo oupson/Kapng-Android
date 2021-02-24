@@ -39,7 +39,7 @@ public class JavaFragment extends Fragment {
         if (imageView != null && context != null) {
             if (BuildConfig.DEBUG)
                 Log.v(TAG, "Loading " + imageUrl);
-            ApngDecoder.decodeApngAsyncInto(context, imageUrl, imageView, 1f, new ApngDecoder.Callback() {
+            ApngDecoder.decodeApngAsyncInto(context, imageUrl, imageView, new ApngDecoder.Callback() {
                 @Override
                 public void onSuccess(@NotNull Drawable drawable) {
                     if (BuildConfig.DEBUG)

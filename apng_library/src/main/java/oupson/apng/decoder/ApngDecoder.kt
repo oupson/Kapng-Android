@@ -47,6 +47,12 @@ class ApngDecoder {
         fun onError(error: Exception)
     }
 
+    data class Config(
+        val speed: Float = 1f,
+        val bitmapConfig: Bitmap.Config = Bitmap.Config.ARGB_8888,
+        val decodeCoverFrame: Boolean = true
+    )
+
     companion object {
         private const val TAG = "ApngDecoder"
         private val zeroLength = byteArrayOf(0x00, 0x00, 0x00, 0x00)
@@ -68,15 +74,14 @@ class ApngDecoder {
          * @param config Configuration applied to the bitmap added to the animation. Please note that the frame is decoded in ARGB_8888 and converted after, for the buffer.
          * @return [AnimationDrawable] if successful and an [AnimatedImageDrawable] if the image decoded is not an APNG but a gif. If it is not an animated image, it is a [Drawable].
          */
-        // TODO BETTER CONFIG (Maybe data class with speed, config, and a settings to ignore cover frame ?)
+        // TODO DOCUMENT CONFIG
         @Suppress("MemberVisibilityCanBePrivate")
         @JvmStatic
         @JvmOverloads
         fun decodeApng(
             context: Context,
             inStream: InputStream,
-            speed: Float = 1f,
-            config: Bitmap.Config = Bitmap.Config.ARGB_8888
+            config: Config = Config()
         ): Drawable {
             val inputStream = BufferedInputStream(inStream)
             val bytes = ByteArray(8)
@@ -127,21 +132,24 @@ class ApngDecoder {
                         when {
                             name.contentEquals(Utils.fcTL) -> {
                                 if (png == null) {
-                                    drawable.coverFrame = cover?.let {
-                                        it.write(zeroLength)
-                                        // Generate crc for IEND
-                                        val crC32 = CRC32()
-                                        crC32.update(Utils.IEND, 0, Utils.IEND.size)
-                                        it.write(Utils.IEND)
-                                        it.write(Utils.uIntToByteArray(crC32.value.toInt()))
+                                    if (config.decodeCoverFrame) {
+                                        drawable.coverFrame = cover?.let {
+                                            it.write(zeroLength)
+                                            // Generate crc for IEND
+                                            val crC32 = CRC32()
+                                            crC32.update(Utils.IEND, 0, Utils.IEND.size)
+                                            it.write(Utils.IEND)
+                                            it.write(Utils.uIntToByteArray(crC32.value.toInt()))
 
-                                        val pngBytes =  it.toByteArray()
-                                        BitmapFactory.decodeByteArray(
-                                            pngBytes,
-                                            0,
-                                            pngBytes.size
-                                        )
+                                            val pngBytes = it.toByteArray()
+                                            BitmapFactory.decodeByteArray(
+                                                pngBytes,
+                                                0,
+                                                pngBytes.size
+                                            )
+                                        }
                                     }
+                                    cover = null
                                 } else {
                                     // Add IEND body length : 0
                                     png.write(zeroLength)
@@ -187,18 +195,18 @@ class ApngDecoder {
                                     drawable.addFrame(
                                         BitmapDrawable(
                                             context.resources,
-                                            if (btm.config != config) {
+                                            if (btm.config != config.bitmapConfig) {
                                                 if (BuildConfig.DEBUG)
                                                     Log.v(
                                                         TAG,
                                                         "Bitmap Config : ${btm.config}, Config : $config"
                                                     )
-                                                btm.copy(config, btm.isMutable)
+                                                btm.copy(config.bitmapConfig, btm.isMutable)
                                             } else {
                                                 btm
                                             }
                                         ),
-                                        (delay / speed).toInt()
+                                        (delay / config.speed).toInt()
                                     )
 
                                     when (disposeOp) {
@@ -337,18 +345,18 @@ class ApngDecoder {
                                     drawable.addFrame(
                                         BitmapDrawable(
                                             context.resources,
-                                            if (btm.config != config) {
+                                            if (btm.config != config.bitmapConfig) {
                                                 if (BuildConfig.DEBUG)
                                                     Log.v(
                                                         TAG,
                                                         "Bitmap Config : ${btm.config}, Config : $config"
                                                     )
-                                                btm.copy(config, btm.isMutable)
+                                                btm.copy(config.bitmapConfig, btm.isMutable)
                                             } else {
                                                 btm
                                             }
                                         ),
-                                        (delay / speed).toInt()
+                                        (delay / config.speed).toInt()
                                     )
 
                                     when (disposeOp) {
@@ -513,15 +521,15 @@ class ApngDecoder {
          */
         @Suppress("unused")
         @JvmStatic
+        // TODO DOCUMENT
         fun decodeApng(
             context: Context,
             file: File,
-            speed: Float = 1f,
-            config: Bitmap.Config = Bitmap.Config.ARGB_8888
+            config: Config = Config()
         ): Drawable =
             decodeApng(
                 context,
-                FileInputStream(file), speed, config
+                FileInputStream(file), config
             )
 
         /**
@@ -537,14 +545,12 @@ class ApngDecoder {
         fun decodeApng(
             context: Context,
             uri: Uri,
-            speed: Float = 1f,
-            config: Bitmap.Config = Bitmap.Config.ARGB_8888
+            config: Config = Config()
         ): Drawable {
             val inputStream = context.contentResolver.openInputStream(uri)!!
             return decodeApng(
                 context,
                 inputStream,
-                speed,
                 config
             )
         }
@@ -562,13 +568,11 @@ class ApngDecoder {
         fun decodeApng(
             context: Context,
             @RawRes res: Int,
-            speed: Float = 1f,
-            config: Bitmap.Config = Bitmap.Config.ARGB_8888
+            config: Config = Config()
         ): Drawable =
             decodeApng(
                 context,
                 context.resources.openRawResource(res),
-                speed,
                 config
             )
 
@@ -585,14 +589,12 @@ class ApngDecoder {
         suspend fun decodeApng(
             context: Context,
             url: URL,
-            speed: Float = 1f,
-            config: Bitmap.Config = Bitmap.Config.ARGB_8888
+            config: Config = Config()
         ) =
             withContext(Dispatchers.IO) {
                 decodeApng(
                     context,
                     ByteArrayInputStream(Loader.load(url)),
-                    speed,
                     config
                 )
             }
@@ -613,9 +615,8 @@ class ApngDecoder {
             context: Context,
             file: File,
             imageView: ImageView,
-            speed: Float = 1f,
             callback: Callback? = null,
-            config: Bitmap.Config = Bitmap.Config.ARGB_8888
+            config: Config = Config()
         ) {
             GlobalScope.launch(Dispatchers.IO) {
                 try {
@@ -623,7 +624,6 @@ class ApngDecoder {
                         decodeApng(
                             context,
                             FileInputStream(file),
-                            speed,
                             config
                         )
                     withContext(Dispatchers.Main) {
@@ -658,9 +658,8 @@ class ApngDecoder {
             context: Context,
             uri: Uri,
             imageView: ImageView,
-            speed: Float = 1f,
             callback: Callback? = null,
-            config: Bitmap.Config = Bitmap.Config.ARGB_8888
+            config: Config = Config()
         ) {
             val inputStream = context.contentResolver.openInputStream(uri)!!
             GlobalScope.launch(Dispatchers.IO) {
@@ -669,7 +668,6 @@ class ApngDecoder {
                         decodeApng(
                             context,
                             inputStream,
-                            speed,
                             config
                         )
                     withContext(Dispatchers.Main) {
@@ -703,9 +701,8 @@ class ApngDecoder {
         fun decodeApngAsyncInto(
             context: Context, @RawRes res: Int,
             imageView: ImageView,
-            speed: Float = 1f,
             callback: Callback? = null,
-            config: Bitmap.Config = Bitmap.Config.ARGB_8888
+            config: Config = Config()
         ) {
             GlobalScope.launch(Dispatchers.IO) {
                 try {
@@ -713,7 +710,6 @@ class ApngDecoder {
                         decodeApng(
                             context,
                             context.resources.openRawResource(res),
-                            speed,
                             config
                         )
                     withContext(Dispatchers.Main) {
@@ -749,9 +745,8 @@ class ApngDecoder {
             context: Context,
             url: URL,
             imageView: ImageView,
-            speed: Float = 1f,
             callback: Callback? = null,
-            config: Bitmap.Config = Bitmap.Config.ARGB_8888
+            config: Config = Config()
         ) {
             GlobalScope.launch(Dispatchers.IO) {
                 try {
@@ -762,7 +757,6 @@ class ApngDecoder {
                                 url
                             )
                         ),
-                        speed,
                         config
                     )
                     withContext(Dispatchers.Main) {
@@ -797,9 +791,8 @@ class ApngDecoder {
             context: Context,
             string: String,
             imageView: ImageView,
-            speed: Float = 1f,
             callback: Callback? = null,
-            config: Bitmap.Config = Bitmap.Config.ARGB_8888
+            config: Config = Config()
         ) {
             GlobalScope.launch(Dispatchers.IO) {
                 try {
@@ -808,7 +801,6 @@ class ApngDecoder {
                             context,
                             URL(string),
                             imageView,
-                            speed,
                             callback,
                             config
                         )
@@ -820,7 +812,6 @@ class ApngDecoder {
                             context,
                             Uri.parse(pathToLoad),
                             imageView,
-                            speed,
                             callback,
                             config
                         )
@@ -829,7 +820,7 @@ class ApngDecoder {
                             decodeApng(
                                 context,
                                 context.assets.open(string.replace("file:///android_asset/", "")),
-                                speed,
+
                                 config
                             )
                         withContext(Dispatchers.Main) {
@@ -861,7 +852,8 @@ class ApngDecoder {
          * @return [ByteArray] The generated IHDR.
          */
         private fun generateIhdr(ihdrOfApng: ByteArray, width: Int, height: Int): ByteArray {
-            val ihdr = ByteArray(0xD + 4 + 4 + 4) // 0xD (IHDR body length) + 4 (0x0, 0x0, 0x0, 0xD : the chunk length) + 4 : IHDR + 4 : CRC
+            val ihdr =
+                ByteArray(0xD + 4 + 4 + 4) // 0xD (IHDR body length) + 4 (0x0, 0x0, 0x0, 0xD : the chunk length) + 4 : IHDR + 4 : CRC
 
             // Add chunk body length
             System.arraycopy(Utils.uIntToByteArray(0xD), 0, ihdr, 0, 4)

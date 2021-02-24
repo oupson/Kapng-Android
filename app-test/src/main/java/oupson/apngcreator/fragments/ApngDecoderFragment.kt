@@ -37,7 +37,7 @@ class ApngDecoderFragment : Fragment() {
                 this.context!!,
                 URL("https://metagif.files.wordpress.com/2015/01/bugbuckbunny.png"),
                 imageView,
-                config = Bitmap.Config.RGB_565,
+                config = ApngDecoder.Config(bitmapConfig = Bitmap.Config.RGB_565, decodeCoverFrame = false),
                 callback = object : ApngDecoder.Callback {
                     override fun onSuccess(drawable: Drawable) {
                         if (BuildConfig.DEBUG)
