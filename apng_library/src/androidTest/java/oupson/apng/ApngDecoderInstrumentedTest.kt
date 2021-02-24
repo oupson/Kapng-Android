@@ -41,6 +41,7 @@ class ApngDecoderInstrumentedTest {
 
         TestCase.assertTrue(areBitmapSimilar(list[0], anim.coverFrame!!))
         for (i in 0 until anim.numberOfFrames) {
+            TestCase.assertEquals(100, anim.getDuration(i))
             TestCase.assertTrue(
                 areBitmapSimilar(
                     (anim.getFrame(i) as BitmapDrawable).bitmap,

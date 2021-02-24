@@ -36,7 +36,7 @@ class ApngDecoder {
     interface Callback {
         /**
          * Function called when the file was successfully decoded.
-         * @param drawable Can be an [AnimationDrawable] if successful and an [AnimatedImageDrawable] if the image decoded is not an APNG but a gif. If it is not an animated image, it is a [Drawable].
+         * @param drawable Can be an [ApngDrawable] if successful and an [AnimatedImageDrawable] if the image decoded is not an APNG but a gif. If it is not an animated image, it is a [Drawable].
          */
         fun onSuccess(drawable: Drawable)
 
@@ -87,7 +87,7 @@ class ApngDecoder {
         }
 
         /**
-         * Decode Apng and return a Drawable who can be an [AnimationDrawable] if it end successfully. Can also be an [android.graphics.drawable.AnimatedImageDrawable].
+         * Decode Apng and return a Drawable who can be an [ApngDrawable] if it end successfully. Can also be an [android.graphics.drawable.AnimatedImageDrawable].
          * @param context Context needed for the animation drawable
          * @param inStream Input Stream to decode. Will be closed at the end.
          * @param config Decoder configuration
@@ -533,11 +533,11 @@ class ApngDecoder {
         }
 
         /**
-         * Decode Apng and return a Drawable who can be an [AnimationDrawable] if it end successfully. Can also be an [android.graphics.drawable.AnimatedImageDrawable].
+         * Decode Apng and return a Drawable who can be an [ApngDrawable] if it end successfully. Can also be an [android.graphics.drawable.AnimatedImageDrawable].
          * @param context Context needed for animation drawable.
          * @param file File to decode.
          * @param config Decoder configuration
-         * @return [AnimationDrawable] if successful and an [AnimatedImageDrawable] if the image decoded is not an APNG but a gif. If it is not an animated image, it is a [Drawable].
+         * @return [ApngDrawable] if successful and an [AnimatedImageDrawable] if the image decoded is not an APNG but a gif. If it is not an animated image, it is a [Drawable].
          */
         @Suppress("unused")
         @JvmStatic
@@ -553,11 +553,11 @@ class ApngDecoder {
             )
 
         /**
-         * Decode Apng and return a Drawable who can be an [AnimationDrawable] if it end successfully. Can also be an [android.graphics.drawable.AnimatedImageDrawable].
+         * Decode Apng and return a Drawable who can be an [ApngDrawable] if it end successfully. Can also be an [android.graphics.drawable.AnimatedImageDrawable].
          * @param context Context is needed for contentResolver and animation drawable.
          * @param uri Uri to open.
          * @param config Decoder configuration
-         * @return [AnimationDrawable] if successful and an [AnimatedImageDrawable] if the image decoded is not an APNG but a gif.
+         * @return [ApngDrawable] if successful and an [AnimatedImageDrawable] if the image decoded is not an APNG but a gif.
          */
         @Suppress("unused")
         @JvmStatic
@@ -575,11 +575,11 @@ class ApngDecoder {
         }
 
         /**
-         * Decode Apng and return a Drawable who can be an [AnimationDrawable] if it end successfully. Can also be an [android.graphics.drawable.AnimatedImageDrawable].
+         * Decode Apng and return a Drawable who can be an [ApngDrawable] if it end successfully. Can also be an [android.graphics.drawable.AnimatedImageDrawable].
          * @param context Context is needed for contentResolver and animation drawable.
          * @param res Resource to decode.
          * @param config Decoder configuration
-         * @return [AnimationDrawable] if successful and an [AnimatedImageDrawable] if the image decoded is not an APNG but a gif.
+         * @return [ApngDrawable] if successful and an [AnimatedImageDrawable] if the image decoded is not an APNG but a gif.
          */
         @Suppress("unused")
         @JvmStatic
@@ -595,11 +595,11 @@ class ApngDecoder {
             )
 
         /**
-         * Decode Apng and return a Drawable who can be an [AnimationDrawable] if it end successfully. Can also be an [android.graphics.drawable.AnimatedImageDrawable].
+         * Decode Apng and return a Drawable who can be an [ApngDrawable] if it end successfully. Can also be an [android.graphics.drawable.AnimatedImageDrawable].
          * @param context Context is needed for contentResolver and animation drawable.
          * @param url URL to decode.
          * @param config Decoder configuration
-         * @return [AnimationDrawable] if successful and an [AnimatedImageDrawable] if the image decoded is not an APNG but a gif.
+         * @return [ApngDrawable] if successful and an [AnimatedImageDrawable] if the image decoded is not an APNG but a gif.
          */
         @Suppress("unused", "BlockingMethodInNonBlockingContext")
         @JvmStatic
