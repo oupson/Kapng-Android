@@ -47,11 +47,31 @@ class ApngDecoder {
         fun onError(error: Exception)
     }
 
-    data class Config(
-        val speed: Float = 1f,
-        val bitmapConfig: Bitmap.Config = Bitmap.Config.ARGB_8888,
-        val decodeCoverFrame: Boolean = true
-    )
+    class Config(
+        internal var speed: Float = 1f,
+        internal var bitmapConfig: Bitmap.Config = Bitmap.Config.ARGB_8888,
+        internal var decodeCoverFrame: Boolean = false
+    ) {
+        fun getSpeed() : Float = this.speed
+        fun setSpeed(speed : Float) : Config {
+            this.speed = speed
+            return this
+        }
+
+        fun getBitmapConfig() : Bitmap.Config = this.bitmapConfig
+        fun setBitmapConfig(config : Bitmap.Config) : Config {
+            this.bitmapConfig = config
+            return this
+        }
+
+        fun isDecodingCoverFrame() : Boolean {
+            return this.decodeCoverFrame
+        }
+        fun setIsDecodingCoverFrame(decodeCoverFrame : Boolean) : Config {
+            this.decodeCoverFrame = decodeCoverFrame
+            return this
+        }
+    }
 
     companion object {
         private const val TAG = "ApngDecoder"
@@ -70,9 +90,8 @@ class ApngDecoder {
          * Decode Apng and return a Drawable who can be an [AnimationDrawable] if it end successfully. Can also be an [android.graphics.drawable.AnimatedImageDrawable].
          * @param context Context needed for the animation drawable
          * @param inStream Input Stream to decode. Will be closed at the end.
-         * @param speed Optional parameter.
-         * @param config Configuration applied to the bitmap added to the animation. Please note that the frame is decoded in ARGB_8888 and converted after, for the buffer.
-         * @return [AnimationDrawable] if successful and an [AnimatedImageDrawable] if the image decoded is not an APNG but a gif. If it is not an animated image, it is a [Drawable].
+         * @param config Decoder configuration
+         * @return [ApngDrawable] if successful and an [AnimatedImageDrawable] if the image decoded is not an APNG but a gif. If it is not an animated image, it is a [Drawable].
          */
         // TODO DOCUMENT CONFIG
         @Suppress("MemberVisibilityCanBePrivate")
@@ -87,6 +106,7 @@ class ApngDecoder {
             val bytes = ByteArray(8)
             inputStream.mark(8)
             inputStream.read(bytes)
+
             if (isPng(bytes)) {
                 var png: ByteArrayOutputStream? = null
                 var cover: ByteArrayOutputStream? = null
@@ -118,6 +138,7 @@ class ApngDecoder {
 
                     if (byteRead == -1)
                         break
+
                     val length = Utils.uIntFromBytesBigEndian(lengthChunk)
 
                     val chunk = ByteArray(length + 8)
@@ -515,8 +536,7 @@ class ApngDecoder {
          * Decode Apng and return a Drawable who can be an [AnimationDrawable] if it end successfully. Can also be an [android.graphics.drawable.AnimatedImageDrawable].
          * @param context Context needed for animation drawable.
          * @param file File to decode.
-         * @param speed Optional parameter.
-         * @param config Configuration applied to the bitmap added to the animation. Please note that the frame is decoded in ARGB_8888 and converted after, for the buffer.
+         * @param config Decoder configuration
          * @return [AnimationDrawable] if successful and an [AnimatedImageDrawable] if the image decoded is not an APNG but a gif. If it is not an animated image, it is a [Drawable].
          */
         @Suppress("unused")
@@ -536,8 +556,7 @@ class ApngDecoder {
          * Decode Apng and return a Drawable who can be an [AnimationDrawable] if it end successfully. Can also be an [android.graphics.drawable.AnimatedImageDrawable].
          * @param context Context is needed for contentResolver and animation drawable.
          * @param uri Uri to open.
-         * @param speed Optional parameter.
-         * @param config Configuration applied to the bitmap added to the animation. Please note that the frame is decoded in ARGB_8888 and converted after, for the buffer.
+         * @param config Decoder configuration
          * @return [AnimationDrawable] if successful and an [AnimatedImageDrawable] if the image decoded is not an APNG but a gif.
          */
         @Suppress("unused")
@@ -559,8 +578,7 @@ class ApngDecoder {
          * Decode Apng and return a Drawable who can be an [AnimationDrawable] if it end successfully. Can also be an [android.graphics.drawable.AnimatedImageDrawable].
          * @param context Context is needed for contentResolver and animation drawable.
          * @param res Resource to decode.
-         * @param speed Optional parameter.
-         * @param config Configuration applied to the bitmap added to the animation. Please note that the frame is decoded in ARGB_8888 and converted after, for the buffer.
+         * @param config Decoder configuration
          * @return [AnimationDrawable] if successful and an [AnimatedImageDrawable] if the image decoded is not an APNG but a gif.
          */
         @Suppress("unused")
@@ -580,8 +598,7 @@ class ApngDecoder {
          * Decode Apng and return a Drawable who can be an [AnimationDrawable] if it end successfully. Can also be an [android.graphics.drawable.AnimatedImageDrawable].
          * @param context Context is needed for contentResolver and animation drawable.
          * @param url URL to decode.
-         * @param speed Optional parameter.
-         * @param config Configuration applied to the bitmap added to the animation. Please note that the frame is decoded in ARGB_8888 and converted after, for the buffer.
+         * @param config Decoder configuration
          * @return [AnimationDrawable] if successful and an [AnimatedImageDrawable] if the image decoded is not an APNG but a gif.
          */
         @Suppress("unused", "BlockingMethodInNonBlockingContext")
@@ -604,9 +621,8 @@ class ApngDecoder {
          * @param context Context needed for animation drawable.
          * @param file File to decode.
          * @param imageView Image View.
-         * @param speed Optional parameter.
          * @param callback [ApngDecoder.Callback] to handle success and error.
-         * @param config Configuration applied to the bitmap added to the animation. Please note that the frame is decoded in ARGB_8888 and converted after, for the buffer.
+         * @param config Decoder configuration
          */
         @Suppress("unused")
         @JvmStatic
@@ -647,9 +663,8 @@ class ApngDecoder {
          * @param context Context needed for animation drawable and content resolver.
          * @param uri Uri to load.
          * @param imageView Image View.
-         * @param speed Optional parameter.
          * @param callback [ApngDecoder.Callback] to handle success and error.
-         * @param config Configuration applied to the bitmap added to the animation. Please note that the frame is decoded in ARGB_8888 and converted after, for the buffer.
+         * @param config Decoder configuration
          */
         @Suppress("unused")
         @JvmStatic
@@ -691,9 +706,8 @@ class ApngDecoder {
          * @param context Context needed to decode the resource and for the animation drawable.
          * @param res Raw resource to load.
          * @param imageView Image View.
-         * @param speed Optional parameter.
          * @param callback [ApngDecoder.Callback] to handle success and error.
-         * @param config Configuration applied to the bitmap added to the animation. Please note that the frame is decoded in ARGB_8888 and converted after, for the buffer.
+         * @param config Decoder configuration
          */
         @Suppress("unused")
         @JvmStatic
@@ -734,9 +748,8 @@ class ApngDecoder {
          * @param context Context needed for the animation drawable.
          * @param url URL to load.
          * @param imageView Image View.
-         * @param speed Optional parameter.
          * @param callback [ApngDecoder.Callback] to handle success and error.
-         * @param config Configuration applied to the bitmap added to the animation. Please note that the frame is decoded in ARGB_8888 and converted after, for the buffer.
+         * @param config Decoder configuration
          */
         @Suppress("unused")
         @JvmStatic
@@ -780,9 +793,8 @@ class ApngDecoder {
          * @param context Context needed for decoding the image and creating the animation drawable.
          * @param string URL to load
          * @param imageView Image View.
-         * @param speed Optional parameter.
          * @param callback [ApngDecoder.Callback] to handle success and error.
-         * @param config Configuration applied to the bitmap added to the animation. Please note that the frame is decoded in ARGB_8888 and converted after, for the buffer.
+         * @param config Decoder configuration
          */
         @Suppress("unused")
         @JvmStatic

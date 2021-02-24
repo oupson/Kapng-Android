@@ -50,7 +50,7 @@ public class JavaFragment extends Fragment {
                 public void onError(@NotNull Exception error) {
                     Log.e(TAG, "Error : " + error.toString());
                 }
-            });
+            }, new ApngDecoder.Config().setIsDecodingCoverFrame(false));
         }
 
         return v;

@@ -1,15 +1,14 @@
 package oupson.apng
 
-import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.Color
 import android.graphics.drawable.AnimationDrawable
 import android.graphics.drawable.BitmapDrawable
 import androidx.test.platform.app.InstrumentationRegistry
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
 import org.junit.Test
+import oupson.apng.Utils.Companion.areBitmapSimilar
+import oupson.apng.Utils.Companion.getFrame
+import oupson.apng.Utils.Companion.isSimilar
 import oupson.apng.decoder.ApngDecoder
 import oupson.apng.encoder.ApngEncoder
 import oupson.apng.utils.Utils
@@ -78,7 +77,7 @@ class ApngEncoderInstrumentedTest {
 
         for (i in 0 until optimisedApng.numberOfFrames) {
             assertTrue(
-                isBitmapSimilar(
+                areBitmapSimilar(
                     list[i],
                     (optimisedApng.getFrame(i) as BitmapDrawable).bitmap
                 )
@@ -107,7 +106,7 @@ class ApngEncoderInstrumentedTest {
 
         for (i in 0 until optimisedApng.numberOfFrames) {
             assertTrue(
-                isBitmapSimilar(
+                areBitmapSimilar(
                     (optimisedApng.getFrame(i) as BitmapDrawable).bitmap,
                     (nonOptimisedApng.getFrame(i) as BitmapDrawable).bitmap
                 )
@@ -141,7 +140,7 @@ class ApngEncoderInstrumentedTest {
 
         for (i in 0 until optimisedApng.numberOfFrames) {
             assertTrue(
-                isBitmapSimilar(
+                areBitmapSimilar(
                     list[i],
                     (optimisedApng.getFrame(i) as BitmapDrawable).bitmap
                 )
@@ -170,54 +169,12 @@ class ApngEncoderInstrumentedTest {
 
         for (i in 0 until optimisedApng.numberOfFrames) {
             assertTrue(
-                isBitmapSimilar(
+                areBitmapSimilar(
                     (optimisedApng.getFrame(i) as BitmapDrawable).bitmap,
                     (nonOptimisedApng.getFrame(i) as BitmapDrawable).bitmap
                 )
             )
+
         }
-    }
-
-    private fun isSimilar(buffer : Bitmap, frame : Bitmap, diff : Utils.Companion.DiffResult) : Boolean {
-        val btm = buffer.copy(Bitmap.Config.ARGB_8888, true)
-
-        for (y in 0 until diff.bitmap.height) {
-            for (x in 0 until diff.bitmap.width) {
-                val p = diff.bitmap.getPixel(x, y)
-                if (p != Color.TRANSPARENT || p == Color.TRANSPARENT && diff.blendOp == Utils.Companion.BlendOp.APNG_BLEND_OP_SOURCE)
-                    btm.setPixel(diff.offsetX + x, diff.offsetY + y, p)
-            }
-        }
-
-        for (y in 0 until buffer.height) {
-            for (x in 0 until buffer.width) {
-                if (frame.getPixel(x, y) != btm.getPixel(x, y)) {
-                    return false
-                }
-            }
-        }
-        return true
-    }
-
-    fun isBitmapSimilar(btm1 : Bitmap, btm2 : Bitmap) : Boolean {
-        for (y in 0 until btm1.height) {
-            for (x in 0 until btm1.width) {
-                if (btm1.getPixel(x, y) != btm2.getPixel(x, y)) {
-                    return false
-                }
-            }
-        }
-        return true
-    }
-
-    private fun getFrame(context: Context, name: String) : Bitmap {
-        val inputStream = context.assets.open(name)
-
-        val bitmap = BitmapFactory.decodeStream(inputStream, null, BitmapFactory.Options().apply {
-            inPreferredConfig = Bitmap.Config.ARGB_8888
-        })
-
-        inputStream.close()
-        return bitmap!!
     }
 }
