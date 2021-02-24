@@ -11,6 +11,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.fragment.app.Fragment
 import oupson.apng.decoder.ApngDecoder
+import oupson.apng.drawable.ApngDrawable
 import oupson.apngcreator.BuildConfig
 import oupson.apngcreator.R
 import java.net.URL
@@ -40,7 +41,7 @@ class ApngDecoderFragment : Fragment() {
                 callback = object : ApngDecoder.Callback {
                     override fun onSuccess(drawable: Drawable) {
                         if (BuildConfig.DEBUG)
-                            Log.i(TAG, "onSuccess()")
+                            Log.i(TAG, "onSuccess(), has cover frame : ${(drawable as? ApngDrawable)?.coverFrame != null}")
                     }
 
                     override fun onError(error: Exception) {

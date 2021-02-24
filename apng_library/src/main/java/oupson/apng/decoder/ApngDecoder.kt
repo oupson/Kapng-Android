@@ -17,6 +17,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import oupson.apng.BuildConfig
 import oupson.apng.decoder.ApngDecoder.Companion.decodeApng
+import oupson.apng.drawable.ApngDrawable
 import oupson.apng.exceptions.BadApngException
 import oupson.apng.exceptions.BadCRCException
 import oupson.apng.utils.Loader
@@ -67,6 +68,7 @@ class ApngDecoder {
          * @param config Configuration applied to the bitmap added to the animation. Please note that the frame is decoded in ARGB_8888 and converted after, for the buffer.
          * @return [AnimationDrawable] if successful and an [AnimatedImageDrawable] if the image decoded is not an APNG but a gif. If it is not an animated image, it is a [Drawable].
          */
+        // TODO BETTER CONFIG (Maybe data class with speed, config, and a settings to ignore cover frame ?)
         @Suppress("MemberVisibilityCanBePrivate")
         @JvmStatic
         @JvmOverloads
@@ -98,7 +100,7 @@ class ApngDecoder {
 
                 var isApng = false
 
-                val drawable = AnimationDrawable().apply {
+                val drawable = ApngDrawable().apply {
                     isOneShot = false
                 }
 
@@ -111,14 +113,13 @@ class ApngDecoder {
 
                     if (byteRead == -1)
                         break
-                    val length = Utils.uIntFromBytesBigEndian(lengthChunk.map(Byte::toInt))
+                    val length = Utils.uIntFromBytesBigEndian(lengthChunk)
 
                     val chunk = ByteArray(length + 8)
                     byteRead = inputStream.read(chunk)
 
                     val byteArray = lengthChunk.plus(chunk)
-                    val chunkCRC =
-                        Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(byteArray.size - 4, byteArray.size).map(Byte::toInt))
+                    val chunkCRC = Utils.uIntFromBytesBigEndian(byteArray, byteArray.size - 4)
                     val crc = CRC32()
                     crc.update(byteArray, 4, byteArray.size - 8)
                     if (chunkCRC == crc.value.toInt()) {
@@ -126,20 +127,20 @@ class ApngDecoder {
                         when {
                             name.contentEquals(Utils.fcTL) -> {
                                 if (png == null) {
-                                    cover?.let {
+                                    drawable.coverFrame = cover?.let {
                                         it.write(zeroLength)
                                         // Generate crc for IEND
                                         val crC32 = CRC32()
                                         crC32.update(Utils.IEND, 0, Utils.IEND.size)
                                         it.write(Utils.IEND)
                                         it.write(Utils.uIntToByteArray(crC32.value.toInt()))
-                                        /**APNGDisassembler.apng.cover = BitmapFactory.decodeByteArray(
-                                        it.toByteArray(),
-                                        0,
-                                        it.size
-                                        )*/ // TODO
-                                        // This will be ignored, has this is not a frame in the anim :/
-                                        // TODO CAN BE A DRAWING THAT INHERITS FROM DRAWING ANIMATION
+
+                                        val pngBytes =  it.toByteArray()
+                                        BitmapFactory.decodeByteArray(
+                                            pngBytes,
+                                            0,
+                                            pngBytes.size
+                                        )
                                     }
                                 } else {
                                     // Add IEND body length : 0
@@ -233,11 +234,11 @@ class ApngDecoder {
                                 // Parse Frame ConTroL chunk
                                 // Get the width of the png
                                 val width = Utils.uIntFromBytesBigEndian(
-                                    byteArray.copyOfRange(12, 16).map(Byte::toInt)
+                                    byteArray, 12
                                 )
                                 // Get the height of the png
                                 val height = Utils.uIntFromBytesBigEndian(
-                                    byteArray.copyOfRange(16, 20).map(Byte::toInt)
+                                    byteArray, 16
                                 )
 
                                 /*
@@ -246,11 +247,11 @@ class ApngDecoder {
                                  */
                                 // Get delay numerator
                                 val delayNum = Utils.uShortFromBytesBigEndian(
-                                    byteArray.copyOfRange(28, 30).map(Byte::toInt)
+                                    byteArray, 28
                                 ).toFloat()
                                 // Get delay denominator
                                 var delayDen = Utils.uShortFromBytesBigEndian(
-                                    byteArray.copyOfRange(30, 32).map(Byte::toInt)
+                                    byteArray, 30
                                 ).toFloat()
 
                                 // If the denominator is 0, it is to be treated as if it were 100 (that is, `delay_num` then specifies 1/100ths of a second).
@@ -262,10 +263,10 @@ class ApngDecoder {
 
                                 // Get x and y offsets
                                 xOffset = Utils.uIntFromBytesBigEndian(
-                                    byteArray.copyOfRange(20, 24).map(Byte::toInt)
+                                    byteArray, 20
                                 )
                                 yOffset = Utils.uIntFromBytesBigEndian(
-                                    byteArray.copyOfRange(24, 28).map(Byte::toInt)
+                                    byteArray, 24
                                 )
                                 blendOp = Utils.decodeBlendOp(byteArray[33].toInt())
                                 disposeOp = Utils.decodeDisposeOp(byteArray[32].toInt())
@@ -419,7 +420,7 @@ class ApngDecoder {
                                 // Find the chunk length
                                 val bodySize =
                                     Utils.uIntFromBytesBigEndian(
-                                        byteArray.copyOfRange(0, 4).map(Byte::toInt)
+                                        byteArray, 0
                                     )
                                 w.write(byteArray.copyOfRange(0, 4))
 
@@ -437,7 +438,7 @@ class ApngDecoder {
                             }
                             name.contentEquals(Utils.fdAT) -> {
                                 // Find the chunk length
-                                val bodySize = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(0, 4).map(Byte::toInt))
+                                val bodySize = Utils.uIntFromBytesBigEndian(byteArray, 0)
                                 png?.write(Utils.uIntToByteArray(bodySize - 4))
 
                                 val body = ByteArray(bodySize)
@@ -459,11 +460,11 @@ class ApngDecoder {
                             }
                             name.contentEquals(Utils.IHDR) -> {
                                 // Get length of the body of the chunk
-                                val bodySize = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(4 - 4, 4).map(Byte::toInt))
+                                val bodySize = Utils.uIntFromBytesBigEndian(byteArray, 0)
                                 // Get the width of the png
-                                maxWidth = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(4 +4, 4 + 8).map(Byte::toInt))
+                                maxWidth = Utils.uIntFromBytesBigEndian(byteArray, 8)
                                 // Get the height of the png
-                                maxHeight = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(4 +8, 4 + 12).map(Byte::toInt))
+                                maxHeight = Utils.uIntFromBytesBigEndian(byteArray, 12)
                                 ihdrOfApng = byteArray.copyOfRange(4 + 4, 4 + bodySize + 4)
 
                                 buffer = Bitmap.createBitmap(

@@ -190,6 +190,13 @@ class Utils {
                     ((bytes[2] and 0xFF) shl 8) or
                     (bytes[3] and 0xFF)
 
+        // TODO DOCUMENT AND TEST
+        fun uIntFromBytesBigEndian(bytes: ByteArray, offset: Int = 0): Int =
+            ((bytes[offset + 0].toInt() and 0xFF) shl 24) or
+                    ((bytes[offset + 1].toInt() and 0xFF) shl 16) or
+                    ((bytes[offset + 2].toInt() and 0xFF) shl 8) or
+                    (bytes[offset + 3].toInt() and 0xFF)
+
         /**
          * Parse an unsigned short
          * [bytes] The bytes, in big endian order
@@ -199,6 +206,11 @@ class Utils {
         fun uShortFromBytesBigEndian(bytes: List<Int>): Int =
             (((bytes[0] and 0xFF) shl 8) or
                     (bytes[1] and 0xFF))
+
+        // TODO DOCUMENT AND TEST
+        fun uShortFromBytesBigEndian(bytes: ByteArray, offset : Int = 0): Int =
+            (((bytes[offset].toInt() and 0xFF) shl 8) or
+                    (bytes[offset + 1].toInt() and 0xFF))
 
         val fcTL: ByteArray by lazy { byteArrayOf(0x66, 0x63, 0x54, 0x4c) }
         val IEND: ByteArray by lazy { byteArrayOf(0x49, 0x45, 0x4e, 0x44) }

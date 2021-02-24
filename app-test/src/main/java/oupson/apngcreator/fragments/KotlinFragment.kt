@@ -1,7 +1,6 @@
 package oupson.apngcreator.fragments
 
 
-import android.graphics.drawable.AnimationDrawable
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
@@ -15,6 +14,7 @@ import androidx.fragment.app.Fragment
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_creator.*
 import oupson.apng.decoder.ApngDecoder
+import oupson.apng.drawable.ApngDrawable
 import oupson.apngcreator.BuildConfig
 import oupson.apngcreator.R
 
@@ -36,7 +36,7 @@ class KotlinFragment : Fragment() {
     private var speedSeekBar : SeekBar? = null
 
     //private var animator : ApngAnimator? = null
-    private var animation : AnimationDrawable? = null
+    private var animation : ApngDrawable? = null
     private var durations : IntArray? = null
 
     private var frameIndex = 0
@@ -82,8 +82,9 @@ class KotlinFragment : Fragment() {
 
         pauseButton?.setOnClickListener {
             animation = animation?.let { animation ->
-                val res = AnimationDrawable()
+                val res = ApngDrawable()
                 animation.stop()
+                res.coverFrame = animation.coverFrame
                 val currentFrame = animation.current
 
                 frameLoop@ for (i in 0 until animation.numberOfFrames) {
@@ -120,8 +121,9 @@ class KotlinFragment : Fragment() {
                 if (seekBar != null && durations != null) {
                     val speed = seekBar.progress.toFloat() / 100f
                     animation = animation?.let { animation ->
-                        val res = AnimationDrawable()
+                        val res = ApngDrawable()
                         animation.stop()
+                        res.coverFrame = animation.coverFrame
 
                         for (i in 0 until animation.numberOfFrames) {
                             res.addFrame(animation.getFrame(i), (durations!![i].toFloat() / speed).toInt())
@@ -142,7 +144,7 @@ class KotlinFragment : Fragment() {
                 apngImageView!!,
                 callback = object : ApngDecoder.Callback {
                     override fun onSuccess(drawable: Drawable) {
-                        animation = (drawable as? AnimationDrawable)
+                        animation = (drawable as? ApngDrawable)
                         durations = IntArray(animation?.numberOfFrames ?: 0) { i ->
                             animation?.getDuration(i) ?: 0
                         }
