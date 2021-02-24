@@ -48,7 +48,7 @@ class ApngDecoder {
 
     companion object {
         private const val TAG = "ApngDecoder"
-        private val zeroLength = arrayOf(0x00, 0x00, 0x00, 0x00).map { it.toByte() }
+        private val zeroLength = byteArrayOf(0x00, 0x00, 0x00, 0x00)
 
         // Paint used to clear the buffer
         private val clearPaint: Paint by lazy {
@@ -81,8 +81,8 @@ class ApngDecoder {
             inputStream.mark(8)
             inputStream.read(bytes)
             if (isPng(bytes)) {
-                var png: ArrayList<Byte>? = null
-                var cover: ArrayList<Byte>? = null
+                var png: ByteArrayOutputStream? = null
+                var cover: ByteArrayOutputStream? = null
                 var delay = -1f
                 var yOffset = -1
                 var xOffset = -1
@@ -117,97 +117,51 @@ class ApngDecoder {
                     byteRead = inputStream.read(chunk)
 
                     val byteArray = lengthChunk.plus(chunk)
-                    val i = 4
                     val chunkCRC =
                         Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(byteArray.size - 4, byteArray.size).map(Byte::toInt))
                     val crc = CRC32()
-                    crc.update(byteArray.copyOfRange(i, byteArray.size - 4))
+                    crc.update(byteArray, 4, byteArray.size - 8)
                     if (chunkCRC == crc.value.toInt()) {
-                        val name = byteArray.copyOfRange(i, i + 4)
+                        val name = byteArray.copyOfRange(4, 8)
                         when {
                             name.contentEquals(Utils.fcTL) -> {
                                 if (png == null) {
                                     cover?.let {
-                                        it.addAll(zeroLength)
+                                        it.write(zeroLength)
                                         // Generate crc for IEND
                                         val crC32 = CRC32()
                                         crC32.update(Utils.IEND, 0, Utils.IEND.size)
-                                        it.addAll(Utils.IEND.asList())
-                                        it.addAll(Utils.uIntToByteArray(crC32.value.toInt()).asList())
+                                        it.write(Utils.IEND)
+                                        it.write(Utils.uIntToByteArray(crC32.value.toInt()))
                                         /**APNGDisassembler.apng.cover = BitmapFactory.decodeByteArray(
-                                            it.toByteArray(),
-                                            0,
-                                            it.size
+                                        it.toByteArray(),
+                                        0,
+                                        it.size
                                         )*/ // TODO
-                                    }
-                                    png = ArrayList()
-
-                                    // PARSE FCTL
-                                    // Get the width of the png
-                                    val width = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(i + 8, i + 12).map(Byte::toInt))
-                                    // Get the height of the png
-                                    val height = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(i + 12, i + 16).map(Byte::toInt))
-                                    /*
-                                         * The `delay_num` and `delay_den` parameters together specify a fraction indicating the time to display the current frame, in seconds.
-                                         * If the the value of the numerator is 0 the decoder should render the next frame as quickly as possible, though viewers may impose a reasonable lower bound.
-                                         */
-                                    // Get delay numerator
-                                    val delayNum = Utils.uShortFromBytesBigEndian(byteArray.copyOfRange(i + 24, i + 26).map(Byte::toInt)).toFloat()
-                                    // Get delay denominator
-                                    var delayDen = Utils.uShortFromBytesBigEndian(byteArray.copyOfRange(i + 26, i + 28).map(Byte::toInt)).toFloat()
-
-                                    // If the denominator is 0, it is to be treated as if it were 100 (that is, `delay_num` then specifies 1/100ths of a second).
-                                    if (delayDen == 0f) {
-                                        delayDen = 100f
-                                    }
-
-                                    delay = (delayNum / delayDen * 1000)
-
-                                    // Get x and y offsets
-                                    xOffset = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(i + 16, i + 20).map(Byte::toInt))
-                                    yOffset = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(i + 20, i + 24).map(Byte::toInt))
-                                    blendOp = Utils.decodeBlendOp(byteArray[33].toInt())
-                                    disposeOp = Utils.decodeDisposeOp(byteArray[32].toInt())
-
-                                    if (xOffset + width > maxWidth) {
-                                        throw BadApngException("`xOffset` + `width` must be <= `IHDR` width")
-                                    } else if (yOffset + height > maxHeight) {
-                                        throw BadApngException("`yOffset` + `height` must be <= `IHDR` height")
-                                    }
-
-                                    png.addAll(Utils.pngSignature.asList())
-                                    png.addAll(
-                                        generateIhdr(
-                                            ihdrOfApng,
-                                            width,
-                                            height
-                                        ).asList()
-                                    )
-                                    plte?.let {
-                                        png?.addAll(it.asList())
-                                    }
-                                    tnrs?.let {
-                                        png?.addAll(it.asList())
+                                        // This will be ignored, has this is not a frame in the anim :/
+                                        // TODO CAN BE A DRAWING THAT INHERITS FROM DRAWING ANIMATION
                                     }
                                 } else {
                                     // Add IEND body length : 0
-                                    png.addAll(zeroLength)
+                                    png.write(zeroLength)
                                     // Add IEND
                                     // Generate crc for IEND
                                     val crC32 = CRC32()
                                     crC32.update(Utils.IEND, 0, Utils.IEND.size)
-                                    png.addAll(Utils.IEND.asList())
-                                    png.addAll(Utils.uIntToByteArray(crC32.value.toInt()).asList())
+                                    png.write(Utils.IEND)
+                                    png.write(Utils.uIntToByteArray(crC32.value.toInt()))
 
                                     val btm = Bitmap.createBitmap(
                                         maxWidth,
                                         maxHeight,
                                         Bitmap.Config.ARGB_8888
                                     )
+
+                                    val pngBytes = png.toByteArray()
                                     val decoded = BitmapFactory.decodeByteArray(
-                                        png.toByteArray(),
+                                        pngBytes,
                                         0,
-                                        png.size
+                                        pngBytes.size
                                     )
                                     val canvas = Canvas(btm)
                                     canvas.drawBitmap(buffer!!, 0f, 0f, null)
@@ -272,73 +226,93 @@ class ApngDecoder {
                                         else -> buffer = btm
                                     }
 
-
-                                    png = ArrayList()
-
-                                    // PARSE FCTL
-                                    // Get the width of the png
-                                    val width = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(i + 8, i + 12).map(Byte::toInt))
-                                    // Get the height of the png
-                                    val height = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(i + 12, i + 16).map(Byte::toInt))
-                                    /*
-                                         * The `delay_num` and `delay_den` parameters together specify a fraction indicating the time to display the current frame, in seconds.
-                                         * If the the value of the numerator is 0 the decoder should render the next frame as quickly as possible, though viewers may impose a reasonable lower bound.
-                                         */
-                                    // Get delay numerator
-                                    val delayNum = Utils.uShortFromBytesBigEndian(byteArray.copyOfRange(i + 24, i + 26).map(Byte::toInt)).toFloat()
-                                    // Get delay denominator
-                                    var delayDen = Utils.uShortFromBytesBigEndian(byteArray.copyOfRange(i + 26, i + 28).map(Byte::toInt)).toFloat()
-
-                                    // If the denominator is 0, it is to be treated as if it were 100 (that is, `delay_num` then specifies 1/100ths of a second).
-                                    if (delayDen == 0f) {
-                                        delayDen = 100f
-                                    }
-
-                                    delay = (delayNum / delayDen * 1000)
-
-                                    // Get x and y offsets
-                                    xOffset = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(i + 16, i + 20).map(Byte::toInt))
-                                    yOffset = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(i + 20, i + 24).map(Byte::toInt))
-                                    blendOp = Utils.decodeBlendOp(byteArray[33].toInt())
-                                    disposeOp = Utils.decodeDisposeOp(byteArray[32].toInt())
-
-
-                                    png.addAll(Utils.pngSignature.asList())
-                                    png.addAll(
-                                        generateIhdr(
-                                            ihdrOfApng,
-                                            width,
-                                            height
-                                        ).asList()
-                                    )
-                                    plte?.let {
-                                        png.addAll(it.asList())
-                                    }
-                                    tnrs?.let {
-                                        png.addAll(it.asList())
-                                    }
                                 }
+
+                                png = ByteArrayOutputStream(4096)
+
+                                // Parse Frame ConTroL chunk
+                                // Get the width of the png
+                                val width = Utils.uIntFromBytesBigEndian(
+                                    byteArray.copyOfRange(12, 16).map(Byte::toInt)
+                                )
+                                // Get the height of the png
+                                val height = Utils.uIntFromBytesBigEndian(
+                                    byteArray.copyOfRange(16, 20).map(Byte::toInt)
+                                )
+
+                                /*
+                                 * The `delay_num` and `delay_den` parameters together specify a fraction indicating the time to display the current frame, in seconds.
+                                 * If the the value of the numerator is 0 the decoder should render the next frame as quickly as possible, though viewers may impose a reasonable lower bound.
+                                 */
+                                // Get delay numerator
+                                val delayNum = Utils.uShortFromBytesBigEndian(
+                                    byteArray.copyOfRange(28, 30).map(Byte::toInt)
+                                ).toFloat()
+                                // Get delay denominator
+                                var delayDen = Utils.uShortFromBytesBigEndian(
+                                    byteArray.copyOfRange(30, 32).map(Byte::toInt)
+                                ).toFloat()
+
+                                // If the denominator is 0, it is to be treated as if it were 100 (that is, `delay_num` then specifies 1/100ths of a second).
+                                if (delayDen == 0f) {
+                                    delayDen = 100f
+                                }
+
+                                delay = (delayNum / delayDen * 1000)
+
+                                // Get x and y offsets
+                                xOffset = Utils.uIntFromBytesBigEndian(
+                                    byteArray.copyOfRange(20, 24).map(Byte::toInt)
+                                )
+                                yOffset = Utils.uIntFromBytesBigEndian(
+                                    byteArray.copyOfRange(24, 28).map(Byte::toInt)
+                                )
+                                blendOp = Utils.decodeBlendOp(byteArray[33].toInt())
+                                disposeOp = Utils.decodeDisposeOp(byteArray[32].toInt())
+
+                                if (xOffset + width > maxWidth) {
+                                    throw BadApngException("`xOffset` + `width` must be <= `IHDR` width")
+                                } else if (yOffset + height > maxHeight) {
+                                    throw BadApngException("`yOffset` + `height` must be <= `IHDR` height")
+                                }
+
+                                png.write(Utils.pngSignature)
+                                png.write(
+                                    generateIhdr(
+                                        ihdrOfApng,
+                                        width,
+                                        height
+                                    )
+                                )
+                                plte?.let {
+                                    png.write(it)
+                                }
+                                tnrs?.let {
+                                    png.write(it)
+                                }
+
                             }
                             name.contentEquals(Utils.IEND) -> {
                                 if (isApng && png != null) {
-                                    png.addAll(zeroLength)
+                                    png.write(zeroLength)
                                     // Add IEND
                                     // Generate crc for IEND
                                     val crC32 = CRC32()
                                     crC32.update(Utils.IEND, 0, Utils.IEND.size)
-                                    png.addAll(Utils.IEND.asList())
-                                    png.addAll(Utils.uIntToByteArray(crC32.value.toInt()).asList())
-
+                                    png.write(Utils.IEND)
+                                    png.write(Utils.uIntToByteArray(crC32.value.toInt()))
 
                                     val btm = Bitmap.createBitmap(
                                         maxWidth,
                                         maxHeight,
                                         Bitmap.Config.ARGB_8888
                                     )
+
+                                    val pngBytes = png.toByteArray()
                                     val decoded = BitmapFactory.decodeByteArray(
-                                        png.toByteArray(),
+                                        pngBytes,
                                         0,
-                                        png.size
+                                        pngBytes.size
                                     )
                                     val canvas = Canvas(btm)
                                     canvas.drawBitmap(buffer!!, 0f, 0f, null)
@@ -402,89 +376,80 @@ class ApngDecoder {
                                         else -> buffer = btm
                                     }
                                 } else {
-                                    // TODO Check before the end
                                     cover?.let {
-                                        it.addAll(zeroLength)
+                                        it.write(zeroLength)
                                         // Add IEND
                                         // Generate crc for IEND
                                         val crC32 = CRC32()
                                         crC32.update(Utils.IEND, 0, Utils.IEND.size)
-                                        it.addAll(Utils.IEND.asList())
-                                        it.addAll(Utils.uIntToByteArray(crC32.value.toInt()).asList())
+                                        it.write(Utils.IEND)
+                                        it.write(Utils.uIntToByteArray(crC32.value.toInt()))
                                         inputStream.close()
+
+                                        val pngBytes = it.toByteArray()
                                         return BitmapDrawable(
                                             context.resources,
                                             BitmapFactory.decodeByteArray(
-                                                it.toByteArray(),
+                                                pngBytes,
                                                 0,
-                                                it.size
+                                                pngBytes.size
                                             )
                                         )
                                     }
                                 }
                             }
                             name.contentEquals(Utils.IDAT) -> {
-                                if (png == null) {
+                                val w = if (png == null) {
                                     if (cover == null) {
-                                        cover = ArrayList()
-                                        cover.addAll(Utils.pngSignature.asList())
-                                        cover.addAll(
+                                        cover = ByteArrayOutputStream()
+                                        cover.write(Utils.pngSignature)
+                                        cover.write(
                                             generateIhdr(
                                                 ihdrOfApng,
                                                 maxWidth,
                                                 maxHeight
-                                            ).asList()
+                                            )
                                         )
                                     }
-                                    // Find the chunk length
-                                    val bodySize =
-                                        Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(i - 4, i).map(Byte::toInt))
-                                    cover.addAll(byteArray.copyOfRange(i - 4, i).asList())
-                                    val body = ArrayList<Byte>()
-                                    body.addAll(Utils.IDAT.asList())
-                                    // Get image bytes
-                                    body.addAll(
-                                        byteArray.copyOfRange(
-                                            i + 4,
-                                            i + 4 + bodySize
-                                        ).asList()
-                                    )
-                                    val crC32 = CRC32()
-                                    crC32.update(body.toByteArray(), 0, body.size)
-                                    cover.addAll(body)
-                                    cover.addAll(Utils.uIntToByteArray(crC32.value.toInt()).asList())
+                                    cover
                                 } else {
-                                    // Find the chunk length
-                                    val bodySize =
-                                        Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(i - 4, i).map(Byte::toInt))
-                                    png.addAll(byteArray.copyOfRange(i - 4, i).asList())
-                                    val body = ArrayList<Byte>()
-                                    body.addAll(Utils.IDAT.asList())
-                                    // Get image bytes
-                                    body.addAll(
-                                        byteArray.copyOfRange(
-                                            i + 4,
-                                            i + 4 + bodySize
-                                        ).asList()
-                                    )
-                                    val crC32 = CRC32()
-                                    crC32.update(body.toByteArray(), 0, body.size)
-                                    png.addAll(body)
-                                    png.addAll(Utils.uIntToByteArray(crC32.value.toInt()).asList())
+                                    png
                                 }
+
+                                // Find the chunk length
+                                val bodySize =
+                                    Utils.uIntFromBytesBigEndian(
+                                        byteArray.copyOfRange(0, 4).map(Byte::toInt)
+                                    )
+                                w.write(byteArray.copyOfRange(0, 4))
+
+                                val body = ByteArray(4 + bodySize)
+
+                                System.arraycopy(Utils.IDAT, 0, body, 0, 4)
+
+                                // Get image bytes
+                                System.arraycopy(byteArray, 8, body, 4, bodySize)
+
+                                val crC32 = CRC32()
+                                crC32.update(body, 0, body.size)
+                                w.write(body)
+                                w.write(Utils.uIntToByteArray(crC32.value.toInt()))
                             }
                             name.contentEquals(Utils.fdAT) -> {
                                 // Find the chunk length
-                                val bodySize = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(i - 4, i).map(Byte::toInt))
-                                png?.addAll(Utils.uIntToByteArray(bodySize - 4).asList())
-                                val body = ArrayList<Byte>()
-                                body.addAll(Utils.IDAT.asList())
+                                val bodySize = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(0, 4).map(Byte::toInt))
+                                png?.write(Utils.uIntToByteArray(bodySize - 4))
+
+                                val body = ByteArray(bodySize)
+                                System.arraycopy(Utils.IDAT, 0, body, 0, 4)
+
                                 // Get image bytes
-                                body.addAll(byteArray.copyOfRange(i + 8, i + 4 + bodySize).asList())
+                                System.arraycopy(byteArray, 12, body, 4, bodySize - 4)
+
                                 val crC32 = CRC32()
-                                crC32.update(body.toByteArray(), 0, body.size)
-                                png?.addAll(body)
-                                png?.addAll(Utils.uIntToByteArray(crC32.value.toInt()).asList())
+                                crC32.update(body, 0, body.size)
+                                png?.write(body)
+                                png?.write(Utils.uIntToByteArray(crC32.value.toInt()))
                             }
                             name.contentEquals(Utils.plte) -> {
                                 plte = byteArray
@@ -494,12 +459,12 @@ class ApngDecoder {
                             }
                             name.contentEquals(Utils.IHDR) -> {
                                 // Get length of the body of the chunk
-                                val bodySize = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(i - 4, i).map(Byte::toInt))
+                                val bodySize = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(4 - 4, 4).map(Byte::toInt))
                                 // Get the width of the png
-                                maxWidth = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(i +4, i + 8).map(Byte::toInt))
+                                maxWidth = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(4 +4, 4 + 8).map(Byte::toInt))
                                 // Get the height of the png
-                                maxHeight = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(i +8, i +12).map(Byte::toInt))
-                                ihdrOfApng = byteArray.copyOfRange(i + 4, i + bodySize + 4)
+                                maxHeight = Utils.uIntFromBytesBigEndian(byteArray.copyOfRange(4 +8, 4 + 12).map(Byte::toInt))
+                                ihdrOfApng = byteArray.copyOfRange(4 + 4, 4 + bodySize + 4)
 
                                 buffer = Bitmap.createBitmap(
                                     maxWidth,
@@ -507,7 +472,7 @@ class ApngDecoder {
                                     Bitmap.Config.ARGB_8888
                                 )
                             }
-                            name.contentEquals(Utils.acTL) -> {
+                            name.contentEquals(Utils.acTL) -> { // TODO GET NBR REPETITIONS
                                 isApng = true
                             }
                         }

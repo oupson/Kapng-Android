@@ -128,7 +128,6 @@ class KotlinFragment : Fragment() {
                         }
 
                         apngImageView?.setImageDrawable(res)
-                        animation.invalidateSelf()
                         res.start()
                         res
                     }
