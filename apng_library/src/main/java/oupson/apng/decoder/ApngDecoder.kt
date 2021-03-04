@@ -13,6 +13,7 @@ import android.widget.ImageView
 import androidx.annotation.RawRes
 import kotlinx.coroutines.*
 import oupson.apng.BuildConfig
+import oupson.apng.decoder.ApngDecoder.Companion.decodeApng
 import oupson.apng.drawable.ApngDrawable
 import oupson.apng.exceptions.BadApngException
 import oupson.apng.exceptions.BadCRCException
@@ -48,20 +49,22 @@ class ApngDecoder {
         internal var bitmapConfig: Bitmap.Config = Bitmap.Config.ARGB_8888,
         internal var decodeCoverFrame: Boolean = false
     ) {
-        fun getSpeed(): Float = this.speed
-        fun setSpeed(speed: Float): Config {
+        fun getSpeed() : Float = this.speed
+        fun setSpeed(speed : Float) : Config {
             this.speed = speed
             return this
         }
 
-        fun getBitmapConfig(): Bitmap.Config = this.bitmapConfig
-        fun setBitmapConfig(config: Bitmap.Config): Config {
+        fun getBitmapConfig() : Bitmap.Config = this.bitmapConfig
+        fun setBitmapConfig(config : Bitmap.Config) : Config {
             this.bitmapConfig = config
             return this
         }
 
-        fun isDecodingCoverFrame(): Boolean = this.decodeCoverFrame
-        fun setIsDecodingCoverFrame(decodeCoverFrame: Boolean): Config {
+        fun isDecodingCoverFrame() : Boolean {
+            return this.decodeCoverFrame
+        }
+        fun setIsDecodingCoverFrame(decodeCoverFrame : Boolean) : Config {
             this.decodeCoverFrame = decodeCoverFrame
             return this
         }
@@ -81,6 +84,541 @@ class ApngDecoder {
         }
 
         /**
+         * Decode Apng and return a Drawable who can be an [ApngDrawable] if it end successfully. Can also be an [android.graphics.drawable.AnimatedImageDrawable].
+         * @param context Context needed for the animation drawable
+         * @param inStream Input Stream to decode. Will be closed at the end.
+         * @param config Decoder configuration
+         * @return [ApngDrawable] if successful and an [AnimatedImageDrawable] if the image decoded is not an APNG but a gif. If it is not an animated image, it is a [Drawable].
+         */
+        // TODO DOCUMENT CONFIG
+        @Suppress("MemberVisibilityCanBePrivate")
+        @JvmStatic
+        @JvmOverloads
+        fun decodeApng(
+            context: Context,
+            inStream: InputStream,
+            config: Config = Config()
+        ): Drawable {
+            val inputStream = BufferedInputStream(inStream)
+            val bytes = ByteArray(8)
+            inputStream.mark(8)
+            inputStream.read(bytes)
+
+            if (isPng(bytes)) {
+                var png: ByteArrayOutputStream? = null
+                var cover: ByteArrayOutputStream? = null
+                var delay = -1f
+                var yOffset = -1
+                var xOffset = -1
+                var plte: ByteArray? = null
+                var tnrs: ByteArray? = null
+                var maxWidth = 0
+                var maxHeight = 0
+                var blendOp: Utils.Companion.BlendOp = Utils.Companion.BlendOp.APNG_BLEND_OP_SOURCE
+                var disposeOp: Utils.Companion.DisposeOp =
+                    Utils.Companion.DisposeOp.APNG_DISPOSE_OP_NONE
+
+                var ihdrOfApng = ByteArray(0)
+
+                var isApng = false
+
+                val drawable = ApngDrawable().apply {
+                    isOneShot = false
+                }
+
+                var buffer: Bitmap? = null
+
+                var byteRead: Int
+                val lengthChunk = ByteArray(4)
+                do {
+                    byteRead = inputStream.read(lengthChunk)
+
+                    if (byteRead == -1)
+                        break
+
+                    val length = Utils.uIntFromBytesBigEndian(lengthChunk)
+
+                    val chunk = ByteArray(length + 8)
+                    byteRead = inputStream.read(chunk)
+
+                    val byteArray = lengthChunk.plus(chunk)
+                    val chunkCRC = Utils.uIntFromBytesBigEndian(byteArray, byteArray.size - 4)
+                    val crc = CRC32()
+                    crc.update(byteArray, 4, byteArray.size - 8)
+                    if (chunkCRC == crc.value.toInt()) {
+                        val name = byteArray.copyOfRange(4, 8)
+                        when {
+                            name.contentEquals(Utils.fcTL) -> {
+                                if (png == null) {
+                                    if (config.decodeCoverFrame) {
+                                        drawable.coverFrame = cover?.let {
+                                            it.write(zeroLength)
+                                            // Generate crc for IEND
+                                            val crC32 = CRC32()
+                                            crC32.update(Utils.IEND, 0, Utils.IEND.size)
+                                            it.write(Utils.IEND)
+                                            it.write(Utils.uIntToByteArray(crC32.value.toInt()))
+
+                                            val pngBytes = it.toByteArray()
+                                            BitmapFactory.decodeByteArray(
+                                                pngBytes,
+                                                0,
+                                                pngBytes.size
+                                            )
+                                        }
+                                    }
+                                    cover = null
+                                } else {
+                                    // Add IEND body length : 0
+                                    png.write(zeroLength)
+                                    // Add IEND
+                                    // Generate crc for IEND
+                                    val crC32 = CRC32()
+                                    crC32.update(Utils.IEND, 0, Utils.IEND.size)
+                                    png.write(Utils.IEND)
+                                    png.write(Utils.uIntToByteArray(crC32.value.toInt()))
+
+                                    val btm = Bitmap.createBitmap(
+                                        maxWidth,
+                                        maxHeight,
+                                        Bitmap.Config.ARGB_8888
+                                    )
+
+                                    val pngBytes = png.toByteArray()
+                                    val decoded = BitmapFactory.decodeByteArray(
+                                        pngBytes,
+                                        0,
+                                        pngBytes.size
+                                    )
+                                    val canvas = Canvas(btm)
+                                    canvas.drawBitmap(buffer!!, 0f, 0f, null)
+
+                                    if (blendOp == Utils.Companion.BlendOp.APNG_BLEND_OP_SOURCE) {
+                                        canvas.drawRect(
+                                            xOffset.toFloat(),
+                                            yOffset.toFloat(),
+                                            xOffset + decoded.width.toFloat(),
+                                            yOffset + decoded.height.toFloat(),
+                                            clearPaint
+                                        )
+                                    }
+
+                                    canvas.drawBitmap(
+                                        decoded,
+                                        xOffset.toFloat(),
+                                        yOffset.toFloat(),
+                                        null
+                                    )
+
+                                    drawable.addFrame(
+                                        BitmapDrawable(
+                                            context.resources,
+                                            if (btm.config != config.bitmapConfig) {
+                                                if (BuildConfig.DEBUG)
+                                                    Log.v(
+                                                        TAG,
+                                                        "Bitmap Config : ${btm.config}, Config : $config"
+                                                    )
+                                                btm.copy(config.bitmapConfig, btm.isMutable)
+                                            } else {
+                                                btm
+                                            }
+                                        ),
+                                        (delay / config.speed).toInt()
+                                    )
+
+                                    when (disposeOp) {
+                                        Utils.Companion.DisposeOp.APNG_DISPOSE_OP_PREVIOUS -> {
+                                            //Do nothings
+                                        }
+                                        // Add current frame to bitmap buffer
+                                        // APNG_DISPOSE_OP_BACKGROUND: the frame's region of the output buffer is to be cleared to fully transparent black before rendering the next frame.
+                                        Utils.Companion.DisposeOp.APNG_DISPOSE_OP_BACKGROUND -> {
+                                            val res = Bitmap.createBitmap(
+                                                maxWidth,
+                                                maxHeight,
+                                                Bitmap.Config.ARGB_8888
+                                            )
+                                            val can = Canvas(res)
+                                            can.drawBitmap(btm, 0f, 0f, null)
+                                            can.drawRect(
+                                                xOffset.toFloat(),
+                                                yOffset.toFloat(),
+                                                xOffset + decoded.width.toFloat(),
+                                                yOffset + decoded.height.toFloat(),
+                                                clearPaint
+                                            )
+                                            buffer = res
+                                        }
+                                        else -> buffer = btm
+                                    }
+
+                                }
+
+                                png = ByteArrayOutputStream(4096)
+
+                                // Parse Frame ConTroL chunk
+                                // Get the width of the png
+                                val width = Utils.uIntFromBytesBigEndian(
+                                    byteArray, 12
+                                )
+                                // Get the height of the png
+                                val height = Utils.uIntFromBytesBigEndian(
+                                    byteArray, 16
+                                )
+
+                                /*
+                                 * The `delay_num` and `delay_den` parameters together specify a fraction indicating the time to display the current frame, in seconds.
+                                 * If the the value of the numerator is 0 the decoder should render the next frame as quickly as possible, though viewers may impose a reasonable lower bound.
+                                 */
+                                // Get delay numerator
+                                val delayNum = Utils.uShortFromBytesBigEndian(
+                                    byteArray, 28
+                                ).toFloat()
+                                // Get delay denominator
+                                var delayDen = Utils.uShortFromBytesBigEndian(
+                                    byteArray, 30
+                                ).toFloat()
+
+                                // If the denominator is 0, it is to be treated as if it were 100 (that is, `delay_num` then specifies 1/100ths of a second).
+                                if (delayDen == 0f) {
+                                    delayDen = 100f
+                                }
+
+                                delay = (delayNum / delayDen * 1000)
+
+                                // Get x and y offsets
+                                xOffset = Utils.uIntFromBytesBigEndian(
+                                    byteArray, 20
+                                )
+                                yOffset = Utils.uIntFromBytesBigEndian(
+                                    byteArray, 24
+                                )
+                                blendOp = Utils.decodeBlendOp(byteArray[33].toInt())
+                                disposeOp = Utils.decodeDisposeOp(byteArray[32].toInt())
+
+                                if (xOffset + width > maxWidth) {
+                                    throw BadApngException("`xOffset` + `width` must be <= `IHDR` width")
+                                } else if (yOffset + height > maxHeight) {
+                                    throw BadApngException("`yOffset` + `height` must be <= `IHDR` height")
+                                }
+
+                                png.write(Utils.pngSignature)
+                                png.write(
+                                    generateIhdr(
+                                        ihdrOfApng,
+                                        width,
+                                        height
+                                    )
+                                )
+                                plte?.let {
+                                    png.write(it)
+                                }
+                                tnrs?.let {
+                                    png.write(it)
+                                }
+
+                            }
+                            name.contentEquals(Utils.IEND) -> {
+                                if (isApng && png != null) {
+                                    png.write(zeroLength)
+                                    // Add IEND
+                                    // Generate crc for IEND
+                                    val crC32 = CRC32()
+                                    crC32.update(Utils.IEND, 0, Utils.IEND.size)
+                                    png.write(Utils.IEND)
+                                    png.write(Utils.uIntToByteArray(crC32.value.toInt()))
+
+                                    val btm = Bitmap.createBitmap(
+                                        maxWidth,
+                                        maxHeight,
+                                        Bitmap.Config.ARGB_8888
+                                    )
+
+                                    val pngBytes = png.toByteArray()
+                                    val decoded = BitmapFactory.decodeByteArray(
+                                        pngBytes,
+                                        0,
+                                        pngBytes.size
+                                    )
+                                    val canvas = Canvas(btm)
+                                    canvas.drawBitmap(buffer!!, 0f, 0f, null)
+
+                                    if (blendOp == Utils.Companion.BlendOp.APNG_BLEND_OP_SOURCE) {
+                                        canvas.drawRect(
+                                            xOffset.toFloat(),
+                                            yOffset.toFloat(),
+                                            xOffset + decoded.width.toFloat(),
+                                            yOffset + decoded.height.toFloat(),
+                                            clearPaint
+                                        )
+                                    }
+
+                                    canvas.drawBitmap(
+                                        decoded,
+                                        xOffset.toFloat(),
+                                        yOffset.toFloat(),
+                                        null
+                                    )
+                                    drawable.addFrame(
+                                        BitmapDrawable(
+                                            context.resources,
+                                            if (btm.config != config.bitmapConfig) {
+                                                if (BuildConfig.DEBUG)
+                                                    Log.v(
+                                                        TAG,
+                                                        "Bitmap Config : ${btm.config}, Config : $config"
+                                                    )
+                                                btm.copy(config.bitmapConfig, btm.isMutable)
+                                            } else {
+                                                btm
+                                            }
+                                        ),
+                                        (delay / config.speed).toInt()
+                                    )
+
+                                    when (disposeOp) {
+                                        Utils.Companion.DisposeOp.APNG_DISPOSE_OP_PREVIOUS -> {
+                                            //Do nothings
+                                        }
+                                        // Add current frame to bitmap buffer
+                                        // APNG_DISPOSE_OP_BACKGROUND: the frame's region of the output buffer is to be cleared to fully transparent black before rendering the next frame.
+                                        Utils.Companion.DisposeOp.APNG_DISPOSE_OP_BACKGROUND -> {
+                                            val res = Bitmap.createBitmap(
+                                                maxWidth,
+                                                maxHeight,
+                                                Bitmap.Config.ARGB_8888
+                                            )
+                                            val can = Canvas(res)
+                                            can.drawBitmap(btm, 0f, 0f, null)
+                                            can.drawRect(
+                                                xOffset.toFloat(),
+                                                yOffset.toFloat(),
+                                                xOffset + decoded.width.toFloat(),
+                                                yOffset + decoded.height.toFloat(),
+                                                clearPaint
+                                            )
+                                            buffer = res
+                                        }
+                                        else -> buffer = btm
+                                    }
+                                } else {
+                                    cover?.let {
+                                        it.write(zeroLength)
+                                        // Add IEND
+                                        // Generate crc for IEND
+                                        val crC32 = CRC32()
+                                        crC32.update(Utils.IEND, 0, Utils.IEND.size)
+                                        it.write(Utils.IEND)
+                                        it.write(Utils.uIntToByteArray(crC32.value.toInt()))
+                                        inputStream.close()
+
+                                        val pngBytes = it.toByteArray()
+                                        return BitmapDrawable(
+                                            context.resources,
+                                            BitmapFactory.decodeByteArray(
+                                                pngBytes,
+                                                0,
+                                                pngBytes.size
+                                            )
+                                        )
+                                    }
+                                }
+                            }
+                            name.contentEquals(Utils.IDAT) -> {
+                                val w = if (png == null) {
+                                    if (isApng && !config.decodeCoverFrame) {
+                                        if (BuildConfig.DEBUG)
+                                            Log.d(TAG, "Ignoring cover frame")
+                                        continue
+                                    }
+                                    if (cover == null) {
+                                        cover = ByteArrayOutputStream()
+                                        cover.write(Utils.pngSignature)
+                                        cover.write(
+                                            generateIhdr(
+                                                ihdrOfApng,
+                                                maxWidth,
+                                                maxHeight
+                                            )
+                                        )
+                                    }
+                                    cover
+                                } else {
+                                    png
+                                }
+
+                                // Find the chunk length
+                                val bodySize =
+                                    Utils.uIntFromBytesBigEndian(
+                                        byteArray, 0
+                                    )
+                                w.write(byteArray.copyOfRange(0, 4))
+
+                                val body = ByteArray(4 + bodySize)
+
+                                System.arraycopy(Utils.IDAT, 0, body, 0, 4)
+
+                                // Get image bytes
+                                System.arraycopy(byteArray, 8, body, 4, bodySize)
+
+                                val crC32 = CRC32()
+                                crC32.update(body, 0, body.size)
+                                w.write(body)
+                                w.write(Utils.uIntToByteArray(crC32.value.toInt()))
+                            }
+                            name.contentEquals(Utils.fdAT) -> {
+                                // Find the chunk length
+                                val bodySize = Utils.uIntFromBytesBigEndian(byteArray, 0)
+                                png?.write(Utils.uIntToByteArray(bodySize - 4))
+
+                                val body = ByteArray(bodySize)
+                                System.arraycopy(Utils.IDAT, 0, body, 0, 4)
+
+                                // Get image bytes
+                                System.arraycopy(byteArray, 12, body, 4, bodySize - 4)
+
+                                val crC32 = CRC32()
+                                crC32.update(body, 0, body.size)
+                                png?.write(body)
+                                png?.write(Utils.uIntToByteArray(crC32.value.toInt()))
+                            }
+                            name.contentEquals(Utils.plte) -> {
+                                plte = byteArray
+                            }
+                            name.contentEquals(Utils.tnrs) -> {
+                                tnrs = byteArray
+                            }
+                            name.contentEquals(Utils.IHDR) -> {
+                                // Get length of the body of the chunk
+                                val bodySize = Utils.uIntFromBytesBigEndian(byteArray, 0)
+                                // Get the width of the png
+                                maxWidth = Utils.uIntFromBytesBigEndian(byteArray, 8)
+                                // Get the height of the png
+                                maxHeight = Utils.uIntFromBytesBigEndian(byteArray, 12)
+                                ihdrOfApng = byteArray.copyOfRange(4 + 4, 4 + bodySize + 4)
+
+                                buffer = Bitmap.createBitmap(
+                                    maxWidth,
+                                    maxHeight,
+                                    Bitmap.Config.ARGB_8888
+                                )
+                            }
+                            name.contentEquals(Utils.acTL) -> { // TODO GET NBR REPETITIONS
+                                isApng = true
+                            }
+                        }
+                    } else throw BadCRCException()
+                } while (byteRead != -1)
+                inputStream.close()
+                return drawable
+            } else {
+                if (BuildConfig.DEBUG)
+                    Log.i(TAG, "Decoding non APNG stream")
+                inputStream.reset()
+
+                return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    val bytesRead = inputStream.readBytes()
+                    inputStream.close()
+                    val buf = ByteBuffer.wrap(bytesRead)
+                    val source = ImageDecoder.createSource(buf)
+                    ImageDecoder.decodeDrawable(source)
+                } else {
+                    val drawable = Drawable.createFromStream(
+                        inputStream,
+                        null
+                    )
+                    inputStream.close()
+                    drawable
+                }
+            }
+        }
+
+        /**
+         * Decode Apng and return a Drawable who can be an [ApngDrawable] if it end successfully. Can also be an [android.graphics.drawable.AnimatedImageDrawable].
+         * @param context Context needed for animation drawable.
+         * @param file File to decode.
+         * @param config Decoder configuration
+         * @return [ApngDrawable] if successful and an [AnimatedImageDrawable] if the image decoded is not an APNG but a gif. If it is not an animated image, it is a [Drawable].
+         */
+        @Suppress("unused")
+        @JvmStatic
+        // TODO DOCUMENT
+        fun decodeApng(
+            context: Context,
+            file: File,
+            config: Config = Config()
+        ): Drawable =
+            decodeApng(
+                context,
+                FileInputStream(file), config
+            )
+
+        /**
+         * Decode Apng and return a Drawable who can be an [ApngDrawable] if it end successfully. Can also be an [android.graphics.drawable.AnimatedImageDrawable].
+         * @param context Context is needed for contentResolver and animation drawable.
+         * @param uri Uri to open.
+         * @param config Decoder configuration
+         * @return [ApngDrawable] if successful and an [AnimatedImageDrawable] if the image decoded is not an APNG but a gif.
+         */
+        @Suppress("unused")
+        @JvmStatic
+        fun decodeApng(
+            context: Context,
+            uri: Uri,
+            config: Config = Config()
+        ): Drawable {
+            val inputStream = context.contentResolver.openInputStream(uri)!!
+            return decodeApng(
+                context,
+                inputStream,
+                config
+            )
+        }
+
+        /**
+         * Decode Apng and return a Drawable who can be an [ApngDrawable] if it end successfully. Can also be an [android.graphics.drawable.AnimatedImageDrawable].
+         * @param context Context is needed for contentResolver and animation drawable.
+         * @param res Resource to decode.
+         * @param config Decoder configuration
+         * @return [ApngDrawable] if successful and an [AnimatedImageDrawable] if the image decoded is not an APNG but a gif.
+         */
+        @Suppress("unused")
+        @JvmStatic
+        fun decodeApng(
+            context: Context,
+            @RawRes res: Int,
+            config: Config = Config()
+        ): Drawable =
+            decodeApng(
+                context,
+                context.resources.openRawResource(res),
+                config
+            )
+
+        /**
+         * Decode Apng and return a Drawable who can be an [ApngDrawable] if it end successfully. Can also be an [android.graphics.drawable.AnimatedImageDrawable].
+         * @param context Context is needed for contentResolver and animation drawable.
+         * @param url URL to decode.
+         * @param config Decoder configuration
+         * @return [ApngDrawable] if successful and an [AnimatedImageDrawable] if the image decoded is not an APNG but a gif.
+         */
+        @Suppress("unused", "BlockingMethodInNonBlockingContext")
+        @JvmStatic
+        suspend fun decodeApng(
+            context: Context,
+            url: URL,
+            config: Config = Config()
+        ) =
+            withContext(Dispatchers.IO) {
+                decodeApng(
+                    context,
+                    ByteArrayInputStream(Loader.load(url)),
+                    config
+                )
+            }
+
+        /**
          * Load Apng into an imageView, asynchronously.
          * @param context Context needed for animation drawable.
          * @param file File to decode.
@@ -97,12 +635,12 @@ class ApngDecoder {
             imageView: ImageView,
             callback: Callback? = null,
             config: Config = Config(),
-            scope: CoroutineScope = GlobalScope
+            scope : CoroutineScope = GlobalScope
         ) {
             scope.launch(Dispatchers.IO) {
                 try {
                     val drawable =
-                        ApngDecoder().decodeApng(
+                        decodeApng(
                             context,
                             FileInputStream(file),
                             config
@@ -140,13 +678,13 @@ class ApngDecoder {
             imageView: ImageView,
             callback: Callback? = null,
             config: Config = Config(),
-            scope: CoroutineScope = GlobalScope
+            scope : CoroutineScope = GlobalScope
         ) {
             val inputStream = context.contentResolver.openInputStream(uri)!!
             scope.launch(Dispatchers.IO) {
                 try {
                     val drawable =
-                        ApngDecoder().decodeApng(
+                        decodeApng(
                             context,
                             inputStream,
                             config
@@ -183,12 +721,12 @@ class ApngDecoder {
             imageView: ImageView,
             callback: Callback? = null,
             config: Config = Config(),
-            scope: CoroutineScope = GlobalScope
+            scope : CoroutineScope = GlobalScope
         ) {
             scope.launch(Dispatchers.IO) {
                 try {
                     val drawable =
-                        ApngDecoder().decodeApng(
+                        decodeApng(
                             context,
                             context.resources.openRawResource(res),
                             config
@@ -227,11 +765,11 @@ class ApngDecoder {
             imageView: ImageView,
             callback: Callback? = null,
             config: Config = Config(),
-            scope: CoroutineScope = GlobalScope
+            scope : CoroutineScope = GlobalScope
         ) {
             scope.launch(Dispatchers.IO) {
                 try {
-                    val drawable = ApngDecoder().decodeApng(
+                    val drawable = decodeApng(
                         context,
                         ByteArrayInputStream(
                             Loader.load(
@@ -273,9 +811,9 @@ class ApngDecoder {
             imageView: ImageView,
             callback: Callback? = null,
             config: Config = Config(),
-            scope: CoroutineScope = GlobalScope
+            scope : CoroutineScope = GlobalScope
         ) {
-            scope.launch(Dispatchers.IO) {
+             scope.launch(Dispatchers.IO) {
                 try {
                     if (string.startsWith("http://") || string.startsWith("https://")) {
                         decodeApngAsyncInto(
@@ -298,7 +836,7 @@ class ApngDecoder {
                         )
                     } else if (string.startsWith("file://android_asset/")) {
                         val drawable =
-                            ApngDecoder().decodeApng(
+                            decodeApng(
                                 context,
                                 context.assets.open(string.replace("file:///android_asset/", "")),
 
@@ -362,534 +900,4 @@ class ApngDecoder {
             return ihdr
         }
     }
-
-    /**
-     * Decode Apng and return a Drawable who can be an [ApngDrawable] if it end successfully. Can also be an [android.graphics.drawable.AnimatedImageDrawable].
-     * @param context Context needed for the animation drawable
-     * @param inStream Input Stream to decode. Will be closed at the end.
-     * @param config Decoder configuration
-     * @return [ApngDrawable] if successful and an [AnimatedImageDrawable] if the image decoded is not an APNG but a gif. If it is not an animated image, it is a [Drawable].
-     */
-    // TODO DOCUMENT CONFIG
-    @Suppress("MemberVisibilityCanBePrivate")
-    @JvmOverloads
-    fun decodeApng(
-        context: Context,
-        inStream: InputStream,
-        config: Config = Config()
-    ): Drawable {
-        val inputStream = BufferedInputStream(inStream)
-        val bytes = ByteArray(8)
-        inputStream.mark(8)
-        inputStream.read(bytes)
-
-        if (isPng(bytes)) {
-            var png: ByteArrayOutputStream? = null
-            var cover: ByteArrayOutputStream? = null
-            var delay = -1f
-            var yOffset = -1
-            var xOffset = -1
-            var plte: ByteArray? = null
-            var tnrs: ByteArray? = null
-            var maxWidth = 0
-            var maxHeight = 0
-            var blendOp: Utils.Companion.BlendOp = Utils.Companion.BlendOp.APNG_BLEND_OP_SOURCE
-            var disposeOp: Utils.Companion.DisposeOp =
-                Utils.Companion.DisposeOp.APNG_DISPOSE_OP_NONE
-
-            var ihdrOfApng = ByteArray(0)
-
-            var isApng = false
-
-            val drawable = ApngDrawable().apply {
-                isOneShot = false
-            }
-
-            var buffer: Bitmap? = null
-
-            var byteRead: Int
-            val lengthChunk = ByteArray(4)
-            do {
-                byteRead = inputStream.read(lengthChunk)
-
-                if (byteRead == -1)
-                    break
-
-                val length = Utils.uIntFromBytesBigEndian(lengthChunk)
-
-                val chunk = ByteArray(length + 8)
-                byteRead = inputStream.read(chunk)
-
-                val byteArray = lengthChunk.plus(chunk)
-                val chunkCRC = Utils.uIntFromBytesBigEndian(byteArray, byteArray.size - 4)
-                val crc = CRC32()
-                crc.update(byteArray, 4, byteArray.size - 8)
-                if (chunkCRC == crc.value.toInt()) {
-                    val name = byteArray.copyOfRange(4, 8)
-                    when {
-                        name.contentEquals(Utils.fcTL) -> {
-                            if (png == null) {
-                                if (config.decodeCoverFrame) {
-                                    drawable.coverFrame = cover?.let {
-                                        it.write(zeroLength)
-                                        // Generate crc for IEND
-                                        val crC32 = CRC32()
-                                        crC32.update(Utils.IEND, 0, Utils.IEND.size)
-                                        it.write(Utils.IEND)
-                                        it.write(Utils.uIntToByteArray(crC32.value.toInt()))
-
-                                        val pngBytes = it.toByteArray()
-                                        BitmapFactory.decodeByteArray(
-                                            pngBytes,
-                                            0,
-                                            pngBytes.size
-                                        )
-                                    }
-                                }
-                                cover = null
-                            } else {
-                                // Add IEND body length : 0
-                                png.write(zeroLength)
-                                // Add IEND
-                                // Generate crc for IEND
-                                val crC32 = CRC32()
-                                crC32.update(Utils.IEND, 0, Utils.IEND.size)
-                                png.write(Utils.IEND)
-                                png.write(Utils.uIntToByteArray(crC32.value.toInt()))
-
-                                val btm = Bitmap.createBitmap(
-                                    maxWidth,
-                                    maxHeight,
-                                    Bitmap.Config.ARGB_8888
-                                )
-
-                                val pngBytes = png.toByteArray()
-                                val decoded = BitmapFactory.decodeByteArray(
-                                    pngBytes,
-                                    0,
-                                    pngBytes.size
-                                )
-                                val canvas = Canvas(btm)
-                                canvas.drawBitmap(buffer!!, 0f, 0f, null)
-
-                                if (blendOp == Utils.Companion.BlendOp.APNG_BLEND_OP_SOURCE) {
-                                    canvas.drawRect(
-                                        xOffset.toFloat(),
-                                        yOffset.toFloat(),
-                                        xOffset + decoded.width.toFloat(),
-                                        yOffset + decoded.height.toFloat(),
-                                        clearPaint
-                                    )
-                                }
-
-                                canvas.drawBitmap(
-                                    decoded,
-                                    xOffset.toFloat(),
-                                    yOffset.toFloat(),
-                                    null
-                                )
-
-                                drawable.addFrame(
-                                    BitmapDrawable(
-                                        context.resources,
-                                        if (btm.config != config.bitmapConfig) {
-                                            if (BuildConfig.DEBUG)
-                                                Log.v(
-                                                    TAG,
-                                                    "Bitmap Config : ${btm.config}, Config : $config"
-                                                )
-                                            btm.copy(config.bitmapConfig, btm.isMutable)
-                                        } else {
-                                            btm
-                                        }
-                                    ),
-                                    (delay / config.speed).toInt()
-                                )
-
-                                when (disposeOp) {
-                                    Utils.Companion.DisposeOp.APNG_DISPOSE_OP_PREVIOUS -> {
-                                        //Do nothings
-                                    }
-                                    // Add current frame to bitmap buffer
-                                    // APNG_DISPOSE_OP_BACKGROUND: the frame's region of the output buffer is to be cleared to fully transparent black before rendering the next frame.
-                                    Utils.Companion.DisposeOp.APNG_DISPOSE_OP_BACKGROUND -> {
-                                        val res = Bitmap.createBitmap(
-                                            maxWidth,
-                                            maxHeight,
-                                            Bitmap.Config.ARGB_8888
-                                        )
-                                        val can = Canvas(res)
-                                        can.drawBitmap(btm, 0f, 0f, null)
-                                        can.drawRect(
-                                            xOffset.toFloat(),
-                                            yOffset.toFloat(),
-                                            xOffset + decoded.width.toFloat(),
-                                            yOffset + decoded.height.toFloat(),
-                                            clearPaint
-                                        )
-                                        buffer = res
-                                    }
-                                    else -> buffer = btm
-                                }
-
-                            }
-
-                            png = ByteArrayOutputStream(4096)
-
-                            // Parse Frame ConTroL chunk
-                            // Get the width of the png
-                            val width = Utils.uIntFromBytesBigEndian(
-                                byteArray, 12
-                            )
-                            // Get the height of the png
-                            val height = Utils.uIntFromBytesBigEndian(
-                                byteArray, 16
-                            )
-
-                            /*
-                             * The `delay_num` and `delay_den` parameters together specify a fraction indicating the time to display the current frame, in seconds.
-                             * If the the value of the numerator is 0 the decoder should render the next frame as quickly as possible, though viewers may impose a reasonable lower bound.
-                             */
-                            // Get delay numerator
-                            val delayNum = Utils.uShortFromBytesBigEndian(
-                                byteArray, 28
-                            ).toFloat()
-                            // Get delay denominator
-                            var delayDen = Utils.uShortFromBytesBigEndian(
-                                byteArray, 30
-                            ).toFloat()
-
-                            // If the denominator is 0, it is to be treated as if it were 100 (that is, `delay_num` then specifies 1/100ths of a second).
-                            if (delayDen == 0f) {
-                                delayDen = 100f
-                            }
-
-                            delay = (delayNum / delayDen * 1000)
-
-                            // Get x and y offsets
-                            xOffset = Utils.uIntFromBytesBigEndian(
-                                byteArray, 20
-                            )
-                            yOffset = Utils.uIntFromBytesBigEndian(
-                                byteArray, 24
-                            )
-                            blendOp = Utils.decodeBlendOp(byteArray[33].toInt())
-                            disposeOp = Utils.decodeDisposeOp(byteArray[32].toInt())
-
-                            if (xOffset + width > maxWidth) {
-                                throw BadApngException("`xOffset` + `width` must be <= `IHDR` width")
-                            } else if (yOffset + height > maxHeight) {
-                                throw BadApngException("`yOffset` + `height` must be <= `IHDR` height")
-                            }
-
-                            png.write(Utils.pngSignature)
-                            png.write(
-                                generateIhdr(
-                                    ihdrOfApng,
-                                    width,
-                                    height
-                                )
-                            )
-                            plte?.let {
-                                png.write(it)
-                            }
-                            tnrs?.let {
-                                png.write(it)
-                            }
-
-                        }
-                        name.contentEquals(Utils.IEND) -> {
-                            if (isApng && png != null) {
-                                png.write(zeroLength)
-                                // Add IEND
-                                // Generate crc for IEND
-                                val crC32 = CRC32()
-                                crC32.update(Utils.IEND, 0, Utils.IEND.size)
-                                png.write(Utils.IEND)
-                                png.write(Utils.uIntToByteArray(crC32.value.toInt()))
-
-                                val btm = Bitmap.createBitmap(
-                                    maxWidth,
-                                    maxHeight,
-                                    Bitmap.Config.ARGB_8888
-                                )
-
-                                val pngBytes = png.toByteArray()
-                                val decoded = BitmapFactory.decodeByteArray(
-                                    pngBytes,
-                                    0,
-                                    pngBytes.size
-                                )
-                                val canvas = Canvas(btm)
-                                canvas.drawBitmap(buffer!!, 0f, 0f, null)
-
-                                if (blendOp == Utils.Companion.BlendOp.APNG_BLEND_OP_SOURCE) {
-                                    canvas.drawRect(
-                                        xOffset.toFloat(),
-                                        yOffset.toFloat(),
-                                        xOffset + decoded.width.toFloat(),
-                                        yOffset + decoded.height.toFloat(),
-                                        clearPaint
-                                    )
-                                }
-
-                                canvas.drawBitmap(
-                                    decoded,
-                                    xOffset.toFloat(),
-                                    yOffset.toFloat(),
-                                    null
-                                )
-                                drawable.addFrame(
-                                    BitmapDrawable(
-                                        context.resources,
-                                        if (btm.config != config.bitmapConfig) {
-                                            if (BuildConfig.DEBUG)
-                                                Log.v(
-                                                    TAG,
-                                                    "Bitmap Config : ${btm.config}, Config : $config"
-                                                )
-                                            btm.copy(config.bitmapConfig, btm.isMutable)
-                                        } else {
-                                            btm
-                                        }
-                                    ),
-                                    (delay / config.speed).toInt()
-                                )
-
-                                when (disposeOp) {
-                                    Utils.Companion.DisposeOp.APNG_DISPOSE_OP_PREVIOUS -> {
-                                        //Do nothings
-                                    }
-                                    // Add current frame to bitmap buffer
-                                    // APNG_DISPOSE_OP_BACKGROUND: the frame's region of the output buffer is to be cleared to fully transparent black before rendering the next frame.
-                                    Utils.Companion.DisposeOp.APNG_DISPOSE_OP_BACKGROUND -> {
-                                        val res = Bitmap.createBitmap(
-                                            maxWidth,
-                                            maxHeight,
-                                            Bitmap.Config.ARGB_8888
-                                        )
-                                        val can = Canvas(res)
-                                        can.drawBitmap(btm, 0f, 0f, null)
-                                        can.drawRect(
-                                            xOffset.toFloat(),
-                                            yOffset.toFloat(),
-                                            xOffset + decoded.width.toFloat(),
-                                            yOffset + decoded.height.toFloat(),
-                                            clearPaint
-                                        )
-                                        buffer = res
-                                    }
-                                    else -> buffer = btm
-                                }
-                            } else {
-                                cover?.let {
-                                    it.write(zeroLength)
-                                    // Add IEND
-                                    // Generate crc for IEND
-                                    val crC32 = CRC32()
-                                    crC32.update(Utils.IEND, 0, Utils.IEND.size)
-                                    it.write(Utils.IEND)
-                                    it.write(Utils.uIntToByteArray(crC32.value.toInt()))
-                                    inputStream.close()
-
-                                    val pngBytes = it.toByteArray()
-                                    return BitmapDrawable(
-                                        context.resources,
-                                        BitmapFactory.decodeByteArray(
-                                            pngBytes,
-                                            0,
-                                            pngBytes.size
-                                        )
-                                    )
-                                }
-                            }
-                        }
-                        name.contentEquals(Utils.IDAT) -> {
-                            val w = if (png == null) {
-                                if (isApng && !config.decodeCoverFrame) {
-                                    if (BuildConfig.DEBUG)
-                                        Log.d(TAG, "Ignoring cover frame")
-                                    continue
-                                }
-                                if (cover == null) {
-                                    cover = ByteArrayOutputStream()
-                                    cover.write(Utils.pngSignature)
-                                    cover.write(
-                                        generateIhdr(
-                                            ihdrOfApng,
-                                            maxWidth,
-                                            maxHeight
-                                        )
-                                    )
-                                }
-                                cover
-                            } else {
-                                png
-                            }
-
-                            // Find the chunk length
-                            val bodySize =
-                                Utils.uIntFromBytesBigEndian(
-                                    byteArray, 0
-                                )
-                            w.write(byteArray.copyOfRange(0, 4))
-
-                            val body = ByteArray(4 + bodySize)
-
-                            System.arraycopy(Utils.IDAT, 0, body, 0, 4)
-
-                            // Get image bytes
-                            System.arraycopy(byteArray, 8, body, 4, bodySize)
-
-                            val crC32 = CRC32()
-                            crC32.update(body, 0, body.size)
-                            w.write(body)
-                            w.write(Utils.uIntToByteArray(crC32.value.toInt()))
-                        }
-                        name.contentEquals(Utils.fdAT) -> {
-                            // Find the chunk length
-                            val bodySize = Utils.uIntFromBytesBigEndian(byteArray, 0)
-                            png?.write(Utils.uIntToByteArray(bodySize - 4))
-
-                            val body = ByteArray(bodySize)
-                            System.arraycopy(Utils.IDAT, 0, body, 0, 4)
-
-                            // Get image bytes
-                            System.arraycopy(byteArray, 12, body, 4, bodySize - 4)
-
-                            val crC32 = CRC32()
-                            crC32.update(body, 0, body.size)
-                            png?.write(body)
-                            png?.write(Utils.uIntToByteArray(crC32.value.toInt()))
-                        }
-                        name.contentEquals(Utils.plte) -> {
-                            plte = byteArray
-                        }
-                        name.contentEquals(Utils.tnrs) -> {
-                            tnrs = byteArray
-                        }
-                        name.contentEquals(Utils.IHDR) -> {
-                            // Get length of the body of the chunk
-                            val bodySize = Utils.uIntFromBytesBigEndian(byteArray, 0)
-                            // Get the width of the png
-                            maxWidth = Utils.uIntFromBytesBigEndian(byteArray, 8)
-                            // Get the height of the png
-                            maxHeight = Utils.uIntFromBytesBigEndian(byteArray, 12)
-                            ihdrOfApng = byteArray.copyOfRange(4 + 4, 4 + bodySize + 4)
-
-                            buffer = Bitmap.createBitmap(
-                                maxWidth,
-                                maxHeight,
-                                Bitmap.Config.ARGB_8888
-                            )
-                        }
-                        name.contentEquals(Utils.acTL) -> { // TODO GET NBR REPETITIONS
-                            isApng = true
-                        }
-                    }
-                } else throw BadCRCException()
-            } while (byteRead != -1)
-            inputStream.close()
-            return drawable
-        } else {
-            if (BuildConfig.DEBUG)
-                Log.i(TAG, "Decoding non APNG stream")
-            inputStream.reset()
-
-            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                val bytesRead = inputStream.readBytes()
-                inputStream.close()
-                val buf = ByteBuffer.wrap(bytesRead)
-                val source = ImageDecoder.createSource(buf)
-                ImageDecoder.decodeDrawable(source)
-            } else {
-                val drawable = Drawable.createFromStream(
-                    inputStream,
-                    null
-                )
-                inputStream.close()
-                drawable
-            }
-        }
-    }
-
-    /**
-     * Decode Apng and return a Drawable who can be an [ApngDrawable] if it end successfully. Can also be an [android.graphics.drawable.AnimatedImageDrawable].
-     * @param context Context needed for animation drawable.
-     * @param file File to decode.
-     * @param config Decoder configuration
-     * @return [ApngDrawable] if successful and an [AnimatedImageDrawable] if the image decoded is not an APNG but a gif. If it is not an animated image, it is a [Drawable].
-     */
-    @Suppress("unused")
-    // TODO DOCUMENT
-    fun decodeApng(
-        context: Context,
-        file: File,
-        config: Config = Config()
-    ): Drawable =
-        decodeApng(
-            context,
-            FileInputStream(file), config
-        )
-
-    /**
-     * Decode Apng and return a Drawable who can be an [ApngDrawable] if it end successfully. Can also be an [android.graphics.drawable.AnimatedImageDrawable].
-     * @param context Context is needed for contentResolver and animation drawable.
-     * @param uri Uri to open.
-     * @param config Decoder configuration
-     * @return [ApngDrawable] if successful and an [AnimatedImageDrawable] if the image decoded is not an APNG but a gif.
-     */
-    @Suppress("unused")
-    fun decodeApng(
-        context: Context,
-        uri: Uri,
-        config: Config = Config()
-    ): Drawable {
-        val inputStream = context.contentResolver.openInputStream(uri)!!
-        return decodeApng(
-            context,
-            inputStream,
-            config
-        )
-    }
-
-    /**
-     * Decode Apng and return a Drawable who can be an [ApngDrawable] if it end successfully. Can also be an [android.graphics.drawable.AnimatedImageDrawable].
-     * @param context Context is needed for contentResolver and animation drawable.
-     * @param res Resource to decode.
-     * @param config Decoder configuration
-     * @return [ApngDrawable] if successful and an [AnimatedImageDrawable] if the image decoded is not an APNG but a gif.
-     */
-    @Suppress("unused")
-    fun decodeApng(
-        context: Context,
-        @RawRes res: Int,
-        config: Config = Config()
-    ): Drawable =
-        decodeApng(
-            context,
-            context.resources.openRawResource(res),
-            config
-        )
-
-    /**
-     * Decode Apng and return a Drawable who can be an [ApngDrawable] if it end successfully. Can also be an [android.graphics.drawable.AnimatedImageDrawable].
-     * @param context Context is needed for contentResolver and animation drawable.
-     * @param url URL to decode.
-     * @param config Decoder configuration
-     * @return [ApngDrawable] if successful and an [AnimatedImageDrawable] if the image decoded is not an APNG but a gif.
-     */
-    @Suppress("unused", "BlockingMethodInNonBlockingContext")
-    suspend fun decodeApng(
-        context: Context,
-        url: URL,
-        config: Config = Config()
-    ) =
-        withContext(Dispatchers.IO) {
-            decodeApng(
-                context,
-                ByteArrayInputStream(Loader.load(url)),
-                config
-            )
-        }
 }
