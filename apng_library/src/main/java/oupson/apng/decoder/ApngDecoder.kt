@@ -94,15 +94,17 @@ class ApngDecoder {
         @Suppress("MemberVisibilityCanBePrivate")
         @JvmStatic
         @JvmOverloads
-        fun decodeApng(
+        suspend fun decodeApng(
             context: Context,
             inStream: InputStream,
             config: Config = Config()
-        ): Drawable {
+        ): Drawable = withContext(Dispatchers.Default) {
             val inputStream = BufferedInputStream(inStream)
             val bytes = ByteArray(8)
             inputStream.mark(8)
-            inputStream.read(bytes)
+            withContext(Dispatchers.IO) {
+                inputStream.read(bytes)
+            }
 
             if (isPng(bytes)) {
                 var png: ByteArrayOutputStream? = null
@@ -131,15 +133,25 @@ class ApngDecoder {
                 var byteRead: Int
                 val lengthChunk = ByteArray(4)
                 do {
-                    byteRead = inputStream.read(lengthChunk)
+                    val length : Int
+                    val chunk : ByteArray
+                    if (withContext(Dispatchers.IO) {
+                        byteRead = inputStream.read(lengthChunk)
 
-                    if (byteRead == -1)
+
+                        if (byteRead != -1) {
+                            length = Utils.uIntFromBytesBigEndian(lengthChunk)
+
+                            chunk = ByteArray(length + 8)
+                            byteRead = inputStream.read(chunk)
+                            false
+                        } else {
+                            chunk = ByteArray(0)
+                            true
+                        }
+                    }) {
                         break
-
-                    val length = Utils.uIntFromBytesBigEndian(lengthChunk)
-
-                    val chunk = ByteArray(length + 8)
-                    byteRead = inputStream.read(chunk)
+                    }
 
                     val byteArray = lengthChunk.plus(chunk)
                     val chunkCRC = Utils.uIntFromBytesBigEndian(byteArray, byteArray.size - 4)
@@ -411,10 +423,12 @@ class ApngDecoder {
                                         crC32.update(Utils.IEND, 0, Utils.IEND.size)
                                         it.write(Utils.IEND)
                                         it.write(Utils.uIntToByteArray(crC32.value.toInt()))
-                                        inputStream.close()
+                                        withContext(Dispatchers.IO) {
+                                            inputStream.close()
+                                        }
 
                                         val pngBytes = it.toByteArray()
-                                        return BitmapDrawable(
+                                        return@withContext BitmapDrawable(
                                             context.resources,
                                             BitmapFactory.decodeByteArray(
                                                 pngBytes,
@@ -509,26 +523,35 @@ class ApngDecoder {
                             }
                         }
                     } else throw BadCRCException()
-                } while (byteRead != -1)
-                inputStream.close()
-                return drawable
+                } while (byteRead != -1 && isActive)
+                withContext(Dispatchers.IO) {
+                    inputStream.close()
+                }
+                return@withContext drawable
             } else {
                 if (BuildConfig.DEBUG)
                     Log.i(TAG, "Decoding non APNG stream")
                 inputStream.reset()
 
-                return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    val bytesRead = inputStream.readBytes()
-                    inputStream.close()
+                return@withContext if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    val bytesRead : ByteArray
+                    withContext(Dispatchers.IO) {
+                        bytesRead = inputStream.readBytes()
+                        inputStream.close()
+                    }
                     val buf = ByteBuffer.wrap(bytesRead)
                     val source = ImageDecoder.createSource(buf)
-                    ImageDecoder.decodeDrawable(source)
+                    withContext(Dispatchers.IO) {
+                        ImageDecoder.decodeDrawable(source)
+                    }
                 } else {
                     val drawable = Drawable.createFromStream(
                         inputStream,
                         null
                     )
-                    inputStream.close()
+                    withContext(Dispatchers.IO) {
+                        inputStream.close()
+                    }
                     drawable
                 }
             }
@@ -544,7 +567,7 @@ class ApngDecoder {
         @Suppress("unused")
         @JvmStatic
         // TODO DOCUMENT
-        fun decodeApng(
+        suspend fun decodeApng(
             context: Context,
             file: File,
             config: Config = Config()
@@ -563,7 +586,7 @@ class ApngDecoder {
          */
         @Suppress("unused")
         @JvmStatic
-        fun decodeApng(
+        suspend fun decodeApng(
             context: Context,
             uri: Uri,
             config: Config = Config()
@@ -585,7 +608,7 @@ class ApngDecoder {
          */
         @Suppress("unused")
         @JvmStatic
-        fun decodeApng(
+        suspend fun decodeApng(
             context: Context,
             @RawRes res: Int,
             config: Config = Config()
@@ -637,12 +660,14 @@ class ApngDecoder {
             config: Config = Config(),
             scope : CoroutineScope = GlobalScope
         ) {
-            scope.launch(Dispatchers.IO) {
+            scope.launch(Dispatchers.Default) {
                 try {
                     val drawable =
                         decodeApng(
                             context,
-                            FileInputStream(file),
+                            withContext(Dispatchers.IO) {
+                            FileInputStream(file)
+                                                        },
                             config
                         )
                     withContext(Dispatchers.Main) {
@@ -681,7 +706,7 @@ class ApngDecoder {
             scope : CoroutineScope = GlobalScope
         ) {
             val inputStream = context.contentResolver.openInputStream(uri)!!
-            scope.launch(Dispatchers.IO) {
+            scope.launch(Dispatchers.Default) {
                 try {
                     val drawable =
                         decodeApng(
@@ -723,7 +748,7 @@ class ApngDecoder {
             config: Config = Config(),
             scope : CoroutineScope = GlobalScope
         ) {
-            scope.launch(Dispatchers.IO) {
+            scope.launch(Dispatchers.Default) {
                 try {
                     val drawable =
                         decodeApng(
@@ -767,7 +792,7 @@ class ApngDecoder {
             config: Config = Config(),
             scope : CoroutineScope = GlobalScope
         ) {
-            scope.launch(Dispatchers.IO) {
+            scope.launch(Dispatchers.Default) {
                 try {
                     val drawable = decodeApng(
                         context,
@@ -813,7 +838,7 @@ class ApngDecoder {
             config: Config = Config(),
             scope : CoroutineScope = GlobalScope
         ) {
-             scope.launch(Dispatchers.IO) {
+             scope.launch(Dispatchers.Default) {
                 try {
                     if (string.startsWith("http://") || string.startsWith("https://")) {
                         decodeApngAsyncInto(
