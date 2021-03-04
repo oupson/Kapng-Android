@@ -55,7 +55,7 @@ class ViewerActivity : AppCompatActivity() {
             override fun onError(error: Exception) {
                 Log.e("ViewerActivity", "Error when loading file", error)
             }
-        })
+        }, ApngDecoder.Config(decodeCoverFrame = false))
     }
 
     override fun onRequestPermissionsResult(requestCode: Int,

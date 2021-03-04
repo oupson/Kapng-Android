@@ -430,6 +430,11 @@ class ApngDecoder {
                             }
                             name.contentEquals(Utils.IDAT) -> {
                                 val w = if (png == null) {
+                                    if (isApng && !config.decodeCoverFrame) {
+                                        if (BuildConfig.DEBUG)
+                                            Log.d(TAG, "Ignoring cover frame")
+                                        continue
+                                    }
                                     if (cover == null) {
                                         cover = ByteArrayOutputStream()
                                         cover.write(Utils.pngSignature)
