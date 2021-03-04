@@ -11,10 +11,7 @@ import android.os.Build
 import android.util.Log
 import android.widget.ImageView
 import androidx.annotation.RawRes
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import oupson.apng.BuildConfig
 import oupson.apng.decoder.ApngDecoder.Companion.decodeApng
 import oupson.apng.drawable.ApngDrawable
@@ -52,22 +49,23 @@ class ApngDecoder {
         internal var bitmapConfig: Bitmap.Config = Bitmap.Config.ARGB_8888,
         internal var decodeCoverFrame: Boolean = false
     ) {
-        fun getSpeed() : Float = this.speed
-        fun setSpeed(speed : Float) : Config {
+        fun getSpeed(): Float = this.speed
+        fun setSpeed(speed: Float): Config {
             this.speed = speed
             return this
         }
 
-        fun getBitmapConfig() : Bitmap.Config = this.bitmapConfig
-        fun setBitmapConfig(config : Bitmap.Config) : Config {
+        fun getBitmapConfig(): Bitmap.Config = this.bitmapConfig
+        fun setBitmapConfig(config: Bitmap.Config): Config {
             this.bitmapConfig = config
             return this
         }
 
-        fun isDecodingCoverFrame() : Boolean {
+        fun isDecodingCoverFrame(): Boolean {
             return this.decodeCoverFrame
         }
-        fun setIsDecodingCoverFrame(decodeCoverFrame : Boolean) : Config {
+
+        fun setIsDecodingCoverFrame(decodeCoverFrame: Boolean): Config {
             this.decodeCoverFrame = decodeCoverFrame
             return this
         }
@@ -637,9 +635,10 @@ class ApngDecoder {
             file: File,
             imageView: ImageView,
             callback: Callback? = null,
-            config: Config = Config()
+            config: Config = Config(),
+            scope: CoroutineScope = GlobalScope
         ) {
-            GlobalScope.launch(Dispatchers.IO) {
+            scope.launch(Dispatchers.IO) {
                 try {
                     val drawable =
                         decodeApng(
@@ -679,10 +678,11 @@ class ApngDecoder {
             uri: Uri,
             imageView: ImageView,
             callback: Callback? = null,
-            config: Config = Config()
+            config: Config = Config(),
+            scope: CoroutineScope = GlobalScope
         ) {
             val inputStream = context.contentResolver.openInputStream(uri)!!
-            GlobalScope.launch(Dispatchers.IO) {
+            scope.launch(Dispatchers.IO) {
                 try {
                     val drawable =
                         decodeApng(
@@ -721,9 +721,10 @@ class ApngDecoder {
             context: Context, @RawRes res: Int,
             imageView: ImageView,
             callback: Callback? = null,
-            config: Config = Config()
+            config: Config = Config(),
+            scope: CoroutineScope = GlobalScope
         ) {
-            GlobalScope.launch(Dispatchers.IO) {
+            scope.launch(Dispatchers.IO) {
                 try {
                     val drawable =
                         decodeApng(
@@ -764,9 +765,10 @@ class ApngDecoder {
             url: URL,
             imageView: ImageView,
             callback: Callback? = null,
-            config: Config = Config()
+            config: Config = Config(),
+            scope: CoroutineScope = GlobalScope
         ) {
-            GlobalScope.launch(Dispatchers.IO) {
+            scope.launch(Dispatchers.IO) {
                 try {
                     val drawable = decodeApng(
                         context,
@@ -809,9 +811,10 @@ class ApngDecoder {
             string: String,
             imageView: ImageView,
             callback: Callback? = null,
-            config: Config = Config()
+            config: Config = Config(),
+            scope: CoroutineScope = GlobalScope
         ) {
-            GlobalScope.launch(Dispatchers.IO) {
+            scope.launch(Dispatchers.IO) {
                 try {
                     if (string.startsWith("http://") || string.startsWith("https://")) {
                         decodeApngAsyncInto(
