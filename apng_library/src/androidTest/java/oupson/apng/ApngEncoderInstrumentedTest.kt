@@ -5,6 +5,7 @@ import android.graphics.drawable.BitmapDrawable
 import androidx.test.platform.app.InstrumentationRegistry
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
+import kotlinx.coroutines.runBlocking
 import org.junit.Test
 import oupson.apng.Utils.Companion.areBitmapSimilar
 import oupson.apng.Utils.Companion.getFrame
@@ -57,8 +58,9 @@ class ApngEncoderInstrumentedTest {
         val list = context.assets.list("ball")?.map { getFrame(context, "ball/$it") }!!
 
         val optimisedOutputStream = ByteArrayOutputStream()
-        val optimisedEncoder = ApngEncoder(optimisedOutputStream, list[0].width, list[0].height, list.size)
-            .setOptimiseApng(true)
+        val optimisedEncoder =
+            ApngEncoder(optimisedOutputStream, list[0].width, list[0].height, list.size)
+                .setOptimiseApng(true)
 
         list.forEach {
             optimisedEncoder.writeFrame(it)
@@ -70,8 +72,14 @@ class ApngEncoderInstrumentedTest {
         val bytes = optimisedOutputStream.toByteArray()
         val optimisedInputStream = ByteArrayInputStream(bytes)
 
+
         val optimisedApng =
-            ApngDecoder.decodeApng(context, optimisedInputStream) as AnimationDrawable
+            runBlocking {
+                ApngDecoder.decodeApng(
+                    context,
+                    optimisedInputStream
+                ) as AnimationDrawable
+            }
 
         optimisedInputStream.close()
 
@@ -86,8 +94,9 @@ class ApngEncoderInstrumentedTest {
 
         val nonOptimisedOutputStream = ByteArrayOutputStream()
 
-        val nonOptimisedEncoder = ApngEncoder(nonOptimisedOutputStream, list[0].width, list[0].height, list.size)
-            .setOptimiseApng(false)
+        val nonOptimisedEncoder =
+            ApngEncoder(nonOptimisedOutputStream, list[0].width, list[0].height, list.size)
+                .setOptimiseApng(false)
 
         list.forEach {
             nonOptimisedEncoder.writeFrame(it)
@@ -101,7 +110,12 @@ class ApngEncoderInstrumentedTest {
         val nonOptimisedInputStream = ByteArrayInputStream(nonOptimisedBytes)
 
         val nonOptimisedApng =
-            ApngDecoder.decodeApng(context, nonOptimisedInputStream) as AnimationDrawable
+            runBlocking {
+                ApngDecoder.decodeApng(
+                    context,
+                    nonOptimisedInputStream
+                ) as AnimationDrawable
+            }
         nonOptimisedInputStream.close()
 
         for (i in 0 until optimisedApng.numberOfFrames) {
@@ -120,8 +134,9 @@ class ApngEncoderInstrumentedTest {
         val list = context.assets.list("bunny")?.map { getFrame(context, "bunny/$it") }!!
 
         val optimisedOutputStream = ByteArrayOutputStream()
-        val optimisedEncoder = ApngEncoder(optimisedOutputStream, list[0].width, list[0].height, list.size)
-            .setOptimiseApng(true)
+        val optimisedEncoder =
+            ApngEncoder(optimisedOutputStream, list[0].width, list[0].height, list.size)
+                .setOptimiseApng(true)
 
         list.forEach {
             optimisedEncoder.writeFrame(it)
@@ -134,7 +149,12 @@ class ApngEncoderInstrumentedTest {
         val optimisedInputStream = ByteArrayInputStream(bytes)
 
         val optimisedApng =
-            ApngDecoder.decodeApng(context, optimisedInputStream) as AnimationDrawable
+            runBlocking {
+                ApngDecoder.decodeApng(
+                    context,
+                    optimisedInputStream
+                ) as AnimationDrawable
+            }
 
         optimisedInputStream.close()
 
@@ -149,8 +169,9 @@ class ApngEncoderInstrumentedTest {
 
         val nonOptimisedOutputStream = ByteArrayOutputStream()
 
-        val nonOptimisedEncoder = ApngEncoder(nonOptimisedOutputStream, list[0].width, list[0].height, list.size)
-            .setOptimiseApng(false)
+        val nonOptimisedEncoder =
+            ApngEncoder(nonOptimisedOutputStream, list[0].width, list[0].height, list.size)
+                .setOptimiseApng(false)
 
         list.forEach {
             nonOptimisedEncoder.writeFrame(it)
@@ -164,7 +185,12 @@ class ApngEncoderInstrumentedTest {
         val nonOptimisedInputStream = ByteArrayInputStream(nonOptimisedBytes)
 
         val nonOptimisedApng =
-            ApngDecoder.decodeApng(context, nonOptimisedInputStream) as AnimationDrawable
+            runBlocking {
+                ApngDecoder.decodeApng(
+                    context,
+                    nonOptimisedInputStream
+                ) as AnimationDrawable
+            }
         nonOptimisedInputStream.close()
 
         for (i in 0 until optimisedApng.numberOfFrames) {
