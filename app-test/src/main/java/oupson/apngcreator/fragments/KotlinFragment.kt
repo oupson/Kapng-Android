@@ -13,7 +13,7 @@ import android.widget.SeekBar
 import androidx.fragment.app.Fragment
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_creator.*
-import oupson.apng.decoder.ApngDecoder
+import oupson.apng.decoder.ApngLoader
 import oupson.apng.drawable.ApngDrawable
 import oupson.apngcreator.BuildConfig
 import oupson.apngcreator.R
@@ -22,22 +22,23 @@ import oupson.apngcreator.R
 class KotlinFragment : Fragment() {
     companion object {
         private const val TAG = "KotlinFragment"
+
         @JvmStatic
         fun newInstance() =
             KotlinFragment()
     }
 
-    private var apngImageView : ImageView? = null
-    private var normalImageView : ImageView? = null
+    private var apngImageView: ImageView? = null
+    private var normalImageView: ImageView? = null
 
-    private var pauseButton : Button? = null
-    private var playButton : Button? = null
+    private var pauseButton: Button? = null
+    private var playButton: Button? = null
 
-    private var speedSeekBar : SeekBar? = null
+    private var speedSeekBar: SeekBar? = null
 
     //private var animator : ApngAnimator? = null
-    private var animation : ApngDrawable? = null
-    private var durations : IntArray? = null
+    private var animation: ApngDrawable? = null
+    private var durations: IntArray? = null
 
     private var frameIndex = 0
 
@@ -51,6 +52,8 @@ class KotlinFragment : Fragment() {
     )
     private val selected = 4
 
+    private var apngLoader: ApngLoader? = null
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -59,6 +62,8 @@ class KotlinFragment : Fragment() {
             Log.v(TAG, "onCreateView()")
 
         val view = inflater.inflate(R.layout.fragment_kotlin, container, false)
+
+        apngLoader = ApngLoader()
 
         apngImageView = view.findViewById(R.id.ApngImageView)
         normalImageView = view.findViewById(R.id.NormalImageView)
@@ -126,7 +131,10 @@ class KotlinFragment : Fragment() {
                         res.coverFrame = animation.coverFrame
 
                         for (i in 0 until animation.numberOfFrames) {
-                            res.addFrame(animation.getFrame(i), (durations!![i].toFloat() / speed).toInt())
+                            res.addFrame(
+                                animation.getFrame(i),
+                                (durations!![i].toFloat() / speed).toInt()
+                            )
                         }
 
                         apngImageView?.setImageDrawable(res)
@@ -138,11 +146,11 @@ class KotlinFragment : Fragment() {
         })
 
         if (animation == null) {
-            ApngDecoder.decodeApngAsyncInto(
+            apngLoader?.decodeApngAsyncInto(
                 requireContext(),
                 imageUrls[selected],
                 apngImageView!!,
-                callback = object : ApngDecoder.Callback {
+                callback = object : ApngLoader.Callback {
                     override fun onSuccess(drawable: Drawable) {
                         animation = (drawable as? ApngDrawable)
                         durations = IntArray(animation?.numberOfFrames ?: 0) { i ->

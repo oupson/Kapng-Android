@@ -16,12 +16,15 @@ import androidx.fragment.app.Fragment;
 import org.jetbrains.annotations.NotNull;
 
 import oupson.apng.decoder.ApngDecoder;
+import oupson.apng.decoder.ApngLoader;
 import oupson.apngcreator.BuildConfig;
 import oupson.apngcreator.R;
 
 
 public class JavaFragment extends Fragment {
     private static final String TAG = "JavaActivity";
+
+    private ApngLoader apngLoader = null;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
@@ -36,10 +39,12 @@ public class JavaFragment extends Fragment {
 
         Context context = this.getContext();
 
+        this.apngLoader = new ApngLoader();
+
         if (imageView != null && context != null) {
             if (BuildConfig.DEBUG)
                 Log.v(TAG, "Loading " + imageUrl);
-            ApngDecoder.decodeApngAsyncInto(context, imageUrl, imageView, new ApngDecoder.Callback() {
+            this.apngLoader.decodeApngAsyncInto(context, imageUrl, imageView, new ApngLoader.Callback() {
                 @Override
                 public void onSuccess(@NotNull Drawable drawable) {
                     if (BuildConfig.DEBUG)
@@ -56,4 +61,11 @@ public class JavaFragment extends Fragment {
         return v;
     }
 
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        apngLoader.cancelAll();
+    }
 }
