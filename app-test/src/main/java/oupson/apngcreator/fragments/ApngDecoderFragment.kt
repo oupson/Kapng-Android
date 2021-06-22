@@ -34,7 +34,7 @@ class ApngDecoderFragment : Fragment() {
 
         if (context != null) {
             ApngDecoder.decodeApngAsyncInto(
-                this.context!!,
+                this.requireContext(),
                 URL("https://metagif.files.wordpress.com/2015/01/bugbuckbunny.png"),
                 imageView,
                 config = ApngDecoder.Config(bitmapConfig = Bitmap.Config.RGB_565, decodeCoverFrame = true),

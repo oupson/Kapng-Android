@@ -139,7 +139,7 @@ class KotlinFragment : Fragment() {
 
         if (animation == null) {
             ApngDecoder.decodeApngAsyncInto(
-                this.context!!,
+                requireContext(),
                 imageUrls[selected],
                 apngImageView!!,
                 callback = object : ApngDecoder.Callback {

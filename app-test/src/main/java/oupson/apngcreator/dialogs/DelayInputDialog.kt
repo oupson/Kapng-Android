@@ -30,7 +30,7 @@ class DelayInputDialog(
         if (value != null)
             mNumberEdit?.setText(value.toString())
         return MaterialAlertDialogBuilder(
-            context!!,
+            requireContext(),
             R.style.RoundedCornersDialog
         )
             .setTitle(R.string.delay)

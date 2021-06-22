@@ -46,7 +46,8 @@ class CreatorActivity : AppCompatActivity() {
         private const val WRITE_REQUEST_CODE = 2
         private const val TAG = "CreatorActivity"
 
-        private const val CREATION_CHANNEL_ID = "${BuildConfig.APPLICATION_ID}.notifications_channels.create"
+        private const val CREATION_CHANNEL_ID =
+            "${BuildConfig.APPLICATION_ID}.notifications_channels.create"
     }
 
     private var items: ArrayList<Triple<Uri, Int, Long>> = ArrayList()
@@ -54,7 +55,7 @@ class CreatorActivity : AppCompatActivity() {
     private var firstFrameInAnim = true
     private var optimise = true
 
-    private var nextImageId : Long= 0
+    private var nextImageId: Long = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -129,13 +130,20 @@ class CreatorActivity : AppCompatActivity() {
         return true
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        return when (item?.itemId) {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
             R.id.menu_create_apng -> {
                 if (items.size > 0) {
                     val builder = NotificationCompat.Builder(this, CREATION_CHANNEL_ID).apply {
                         setContentTitle(getString(R.string.create_notification_title))
-                        setContentText(this@CreatorActivity.resources.getQuantityString(R.plurals.create_notification_description, 0, 0, items.size))
+                        setContentText(
+                            this@CreatorActivity.resources.getQuantityString(
+                                R.plurals.create_notification_description,
+                                0,
+                                0,
+                                items.size
+                            )
+                        )
                         setSmallIcon(R.drawable.ic_create_white_24dp)
                         priority = NotificationCompat.PRIORITY_LOW
                     }
@@ -149,7 +157,11 @@ class CreatorActivity : AppCompatActivity() {
                             }
                         }
                         val out = FileOutputStream(f)
-                        saveToOutputStream(items.map { Pair(it.first, it.second) }, out, builder = builder)
+                        saveToOutputStream(
+                            items.map { Pair(it.first, it.second) },
+                            out,
+                            builder = builder
+                        )
                         out.close()
 
                         if (BuildConfig.DEBUG)
@@ -182,7 +194,14 @@ class CreatorActivity : AppCompatActivity() {
                 if (items.size > 0) {
                     val builder = NotificationCompat.Builder(this, CREATION_CHANNEL_ID).apply {
                         setContentTitle(getString(R.string.create_notification_title))
-                        setContentText(this@CreatorActivity.resources.getQuantityString(R.plurals.create_notification_description, 0, 0, items.size))
+                        setContentText(
+                            this@CreatorActivity.resources.getQuantityString(
+                                R.plurals.create_notification_description,
+                                0,
+                                0,
+                                items.size
+                            )
+                        )
                         setSmallIcon(R.drawable.ic_create_white_24dp)
                         priority = NotificationCompat.PRIORITY_LOW
                     }
@@ -195,7 +214,11 @@ class CreatorActivity : AppCompatActivity() {
                             }
                         }
                         val out = FileOutputStream(f)
-                        saveToOutputStream(items.map { Pair(it.first, it.second) }, out, builder = builder)
+                        saveToOutputStream(
+                            items.map { Pair(it.first, it.second) },
+                            out,
+                            builder = builder
+                        )
                         out.close()
 
                         withContext(Dispatchers.Main) {
@@ -285,11 +308,15 @@ class CreatorActivity : AppCompatActivity() {
                 optimise = item.isChecked
                 true
             }
-            else -> if (item != null) super.onOptionsItemSelected(item) else true
+            else -> super.onOptionsItemSelected(item)
         }
     }
 
-    private suspend fun saveToOutputStream(files : Collection<Pair<Uri, Int>>, outputStream: OutputStream, builder : NotificationCompat.Builder? = null) {
+    private suspend fun saveToOutputStream(
+        files: Collection<Pair<Uri, Int>>,
+        outputStream: OutputStream,
+        builder: NotificationCompat.Builder? = null
+    ) {
         var maxWidth = 0
         var maxHeight = 0
         var notificationManagerCompat: NotificationManagerCompat?
@@ -334,8 +361,15 @@ class CreatorActivity : AppCompatActivity() {
             if (builder != null) {
                 withContext(Dispatchers.Main) {
                     notificationManagerCompat = NotificationManagerCompat.from(this@CreatorActivity)
-                    builder.setProgress(files.size, i+1, false)
-                        .setContentText(this@CreatorActivity.resources.getQuantityString(R.plurals.create_notification_description, i +1, i + 1, files.size))
+                    builder.setProgress(files.size, i + 1, false)
+                        .setContentText(
+                            this@CreatorActivity.resources.getQuantityString(
+                                R.plurals.create_notification_description,
+                                i + 1,
+                                i + 1,
+                                files.size
+                            )
+                        )
                     notificationManagerCompat?.notify(1, builder.build())
                 }
             }
@@ -375,9 +409,8 @@ class CreatorActivity : AppCompatActivity() {
             }
         }
 
-        runCatching { // TODO
-            encoder.writeEnd()
-        }
+        encoder.writeEnd()
+
 
         if (builder != null) {
             withContext(Dispatchers.Main) {
@@ -414,14 +447,25 @@ class CreatorActivity : AppCompatActivity() {
 
                         val builder = NotificationCompat.Builder(this, CREATION_CHANNEL_ID).apply {
                             setContentTitle(getString(R.string.create_notification_title))
-                            setContentText(this@CreatorActivity.resources.getQuantityString(R.plurals.create_notification_description, 0, 0, items.size))
+                            setContentText(
+                                this@CreatorActivity.resources.getQuantityString(
+                                    R.plurals.create_notification_description,
+                                    0,
+                                    0,
+                                    items.size
+                                )
+                            )
                             setSmallIcon(R.drawable.ic_create_white_24dp)
                             priority = NotificationCompat.PRIORITY_LOW
                         }
                         GlobalScope.launch(Dispatchers.IO) {
 
                             val out = contentResolver.openOutputStream(data.data!!) ?: return@launch
-                            saveToOutputStream(items.map { Pair(it.first, it.second) }, out, builder = builder)
+                            saveToOutputStream(
+                                items.map { Pair(it.first, it.second) },
+                                out,
+                                builder = builder
+                            )
                             out.close()
 
                             withContext(Dispatchers.Main) {
