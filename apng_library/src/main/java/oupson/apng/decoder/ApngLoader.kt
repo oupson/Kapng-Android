@@ -153,7 +153,9 @@ class ApngLoader(parent: Job? = null) {
         imageView: ImageView,
         config: ApngDecoder.Config = ApngDecoder.Config()
     ): Result<Drawable> {
-        val result = ApngDecoder.constructFromUrl(url, config).getDecoded(context)
+        val result =
+            ApngDecoder.constructFromUrl(url, config).getOrElse { return Result.failure(it) }
+                .getDecoded(context)
         if (result.isSuccess) {
             withContext(Dispatchers.Main) {
                 val drawable = result.getOrNull()
@@ -204,10 +206,10 @@ class ApngLoader(parent: Job? = null) {
                 withContext(Dispatchers.IO) {
                     context.assets.open(string.replace("file:///android_asset/", ""))
                 }
-            }.onFailure {
+            }.getOrElse {
                 return Result.failure(it)
             }
-            val result = ApngDecoder(inputStream.getOrThrow(), config).getDecoded(context)
+            val result = ApngDecoder(inputStream, config).getDecoded(context)
             if (result.isSuccess) {
                 withContext(Dispatchers.Main) {
                     val drawable = result.getOrNull()
@@ -246,11 +248,9 @@ class ApngLoader(parent: Job? = null) {
         coroutineScope.launch(Dispatchers.Default) {
             val drawable = decodeApngInto(context, file, imageView, config)
             withContext(Dispatchers.Main) {
-                if (drawable.isSuccess) {
-                    callback?.onSuccess(drawable.getOrNull()!!)
-                } else {
-                    callback?.onError(drawable.exceptionOrNull()!!)
-                }
+                drawable
+                    .onSuccess { callback?.onSuccess(it) }
+                    .onFailure { callback?.onError(it) }
             }
         }
 
@@ -274,11 +274,9 @@ class ApngLoader(parent: Job? = null) {
     ) = coroutineScope.launch(Dispatchers.Default) {
         val drawable = decodeApngInto(context, uri, imageView, config)
         withContext(Dispatchers.Main) {
-            if (drawable.isSuccess) {
-                callback?.onSuccess(drawable.getOrNull()!!)
-            } else {
-                callback?.onError(drawable.exceptionOrNull()!!)
-            }
+            drawable
+                .onSuccess { callback?.onSuccess(it) }
+                .onFailure { callback?.onError(it) }
         }
     }
 
@@ -300,11 +298,9 @@ class ApngLoader(parent: Job? = null) {
     ) = coroutineScope.launch(Dispatchers.Default) {
         val drawable = decodeApngInto(context, res, imageView, config)
         withContext(Dispatchers.Main) {
-            if (drawable.isSuccess) {
-                callback?.onSuccess(drawable.getOrNull()!!)
-            } else {
-                callback?.onError(drawable.exceptionOrNull()!!)
-            }
+            drawable
+                .onSuccess { callback?.onSuccess(it) }
+                .onFailure { callback?.onError(it) }
         }
     }
 
@@ -327,13 +323,12 @@ class ApngLoader(parent: Job? = null) {
     ) = coroutineScope.launch(Dispatchers.Default) {
         val drawable = decodeApngInto(context, url, imageView, config)
         withContext(Dispatchers.Main) {
-            if (drawable.isSuccess) {
-                callback?.onSuccess(drawable.getOrNull()!!)
-            } else {
-                callback?.onError(drawable.exceptionOrNull()!!)
-            }
+            drawable
+                .onSuccess { callback?.onSuccess(it) }
+                .onFailure { callback?.onError(it) }
         }
     }
+
 
     /**
      * Load Apng into an imageView, asynchronously.
