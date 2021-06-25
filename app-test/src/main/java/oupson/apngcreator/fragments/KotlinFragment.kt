@@ -11,8 +11,7 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.SeekBar
 import androidx.fragment.app.Fragment
-import com.squareup.picasso.Picasso
-import kotlinx.android.synthetic.main.activity_creator.*
+import coil.load
 import oupson.apng.decoder.ApngLoader
 import oupson.apng.drawable.ApngDrawable
 import oupson.apngcreator.BuildConfig
@@ -145,7 +144,7 @@ class KotlinFragment : Fragment() {
             }
         })
 
-        if (animation == null) {
+        if ((animation == null)) {
             apngLoader?.decodeApngAsyncInto(
                 requireContext(),
                 imageUrls[selected],
@@ -158,13 +157,13 @@ class KotlinFragment : Fragment() {
                         }
                     }
 
-                    override fun onError(error: Exception) {
+                    override fun onError(error: Throwable) {
                         Log.e(TAG, "Error when decoding apng", error)
                     }
                 })
         }
 
-        Picasso.get().load(imageUrls[selected]).into(normalImageView)
+        normalImageView?.load(imageUrls[selected])
     }
 
     override fun onPause() {

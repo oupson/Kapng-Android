@@ -9,16 +9,19 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import kotlinx.android.synthetic.main.activity_viewer.*
 import oupson.apng.decoder.ApngDecoder
 import oupson.apng.decoder.ApngLoader
-import oupson.apngcreator.R
+import oupson.apngcreator.databinding.ActivityViewerBinding
 
 class ViewerActivity : AppCompatActivity() {
     private var apngLoader: ApngLoader? = null
+    private var binding: ActivityViewerBinding? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_viewer)
+        binding = ActivityViewerBinding.inflate(layoutInflater)
+
+        setContentView(binding?.root)
 
         this.apngLoader = ApngLoader()
 
@@ -54,18 +57,20 @@ class ViewerActivity : AppCompatActivity() {
 
     private fun load() {
         val uri = intent.data ?: return
-        apngLoader?.decodeApngAsyncInto(
-            this,
-            uri,
-            viewerImageView,
-            callback = object : ApngLoader.Callback {
-                override fun onSuccess(drawable: Drawable) {}
-                override fun onError(error: Throwable) {
-                    Log.e("ViewerActivity", "Error when loading file", error)
-                }
-            },
-            ApngDecoder.Config(decodeCoverFrame = false)
-        )
+
+        if (binding != null)
+            apngLoader?.decodeApngAsyncInto(
+                this,
+                uri,
+                binding!!.viewerImageView,
+                callback = object : ApngLoader.Callback {
+                    override fun onSuccess(drawable: Drawable) {}
+                    override fun onError(error: Throwable) {
+                        Log.e("ViewerActivity", "Error when loading file", error)
+                    }
+                },
+                ApngDecoder.Config(decodeCoverFrame = false)
+            )
     }
 
     override fun onRequestPermissionsResult(

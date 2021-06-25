@@ -10,9 +10,9 @@ import android.widget.ImageView
 import androidx.annotation.RawRes
 import kotlinx.coroutines.*
 import oupson.apng.drawable.ApngDrawable
+import oupson.apng.utils.Utils.Companion.mapResult
 import java.io.File
 import java.io.FileInputStream
-import java.io.FileNotFoundException
 import java.net.URL
 
 class ApngLoader(parent: Job? = null) {
@@ -50,18 +50,18 @@ class ApngLoader(parent: Job? = null) {
         file: File,
         imageView: ImageView,
         config: ApngDecoder.Config = ApngDecoder.Config()
-    ): Result<Drawable> {
-        val result =
+    ): Result<Drawable> =
+        kotlin.runCatching {
+            withContext(Dispatchers.IO) {
+                FileInputStream(file)
+            }
+        }.mapResult { input ->
             ApngDecoder(
-                withContext(Dispatchers.IO) {
-                    FileInputStream(file)
-                },
+                input,
                 config
             ).getDecoded(context)
-
-        if (result.isSuccess) {
+        }.onSuccess { drawable ->
             withContext(Dispatchers.Main) {
-                val drawable = result.getOrNull()
                 imageView.setImageDrawable(drawable)
                 (drawable as? AnimationDrawable)?.start()
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -69,8 +69,6 @@ class ApngLoader(parent: Job? = null) {
                 }
             }
         }
-        return result
-    }
 
     /**
      * Load Apng into an imageView.
@@ -84,19 +82,16 @@ class ApngLoader(parent: Job? = null) {
         uri: Uri,
         imageView: ImageView,
         config: ApngDecoder.Config = ApngDecoder.Config()
-    ): Result<Drawable> {
-        val inputStream =
-            withContext(Dispatchers.IO) { context.contentResolver.openInputStream(uri) }
-                ?: throw FileNotFoundException("Failed to load $uri") // TODO Result
-        val result =
+    ): Result<Drawable> =
+        kotlin.runCatching {
+            withContext(Dispatchers.IO) { context.contentResolver.openInputStream(uri) }!!
+        }.mapResult { inputStream ->
             ApngDecoder(
                 inputStream,
                 config
             ).getDecoded(context)
-
-        if (result.isSuccess) {
+        }.onSuccess { drawable ->
             withContext(Dispatchers.Main) {
-                val drawable = result.getOrNull()
                 imageView.setImageDrawable(drawable)
                 (drawable as? AnimationDrawable)?.start()
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -104,8 +99,7 @@ class ApngLoader(parent: Job? = null) {
                 }
             }
         }
-        return result
-    }
+
 
     /**
      * Load Apng into an imageView.
@@ -118,27 +112,23 @@ class ApngLoader(parent: Job? = null) {
         context: Context, @RawRes res: Int,
         imageView: ImageView,
         config: ApngDecoder.Config = ApngDecoder.Config()
-    ): Result<Drawable> {
-        val result =
-            ApngDecoder(
-                withContext(Dispatchers.IO) {
-                    context.resources.openRawResource(res)
-                },
-                config
-            ).getDecoded(context)
-
-        if (result.isSuccess) {
-            withContext(Dispatchers.Main) {
-                val drawable = result.getOrNull()
-                imageView.setImageDrawable(drawable)
-                (drawable as? AnimationDrawable)?.start()
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    (drawable as? AnimatedImageDrawable)?.start()
+    ): Result<Drawable> =
+        ApngDecoder(
+            withContext(Dispatchers.IO) {
+                context.resources.openRawResource(res)
+            },
+            config
+        ).getDecoded(context)
+            .onSuccess { drawable ->
+                withContext(Dispatchers.Main) {
+                    imageView.setImageDrawable(drawable)
+                    (drawable as? AnimationDrawable)?.start()
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        (drawable as? AnimatedImageDrawable)?.start()
+                    }
                 }
             }
-        }
-        return result
-    }
+
 
     /**
      * Load Apng into an imageView, asynchronously.
@@ -152,23 +142,18 @@ class ApngLoader(parent: Job? = null) {
         url: URL,
         imageView: ImageView,
         config: ApngDecoder.Config = ApngDecoder.Config()
-    ): Result<Drawable> {
-        val result =
-            ApngDecoder.constructFromUrl(url, config).getOrElse { return Result.failure(it) }
-                .getDecoded(context)
-        if (result.isSuccess) {
-            withContext(Dispatchers.Main) {
-                val drawable = result.getOrNull()
-                imageView.setImageDrawable(drawable)
-                (drawable as? AnimationDrawable)?.start()
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    (drawable as? AnimatedImageDrawable)?.start()
+    ): Result<Drawable> =
+        ApngDecoder.constructFromUrl(url, config).getOrElse { return Result.failure(it) }
+            .getDecoded(context)
+            .onSuccess { drawable ->
+                withContext(Dispatchers.Main) {
+                    imageView.setImageDrawable(drawable)
+                    (drawable as? AnimationDrawable)?.start()
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        (drawable as? AnimatedImageDrawable)?.start()
+                    }
                 }
             }
-        }
-
-        return result
-    }
 
     /**
      * Load Apng into an imageView, asynchronously.
@@ -185,12 +170,16 @@ class ApngLoader(parent: Job? = null) {
         config: ApngDecoder.Config = ApngDecoder.Config()
     ): Result<Drawable> {
         return if (string.startsWith("http://") || string.startsWith("https://")) {
-            decodeApngInto(
-                context,
-                URL(string),
-                imageView,
-                config
-            )
+            kotlin.runCatching { URL(string) }
+                .mapResult { url ->
+                    decodeApngInto(
+                        context,
+                        url,
+                        imageView,
+                        config
+                    )
+                }
+
         } else if (File(string).exists()) {
             var pathToLoad =
                 if (string.startsWith("content://")) string else "file://$string"
@@ -202,25 +191,21 @@ class ApngLoader(parent: Job? = null) {
                 config
             )
         } else if (string.startsWith("file://android_asset/")) {
-            val inputStream = kotlin.runCatching {
+            kotlin.runCatching {
                 withContext(Dispatchers.IO) {
                     context.assets.open(string.replace("file:///android_asset/", ""))
                 }
-            }.getOrElse {
-                return Result.failure(it)
             }
-            val result = ApngDecoder(inputStream, config).getDecoded(context)
-            if (result.isSuccess) {
-                withContext(Dispatchers.Main) {
-                    val drawable = result.getOrNull()
-                    imageView.setImageDrawable(drawable)
-                    (drawable as? AnimationDrawable)?.start()
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                        (drawable as? AnimatedImageDrawable)?.start()
+                .mapResult { inputStream -> ApngDecoder(inputStream, config).getDecoded(context) }
+                .onSuccess { drawable ->
+                    withContext(Dispatchers.Main) {
+                        imageView.setImageDrawable(drawable)
+                        (drawable as? AnimationDrawable)?.start()
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                            (drawable as? AnimatedImageDrawable)?.start()
+                        }
                     }
                 }
-            }
-            result
         } else {
             throw Exception("Cannot open string")
         }

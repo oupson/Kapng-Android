@@ -208,7 +208,7 @@ class Utils {
                     (bytes[1] and 0xFF))
 
         // TODO DOCUMENT AND TEST
-        fun uShortFromBytesBigEndian(bytes: ByteArray, offset : Int = 0): Int =
+        fun uShortFromBytesBigEndian(bytes: ByteArray, offset: Int = 0): Int =
             (((bytes[offset].toInt() and 0xFF) shl 8) or
                     (bytes[offset + 1].toInt() and 0xFF))
 
@@ -329,6 +329,15 @@ class Utils {
                 }
             }
             return result
+        }
+
+        suspend fun <T, U> Result<T>.mapResult(block: suspend (T) -> Result<U>): Result<U> {
+            return this.fold(
+                onSuccess = {
+                    block.invoke(it)
+                },
+                onFailure = { Result.failure(it) }
+            )
         }
     }
 }

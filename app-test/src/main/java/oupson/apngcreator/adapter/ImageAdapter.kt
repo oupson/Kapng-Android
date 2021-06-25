@@ -10,21 +10,25 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import oupson.apngcreator.R
 
-class ImageAdapter(private val context : Context, private val list : List<Triple<Uri, Int, Long>>) : RecyclerView.Adapter<ImageAdapter.ImageHolder>() {
-    inner class ImageHolder(view : View) : RecyclerView.ViewHolder(view) {
-        val imageView : ImageView? = view.findViewById(R.id.listImageView)
-        val textDelay : TextView? = view.findViewById(R.id.textDelay)
-        val positionTextView : TextView? = view.findViewById(R.id.position_textView)
-        val nameTextView : TextView? = view.findViewById(R.id.name_textView)
+class ImageAdapter(
+    private val context: Context,
+    private val list: List<Triple<Uri, Int, Long>>,
+    private val scope: CoroutineScope
+) : RecyclerView.Adapter<ImageAdapter.ImageHolder>() {
+    inner class ImageHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val imageView: ImageView? = view.findViewById(R.id.listImageView)
+        val textDelay: TextView? = view.findViewById(R.id.textDelay)
+        val positionTextView: TextView? = view.findViewById(R.id.position_textView)
+        val nameTextView: TextView? = view.findViewById(R.id.name_textView)
     }
 
-    var clickListener : ((position : Int) -> Unit)? = null
+    var clickListener: ((position: Int) -> Unit)? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -36,7 +40,7 @@ class ImageAdapter(private val context : Context, private val list : List<Triple
         holder.textDelay?.text = String.format("%dms", list[position].second)
         holder.positionTextView?.text = String.format("# %03d", holder.adapterPosition + 1)
         holder.nameTextView?.text = list[position].first.path?.substringAfterLast("/")
-        GlobalScope.launch(Dispatchers.IO) {
+        scope.launch(Dispatchers.IO) {
             val inputStream = context.contentResolver.openInputStream(list[position].first)
             val btm =
                 BitmapFactory.decodeStream(inputStream, null, BitmapFactory.Options().apply {

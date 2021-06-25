@@ -71,6 +71,7 @@ class ApngDecoder(input: InputStream, val config: Config) {
                 val inputStream = BufferedInputStream(inputStream)
                 val bytes = ByteArray(8)
                 inputStream.mark(8)
+
                 withContext(Dispatchers.IO) {
                     inputStream.read(bytes)
                 }
@@ -107,7 +108,6 @@ class ApngDecoder(input: InputStream, val config: Config) {
                         val chunk: ByteArray
                         if (withContext(Dispatchers.IO) {
                                 byteRead = inputStream.read(lengthChunk)
-
 
                                 if (byteRead != -1) {
                                     length = Utils.uIntFromBytesBigEndian(lengthChunk)
@@ -149,6 +149,7 @@ class ApngDecoder(input: InputStream, val config: Config) {
                                                 )
                                             }
                                         }
+                                        cover?.close()
                                         cover = null
                                     } else {
                                         // Add IEND body length : 0
@@ -234,9 +235,9 @@ class ApngDecoder(input: InputStream, val config: Config) {
                                             }
                                             else -> buffer = btm
                                         }
-
                                     }
 
+                                    png?.close()
                                     png = ByteArrayOutputStream(4096)
 
                                     // Parse Frame ConTroL chunk
@@ -318,6 +319,7 @@ class ApngDecoder(input: InputStream, val config: Config) {
                                         )
 
                                         val pngBytes = png.toByteArray()
+                                        png.close()
                                         val decoded = BitmapFactory.decodeByteArray(
                                             pngBytes,
                                             0,
@@ -393,11 +395,14 @@ class ApngDecoder(input: InputStream, val config: Config) {
                                             crC32.update(Utils.IEND, 0, Utils.IEND.size)
                                             it.write(Utils.IEND)
                                             it.write(Utils.uIntToByteArray(crC32.value.toInt()))
+
                                             withContext(Dispatchers.IO) {
                                                 inputStream.close()
                                             }
 
                                             val pngBytes = it.toByteArray()
+                                            it.close()
+
                                             return@withContext BitmapDrawable(
                                                 context.resources,
                                                 BitmapFactory.decodeByteArray(
@@ -530,16 +535,14 @@ class ApngDecoder(input: InputStream, val config: Config) {
 
     suspend fun getDecoded(context: Context): Result<Drawable> {
         if (result == null) {
-            result =
-                decodeApng(context)
-
+            result = decodeApng(context)
 
             kotlin.runCatching {
                 withContext(Dispatchers.IO) {
                     inputStream?.close()
                 }
             }.onFailure {
-                return Result.failure(it)
+                this.result = Result.failure(it)
             }
 
             inputStream = null
