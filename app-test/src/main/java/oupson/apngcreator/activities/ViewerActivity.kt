@@ -60,7 +60,7 @@ class ViewerActivity : AppCompatActivity() {
             viewerImageView,
             callback = object : ApngLoader.Callback {
                 override fun onSuccess(drawable: Drawable) {}
-                override fun onError(error: Exception) {
+                override fun onError(error: Throwable) {
                     Log.e("ViewerActivity", "Error when loading file", error)
                 }
             },

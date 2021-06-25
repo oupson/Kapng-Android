@@ -52,7 +52,7 @@ public class JavaFragment extends Fragment {
                 }
 
                 @Override
-                public void onError(@NotNull Exception error) {
+                public void onError(@NotNull Throwable error) {
                     Log.e(TAG, "Error : " + error.toString());
                 }
             }, new ApngDecoder.Config().setIsDecodingCoverFrame(false));

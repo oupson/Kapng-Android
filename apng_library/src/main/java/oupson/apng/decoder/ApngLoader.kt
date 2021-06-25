@@ -10,8 +10,6 @@ import android.widget.ImageView
 import androidx.annotation.RawRes
 import kotlinx.coroutines.*
 import oupson.apng.drawable.ApngDrawable
-import oupson.apng.utils.Loader
-import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileNotFoundException
@@ -29,7 +27,7 @@ class ApngLoader(parent: Job? = null) {
          * Function called when something gone wrong.
          * @param error The problem.
          */
-        fun onError(error: Exception)
+        fun onError(error: Throwable)
     }
 
     private val job = SupervisorJob(parent)
@@ -52,23 +50,26 @@ class ApngLoader(parent: Job? = null) {
         file: File,
         imageView: ImageView,
         config: ApngDecoder.Config = ApngDecoder.Config()
-    ): Drawable {
-        val drawable =
-            ApngDecoder.decodeApng(
-                context,
+    ): Result<Drawable> {
+        val result =
+            ApngDecoder(
                 withContext(Dispatchers.IO) {
                     FileInputStream(file)
                 },
                 config
-            )
-        withContext(Dispatchers.Main) {
-            imageView.setImageDrawable(drawable)
-            (drawable as? AnimationDrawable)?.start()
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                (drawable as? AnimatedImageDrawable)?.start()
+            ).getDecoded(context)
+
+        if (result.isSuccess) {
+            withContext(Dispatchers.Main) {
+                val drawable = result.getOrNull()
+                imageView.setImageDrawable(drawable)
+                (drawable as? AnimationDrawable)?.start()
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    (drawable as? AnimatedImageDrawable)?.start()
+                }
             }
         }
-        return drawable
+        return result
     }
 
     /**
@@ -83,25 +84,27 @@ class ApngLoader(parent: Job? = null) {
         uri: Uri,
         imageView: ImageView,
         config: ApngDecoder.Config = ApngDecoder.Config()
-    ): Drawable {
+    ): Result<Drawable> {
         val inputStream =
             withContext(Dispatchers.IO) { context.contentResolver.openInputStream(uri) }
-                ?: throw FileNotFoundException("Failed to load $uri") // TODO Better err ?
-        val drawable =
-            ApngDecoder.decodeApng(
-                context,
+                ?: throw FileNotFoundException("Failed to load $uri") // TODO Result
+        val result =
+            ApngDecoder(
                 inputStream,
                 config
-            )
-        withContext(Dispatchers.Main) {
-            imageView.setImageDrawable(drawable)
-            (drawable as? AnimationDrawable)?.start()
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                (drawable as? AnimatedImageDrawable)?.start()
+            ).getDecoded(context)
+
+        if (result.isSuccess) {
+            withContext(Dispatchers.Main) {
+                val drawable = result.getOrNull()
+                imageView.setImageDrawable(drawable)
+                (drawable as? AnimationDrawable)?.start()
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    (drawable as? AnimatedImageDrawable)?.start()
+                }
             }
         }
-
-        return drawable
+        return result
     }
 
     /**
@@ -115,21 +118,26 @@ class ApngLoader(parent: Job? = null) {
         context: Context, @RawRes res: Int,
         imageView: ImageView,
         config: ApngDecoder.Config = ApngDecoder.Config()
-    ): Drawable {
-        val drawable =
-            ApngDecoder.decodeApng(
-                context,
-                context.resources.openRawResource(res),
+    ): Result<Drawable> {
+        val result =
+            ApngDecoder(
+                withContext(Dispatchers.IO) {
+                    context.resources.openRawResource(res)
+                },
                 config
-            )
-        withContext(Dispatchers.Main) {
-            imageView.setImageDrawable(drawable)
-            (drawable as? AnimationDrawable)?.start()
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                (drawable as? AnimatedImageDrawable)?.start()
+            ).getDecoded(context)
+
+        if (result.isSuccess) {
+            withContext(Dispatchers.Main) {
+                val drawable = result.getOrNull()
+                imageView.setImageDrawable(drawable)
+                (drawable as? AnimationDrawable)?.start()
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    (drawable as? AnimatedImageDrawable)?.start()
+                }
             }
         }
-        return drawable
+        return result
     }
 
     /**
@@ -144,26 +152,20 @@ class ApngLoader(parent: Job? = null) {
         url: URL,
         imageView: ImageView,
         config: ApngDecoder.Config = ApngDecoder.Config()
-    ): Drawable {
-
-        val drawable = ApngDecoder.decodeApng(
-            context,
-            ByteArrayInputStream(
-                Loader.load(
-                    url
-                )
-            ),
-            config
-        )
-        withContext(Dispatchers.Main) {
-            imageView.setImageDrawable(drawable)
-            (drawable as? AnimationDrawable)?.start()
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                (drawable as? AnimatedImageDrawable)?.start()
+    ): Result<Drawable> {
+        val result = ApngDecoder.constructFromUrl(url, config).getDecoded(context)
+        if (result.isSuccess) {
+            withContext(Dispatchers.Main) {
+                val drawable = result.getOrNull()
+                imageView.setImageDrawable(drawable)
+                (drawable as? AnimationDrawable)?.start()
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    (drawable as? AnimatedImageDrawable)?.start()
+                }
             }
         }
 
-        return drawable
+        return result
     }
 
     /**
@@ -179,7 +181,7 @@ class ApngLoader(parent: Job? = null) {
         string: String,
         imageView: ImageView,
         config: ApngDecoder.Config = ApngDecoder.Config()
-    ): Drawable {
+    ): Result<Drawable> {
         return if (string.startsWith("http://") || string.startsWith("https://")) {
             decodeApngInto(
                 context,
@@ -198,21 +200,25 @@ class ApngLoader(parent: Job? = null) {
                 config
             )
         } else if (string.startsWith("file://android_asset/")) {
-            val drawable =
-                ApngDecoder.decodeApng(
-                    context,
-                    context.assets.open(string.replace("file:///android_asset/", "")),
-
-                    config
-                )
-            withContext(Dispatchers.Main) {
-                imageView.setImageDrawable(drawable)
-                (drawable as? AnimationDrawable)?.start()
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    (drawable as? AnimatedImageDrawable)?.start()
+            val inputStream = kotlin.runCatching {
+                withContext(Dispatchers.IO) {
+                    context.assets.open(string.replace("file:///android_asset/", ""))
+                }
+            }.onFailure {
+                return Result.failure(it)
+            }
+            val result = ApngDecoder(inputStream.getOrThrow(), config).getDecoded(context)
+            if (result.isSuccess) {
+                withContext(Dispatchers.Main) {
+                    val drawable = result.getOrNull()
+                    imageView.setImageDrawable(drawable)
+                    (drawable as? AnimationDrawable)?.start()
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        (drawable as? AnimatedImageDrawable)?.start()
+                    }
                 }
             }
-            drawable
+            result
         } else {
             throw Exception("Cannot open string")
         }
@@ -228,7 +234,7 @@ class ApngLoader(parent: Job? = null) {
      * @param callback [ApngLoader.Callback] to handle success and error.
      * @param config Decoder configuration
      */
-    @Suppress("unused", "BlockingMethodInNonBlockingContext")
+    @Suppress("unused")
     @JvmOverloads
     fun decodeApngAsyncInto(
         context: Context,
@@ -238,11 +244,13 @@ class ApngLoader(parent: Job? = null) {
         config: ApngDecoder.Config = ApngDecoder.Config()
     ) =
         coroutineScope.launch(Dispatchers.Default) {
-            try {
-                val drawable = decodeApngInto(context, file, imageView, config)
-                callback?.onSuccess(drawable)
-            } catch (e: Exception) {
-                callback?.onError(e)
+            val drawable = decodeApngInto(context, file, imageView, config)
+            withContext(Dispatchers.Main) {
+                if (drawable.isSuccess) {
+                    callback?.onSuccess(drawable.getOrNull()!!)
+                } else {
+                    callback?.onError(drawable.exceptionOrNull()!!)
+                }
             }
         }
 
@@ -264,11 +272,13 @@ class ApngLoader(parent: Job? = null) {
         callback: Callback? = null,
         config: ApngDecoder.Config = ApngDecoder.Config()
     ) = coroutineScope.launch(Dispatchers.Default) {
-        try {
-            val drawable = decodeApngInto(context, uri, imageView, config)
-            callback?.onSuccess(drawable)
-        } catch (e: Exception) {
-            callback?.onError(e)
+        val drawable = decodeApngInto(context, uri, imageView, config)
+        withContext(Dispatchers.Main) {
+            if (drawable.isSuccess) {
+                callback?.onSuccess(drawable.getOrNull()!!)
+            } else {
+                callback?.onError(drawable.exceptionOrNull()!!)
+            }
         }
     }
 
@@ -288,11 +298,13 @@ class ApngLoader(parent: Job? = null) {
         callback: Callback? = null,
         config: ApngDecoder.Config = ApngDecoder.Config()
     ) = coroutineScope.launch(Dispatchers.Default) {
-        try {
-            val drawable = decodeApngInto(context, res, imageView, config)
-            callback?.onSuccess(drawable)
-        } catch (e: Exception) {
-            callback?.onError(e)
+        val drawable = decodeApngInto(context, res, imageView, config)
+        withContext(Dispatchers.Main) {
+            if (drawable.isSuccess) {
+                callback?.onSuccess(drawable.getOrNull()!!)
+            } else {
+                callback?.onError(drawable.exceptionOrNull()!!)
+            }
         }
     }
 
@@ -304,7 +316,7 @@ class ApngLoader(parent: Job? = null) {
      * @param callback [ApngLoader.Callback] to handle success and error.
      * @param config Decoder configuration
      */
-    @Suppress("unused", "BlockingMethodInNonBlockingContext")
+    @Suppress("unused")
     @JvmOverloads
     fun decodeApngAsyncInto(
         context: Context,
@@ -313,11 +325,13 @@ class ApngLoader(parent: Job? = null) {
         callback: Callback? = null,
         config: ApngDecoder.Config = ApngDecoder.Config()
     ) = coroutineScope.launch(Dispatchers.Default) {
-        try {
-            val drawable = decodeApngInto(context, url, imageView, config)
-            callback?.onSuccess(drawable)
-        } catch (e: Exception) {
-            callback?.onError(e)
+        val drawable = decodeApngInto(context, url, imageView, config)
+        withContext(Dispatchers.Main) {
+            if (drawable.isSuccess) {
+                callback?.onSuccess(drawable.getOrNull()!!)
+            } else {
+                callback?.onError(drawable.exceptionOrNull()!!)
+            }
         }
     }
 
@@ -339,12 +353,12 @@ class ApngLoader(parent: Job? = null) {
         config: ApngDecoder.Config = ApngDecoder.Config()
     ) =
         coroutineScope.launch(Dispatchers.Default) {
-            try {
-                val drawable = decodeApngInto(context, string, imageView, config)
-                callback?.onSuccess(drawable)
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    callback?.onError(e)
+            val drawable = decodeApngInto(context, string, imageView, config)
+            withContext(Dispatchers.Main) {
+                if (drawable.isSuccess) {
+                    callback?.onSuccess(drawable.getOrNull()!!)
+                } else {
+                    callback?.onError(drawable.exceptionOrNull()!!)
                 }
             }
         }
