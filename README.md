@@ -9,16 +9,16 @@
 
 ## To load an animated png to an imageView : 
 ```kotlin
-val imageUrl = "https://upload.wikimedia.org/wikipedia/commons/1/14/Animated_PNG_example_bouncing_beach_ball.png"
+val imageUrl = URL("https://upload.wikimedia.org/wikipedia/commons/1/14/Animated_PNG_example_bouncing_beach_ball.png")
 
-ApngDecoder.decodeApngAsyncInto(context, URL(url), imageView)
+ApngDecoder.decodeApngAsyncInto(context, imageUrl, imageView)
 ```
 
 You can load a file, an uri, a resource int, an url, or an inputStream.
 
 ## With a callback :
 ```kotlin
-ApngDecoder.decodeApngAsyncInto(this, uri, viewerImageView, callback = object : ApngDecoder.Callback {
+ApngDecoder.decodeApngAsyncInto(context, imageUrl, imageView, callback = object : ApngDecoder.Callback {
   override fun onSuccess(drawable: Drawable) { println("Success !") }
   override fun onError(error: Exception) { println("Error : $error") }
 })
