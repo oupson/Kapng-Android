@@ -14,18 +14,18 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.FileProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.android.synthetic.main.activity_creator.*
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import oupson.apng.encoder.ApngEncoder
@@ -33,6 +33,7 @@ import oupson.apng.utils.Utils
 import oupson.apngcreator.BuildConfig
 import oupson.apngcreator.R
 import oupson.apngcreator.adapter.ImageAdapter
+import oupson.apngcreator.databinding.ActivityCreatorBinding
 import oupson.apngcreator.dialogs.DelayInputDialog
 import java.io.File
 import java.io.FileOutputStream
@@ -42,8 +43,6 @@ import kotlin.collections.ArrayList
 
 class CreatorActivity : AppCompatActivity() {
     companion object {
-        private const val PICK_IMAGE = 1
-        private const val WRITE_REQUEST_CODE = 2
         private const val TAG = "CreatorActivity"
 
         private const val CREATION_CHANNEL_ID =
@@ -57,35 +56,97 @@ class CreatorActivity : AppCompatActivity() {
 
     private var nextImageId: Long = 0
 
+    private var binding: ActivityCreatorBinding? = null
+
+    private val pickLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val data: Intent? = result.data
+
+                if (data?.clipData != null) {
+                    for (i in 0 until data.clipData!!.itemCount) {
+                        items.add(Triple(data.clipData!!.getItemAt(i).uri, 1000, nextImageId++))
+                    }
+                    adapter?.notifyDataSetChanged()
+                } else if (data?.data != null) {
+                    items.add(Triple(data.data!!, 1000, nextImageId++))
+                    adapter?.notifyDataSetChanged()
+                }
+            }
+        }
+
+    private val writeLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val data: Intent? = result.data
+
+                if (data?.data != null) {
+                    if (BuildConfig.DEBUG)
+                        Log.i(TAG, "Intent data : ${data.data}")
+
+                    val builder = NotificationCompat.Builder(this, CREATION_CHANNEL_ID).apply {
+                        setContentTitle(getString(R.string.create_notification_title))
+                        setContentText(
+                            this@CreatorActivity.resources.getQuantityString(
+                                R.plurals.create_notification_description,
+                                0,
+                                0,
+                                items.size
+                            )
+                        )
+                        setSmallIcon(R.drawable.ic_create_white_24dp)
+                        priority = NotificationCompat.PRIORITY_LOW
+                    }
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        val out = contentResolver.openOutputStream(data.data!!) ?: return@launch
+                        saveToOutputStream(
+                            items.map { Pair(it.first, it.second) },
+                            out,
+                            builder = builder
+                        )
+                        out.close()
+
+                        if (binding != null) {
+                            withContext(Dispatchers.Main) {
+                                Snackbar.make(
+                                    binding!!.imageRecyclerView,
+                                    R.string.done,
+                                    Snackbar.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        binding = ActivityCreatorBinding.inflate(layoutInflater)
 
-        setContentView(R.layout.activity_creator)
+        setContentView(binding?.root)
 
-        fabAddImage.setOnClickListener {
+        binding?.fabAddImage?.setOnClickListener {
             val getIntent = Intent(Intent.ACTION_GET_CONTENT)
             getIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
             getIntent.type = "image/*"
 
-            startActivityForResult(
-                getIntent,
-                PICK_IMAGE
-            )
+            pickLauncher.launch(getIntent)
         }
 
-        adapter = ImageAdapter(this, items)
+        adapter = ImageAdapter(this, items, lifecycleScope)
         adapter?.setHasStableIds(true)
 
-        imageRecyclerView.layoutManager = LinearLayoutManager(this)
-        imageRecyclerView.setHasFixedSize(true)
-        imageRecyclerView.itemAnimator = object : DefaultItemAnimator() {
+        binding?.imageRecyclerView?.layoutManager = LinearLayoutManager(this)
+        binding?.imageRecyclerView?.setHasFixedSize(true)
+        binding?.imageRecyclerView?.itemAnimator = object : DefaultItemAnimator() {
             override fun canReuseUpdatedViewHolder(viewHolder: RecyclerView.ViewHolder): Boolean {
                 return true
             }
         }
-        imageRecyclerView.setItemViewCacheSize(20)
+        binding?.imageRecyclerView?.setItemViewCacheSize(20)
         if (adapter != null)
-            ItemTouchHelper(SwipeToDeleteCallback(adapter!!)).attachToRecyclerView(imageRecyclerView)
+            ItemTouchHelper(SwipeToDeleteCallback(adapter!!)).attachToRecyclerView(binding?.imageRecyclerView)
 
         adapter?.clickListener = { position ->
             DelayInputDialog(object : DelayInputDialog.InputSenderDialogListener {
@@ -104,8 +165,8 @@ class CreatorActivity : AppCompatActivity() {
             }, items[position].second).show(supportFragmentManager, null)
         }
 
-        setSupportActionBar(creatorBottomAppBar)
-        imageRecyclerView.adapter = adapter
+        setSupportActionBar(binding?.creatorBottomAppBar)
+        binding?.imageRecyclerView?.adapter = adapter
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -148,7 +209,7 @@ class CreatorActivity : AppCompatActivity() {
                         priority = NotificationCompat.PRIORITY_LOW
                     }
 
-                    GlobalScope.launch(Dispatchers.IO) {
+                    lifecycleScope.launch(Dispatchers.IO) {
                         val randomFileName = UUID.randomUUID().toString()
                         val f = File(filesDir, "images/$randomFileName.png").apply {
                             if (!exists()) {
@@ -205,7 +266,7 @@ class CreatorActivity : AppCompatActivity() {
                         setSmallIcon(R.drawable.ic_create_white_24dp)
                         priority = NotificationCompat.PRIORITY_LOW
                     }
-                    GlobalScope.launch(Dispatchers.IO) {
+                    lifecycleScope.launch(Dispatchers.IO) {
                         val randomFileName = UUID.randomUUID().toString()
                         val f = File(filesDir, "images/$randomFileName.png").apply {
                             if (!exists()) {
@@ -272,7 +333,10 @@ class CreatorActivity : AppCompatActivity() {
                         type = "image/png"
                         putExtra(Intent.EXTRA_TITLE, "${items[0].first.lastPathSegment}.png")
                     }
-                    startActivityForResult(intent, WRITE_REQUEST_CODE)
+
+                    writeLauncher.launch(
+                        intent
+                    )
                 }
                 true
             }
@@ -409,7 +473,9 @@ class CreatorActivity : AppCompatActivity() {
             }
         }
 
-        encoder.writeEnd()
+        withContext(Dispatchers.IO) {
+            encoder.writeEnd()
+        }
 
 
         if (builder != null) {
@@ -423,71 +489,14 @@ class CreatorActivity : AppCompatActivity() {
 
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        when (requestCode) {
-            PICK_IMAGE -> {
-                if (resultCode == Activity.RESULT_OK) {
-                    if (data?.clipData != null) {
-                        for (i in 0 until data.clipData!!.itemCount) {
-                            items.add(Triple(data.clipData!!.getItemAt(i).uri, 1000, nextImageId++))
-                        }
-                        adapter?.notifyDataSetChanged()
-                    } else if (data?.data != null) {
-                        items.add(Triple(data.data!!, 1000, nextImageId++))
-                        adapter?.notifyDataSetChanged()
-                    }
-                }
-            }
-            WRITE_REQUEST_CODE -> {
-                if (resultCode == Activity.RESULT_OK) {
-                    if (data?.data != null) {
-                        if (BuildConfig.DEBUG)
-                            Log.i(TAG, "Intent data : ${data.data}")
-
-                        val builder = NotificationCompat.Builder(this, CREATION_CHANNEL_ID).apply {
-                            setContentTitle(getString(R.string.create_notification_title))
-                            setContentText(
-                                this@CreatorActivity.resources.getQuantityString(
-                                    R.plurals.create_notification_description,
-                                    0,
-                                    0,
-                                    items.size
-                                )
-                            )
-                            setSmallIcon(R.drawable.ic_create_white_24dp)
-                            priority = NotificationCompat.PRIORITY_LOW
-                        }
-                        GlobalScope.launch(Dispatchers.IO) {
-
-                            val out = contentResolver.openOutputStream(data.data!!) ?: return@launch
-                            saveToOutputStream(
-                                items.map { Pair(it.first, it.second) },
-                                out,
-                                builder = builder
-                            )
-                            out.close()
-
-                            withContext(Dispatchers.Main) {
-                                Snackbar.make(
-                                    imageRecyclerView,
-                                    R.string.done,
-                                    Snackbar.LENGTH_SHORT
-                                ).show()
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     override fun onDestroy() {
         super.onDestroy()
 
-        val deleteResult = File(filesDir, "images").deleteRecursively()
-        if (BuildConfig.DEBUG)
-            Log.v(TAG, "Deleted images dir : $deleteResult")
+        lifecycleScope.launch(Dispatchers.IO) {
+            val deleteResult = File(filesDir, "images").deleteRecursively()
+            if (BuildConfig.DEBUG)
+                Log.v(TAG, "Deleted images dir : $deleteResult")
+        }
     }
 
     inner class SwipeToDeleteCallback(private val adapter: ImageAdapter) :

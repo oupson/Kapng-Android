@@ -291,7 +291,7 @@ class ApngEncoder(
     ) {
         if (currentFrame == 0) {
             if (btm.width != width || btm.height != height)
-                throw InvalidFrameSizeException(
+                throw InvalidFrameSizeException( // TODO
                     btm.width,
                     btm.height,
                     width,
