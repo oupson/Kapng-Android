@@ -32,9 +32,9 @@ android {
 }
 
 dependencies {
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4'
+    implementation libs.kotlinx.coroutines.android
 
-    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation libs.appcompat
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test:runner:1.5.2'

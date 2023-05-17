@@ -1,0 +1,12 @@
+[versions]
+kotlinx-coroutines = "1.6.4"
+appcompat = "1.6.1"
+
+[libraries]
+kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
+appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+
+[bundles]
+
+[plugins]
+

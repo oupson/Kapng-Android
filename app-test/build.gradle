@@ -44,9 +44,9 @@ android {
 }
 
 dependencies {
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4'
+    implementation libs.kotlinx.coroutines.android
 
-    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation libs.appcompat
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'com.google.android.material:material:1.9.0'
