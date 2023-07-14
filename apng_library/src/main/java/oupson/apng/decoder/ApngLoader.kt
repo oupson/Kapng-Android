@@ -190,7 +190,7 @@ class ApngLoader(parent: Job? = null) {
                 imageView,
                 config
             )
-        } else if (string.startsWith("file://android_asset/")) {
+        } else if (string.startsWith("file:///android_asset/")) {
             kotlin.runCatching {
                 withContext(Dispatchers.IO) {
                     context.assets.open(string.replace("file:///android_asset/", ""))
