@@ -2,27 +2,24 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion 33
+    compileSdk 34
 
     defaultConfig {
         applicationId "oupson.apngcreator"
-        minSdkVersion 19
-        targetSdkVersion 33
+        minSdkVersion 21
+        targetSdk 34
         versionCode 2
         versionName "1.0.11"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    // Configure only for each module that uses Java 8
-    // language features (either in its source code or
-    // through dependencies).
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '17'
     }
 
     buildTypes {
@@ -37,6 +34,7 @@ android {
     }
 
     buildFeatures {
+        buildConfig = true
         viewBinding = true
     }
     namespace 'oupson.apngcreator'
@@ -47,16 +45,16 @@ dependencies {
     implementation libs.kotlinx.coroutines.android
 
     implementation libs.appcompat
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation 'com.google.android.material:material:1.9.0'
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.1'
+    implementation libs.constraintlayout
+    implementation libs.legacy.support.v4
+    implementation libs.material
+    implementation libs.lifecycle.runtime.ktx
 
-    testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test:runner:1.5.2'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    testImplementation libs.junit
+    androidTestImplementation libs.runner
+    androidTestImplementation libs.espresso.core
 
-    implementation("io.coil-kt:coil:1.2.2")
+    implementation(libs.coil)
 
     implementation project(":apng_library")
     // implementation fileTree(include: ['*.aar'], dir: 'libs')
